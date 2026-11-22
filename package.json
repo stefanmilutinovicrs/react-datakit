@@ -56,6 +56,16 @@
         "default": "./dist/combobox/index.cjs"
       }
     },
+    "./multiselect": {
+      "import": {
+        "types": "./dist/multiselect/index.d.ts",
+        "default": "./dist/multiselect/index.js"
+      },
+      "require": {
+        "types": "./dist/multiselect/index.d.cts",
+        "default": "./dist/multiselect/index.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },

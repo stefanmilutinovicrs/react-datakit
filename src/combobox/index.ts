@@ -1,4 +1,5 @@
 export { Combobox } from './Combobox';
+export type { ComboboxProps } from './Combobox';
 export type {
   ComboboxEmptyProps,
   ComboboxErrorProps,
@@ -14,15 +15,17 @@ export type {
   ComboboxOptionState,
   ComboboxPopupProps,
   ComboboxPopupState,
-  ComboboxProps,
   ComboboxRootState,
   ComboboxStatusPartState,
-} from './Combobox';
+} from './parts';
 export { useCombobox } from './useCombobox';
+export type { UseComboboxOptions, UseComboboxReturn } from './useCombobox';
 export type {
+  ComboboxBaseOptions,
+  ComboboxCore,
+  ComboboxPartPrefix,
+  ComboboxRow,
   ComboboxStatus,
   HighlightOrigin,
   LoadOptionsContext,
-  UseComboboxOptions,
-  UseComboboxReturn,
-} from './useCombobox';
+} from './useComboboxCore';

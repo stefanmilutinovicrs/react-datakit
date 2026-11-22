@@ -4,7 +4,7 @@
     "path": "dist/index.js",
     "import": "*",
     "ignore": ["react", "react-dom"],
-    "limit": "5 kB"
+    "limit": "8 kB"
   },
   {
     "name": "react-datakit/combobox (ESM)",
@@ -12,5 +12,12 @@
     "import": "{ Combobox }",
     "ignore": ["react", "react-dom"],
     "limit": "5 kB"
+  },
+  {
+    "name": "react-datakit/multiselect (ESM)",
+    "path": "dist/multiselect/index.js",
+    "import": "{ MultiSelect }",
+    "ignore": ["react", "react-dom"],
+    "limit": "7 kB"
   }
 ]
