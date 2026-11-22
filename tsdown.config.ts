@@ -1,10 +1,11 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  // One entry per public subpath. New components add their own entry here
-  // (e.g. 'combobox/index': 'src/combobox/index.ts') and a matching "exports" key.
+  // One entry per public subpath, each with a matching "exports" key in package.json
+  // and a line in .size-limit.json.
   entry: {
     index: 'src/index.ts',
+    'combobox/index': 'src/combobox/index.ts',
   },
   format: ['esm', 'cjs'],
   platform: 'neutral',

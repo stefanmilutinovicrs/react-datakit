@@ -50,6 +50,88 @@
     cursor: not-allowed;
   }
 
+  /* Combobox */
+
+  :where([data-dk-part='combobox']) {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--dk-space-1);
+    min-width: 16rem;
+    color: var(--dk-text);
+  }
+
+  :where([data-dk-part='combobox-label']) {
+    font-weight: 500;
+  }
+
+  :where([data-dk-part='combobox-input']) {
+    height: var(--dk-control-height);
+    padding: 0 var(--dk-space-2);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--dk-surface);
+    color: var(--dk-text);
+  }
+
+  :where([data-dk-part='combobox-input'][data-state='open']) {
+    border-color: var(--dk-accent);
+  }
+
+  :where([data-dk-part='combobox-popup']) {
+    position: absolute;
+    top: calc(100% + var(--dk-space-1));
+    left: 0;
+    right: 0;
+    z-index: 10;
+    padding: var(--dk-space-1);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--dk-surface);
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
+  }
+
+  :where([data-dk-part='combobox-list']) {
+    max-height: 18rem;
+  }
+
+  :where([data-dk-part='combobox-option']) {
+    display: flex;
+    align-items: center;
+    gap: var(--dk-space-2);
+    padding: 0 var(--dk-space-2);
+    border-radius: calc(var(--dk-radius) - 2px);
+    cursor: default;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :where([data-dk-part='combobox-option'][data-highlighted]) {
+    background: var(--dk-accent-soft);
+  }
+
+  :where([data-dk-part='combobox-option'][data-selected]) {
+    color: var(--dk-accent-strong);
+    font-weight: 600;
+  }
+
+  :where([data-dk-part='combobox-empty'], [data-dk-part='combobox-loading'], [data-dk-part='combobox-error']) {
+    padding: var(--dk-space-2);
+    color: var(--dk-text-muted);
+  }
+
+  :where([data-dk-part='combobox-error'] button) {
+    margin-inline-start: var(--dk-space-2);
+    color: var(--dk-accent-strong);
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :where([data-dk-part]) {
       transition: none;
@@ -61,6 +143,11 @@
     :where([data-dk-part]:focus-visible) {
       outline: 2px solid CanvasText;
       box-shadow: none;
+    }
+
+    :where([data-dk-part='combobox-option'][data-highlighted]) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
     }
   }
 }

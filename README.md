@@ -20,13 +20,13 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 
 ## Components
 
-| Component       | What it solves                                    | Status  |
-| --------------- | ------------------------------------------------- | ------- |
-| Combobox        | Pick one value from a long, searchable list       | planned |
-| MultiSelect     | Pick several values, shown as removable chips     | planned |
-| DateRangePicker | Pick a period for dashboards, with presets        | planned |
-| FilterBar       | Linear/Notion-style filters, serialized to a URL  | planned |
-| Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned |
+| Component       | What it solves                                    | Status              |
+| --------------- | ------------------------------------------------- | ------------------- |
+| Combobox        | Pick one value from a long, searchable list       | experimental (v0.1) |
+| MultiSelect     | Pick several values, shown as removable chips     | planned             |
+| DateRangePicker | Pick a period for dashboards, with presets        | planned             |
+| FilterBar       | Linear/Notion-style filters, serialized to a URL  | planned             |
+| Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned             |
 
 ## Quick start
 
@@ -34,8 +34,25 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 npm install react-datakit
 ```
 
-```ts
+```tsx
+import { Combobox } from 'react-datakit/combobox';
 import 'react-datakit/styles.css'; // optional default theme
+
+<Combobox
+  loadOptions={(query, { signal }) => fetchUsers(query, { signal })}
+  itemToString={(user) => user?.name ?? ''}
+  itemToKey={(user) => user.id}
+  onChange={setAssignee}
+>
+  <Combobox.Label>Assignee</Combobox.Label>
+  <Combobox.Input placeholder="Search people…" />
+  <Combobox.Popup>
+    <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+    <Combobox.Empty>No people found</Combobox.Empty>
+    <Combobox.Loading>Searching…</Combobox.Loading>
+    <Combobox.Error>{({ retry }) => <button onClick={retry}>Try again</button>}</Combobox.Error>
+  </Combobox.Popup>
+</Combobox>;
 ```
 
 ```css

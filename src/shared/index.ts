@@ -4,3 +4,8 @@ export type { SetControllableState, UseControllableStateParams } from './useCont
 export { useDebounce } from './useDebounce';
 export { useId } from './useId';
 export { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
+export { mergeProps } from './mergeProps';
+export { Part } from './Part';
+export type { DataAttributes, PartProps } from './Part';
+export { useLatestRef } from './useLatestRef';
+export { useMergedRefs } from './useMergedRefs';
