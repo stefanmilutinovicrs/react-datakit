@@ -1,0 +1,9 @@
+[
+  {
+    "name": "react-datakit (whole package, ESM)",
+    "path": "dist/index.js",
+    "import": "*",
+    "ignore": ["react", "react-dom"],
+    "limit": "1 kB"
+  }
+]

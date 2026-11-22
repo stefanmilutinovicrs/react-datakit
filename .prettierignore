@@ -1,0 +1,7 @@
+dist
+storybook-static
+coverage
+.vitest
+package-lock.json
+CHANGELOG.md
+.changeset/*.md

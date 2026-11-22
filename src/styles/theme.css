@@ -1,0 +1,66 @@
+/*
+ * react-datakit default theme (optional): import 'react-datakit/styles.css'.
+ *
+ * Rules:
+ * - Everything lives in @layer datakit, so any unlayered user CSS wins
+ *   regardless of specificity or load order.
+ * - Selectors only inside :where() (specificity 0).
+ * - Parts are targeted by [data-dk-part], state by data attributes
+ *   (data-state, data-highlighted, data-selected, data-disabled, data-loading).
+ * - Most users only need --dk-accent; the other colors derive from it.
+ *
+ * With Tailwind v4, declare the layer order first in your main CSS file:
+ *   @layer datakit, theme, base, components, utilities;
+ */
+@layer datakit {
+  :where(:root) {
+    color-scheme: light dark;
+
+    --dk-accent: #2563eb;
+    --dk-radius: 6px;
+    --dk-font-size: inherit;
+
+    --dk-surface: light-dark(#ffffff, #18181b);
+    --dk-text: light-dark(#18181b, #f4f4f5);
+    --dk-text-muted: light-dark(#52525b, #a1a1aa);
+    --dk-border: light-dark(#d4d4d8, #3f3f46);
+
+    --dk-accent-soft: color-mix(in oklab, var(--dk-accent) 12%, var(--dk-surface));
+    --dk-accent-strong: color-mix(in oklab, var(--dk-accent) 85%, var(--dk-text));
+    --dk-focus-ring: 0 0 0 2px var(--dk-surface), 0 0 0 4px var(--dk-accent);
+
+    --dk-space-1: 4px;
+    --dk-space-2: 8px;
+    --dk-control-height: 36px;
+  }
+
+  :where([data-dk-part]) {
+    font: inherit;
+    font-size: var(--dk-font-size);
+    box-sizing: border-box;
+  }
+
+  :where([data-dk-part]:focus-visible) {
+    outline: none;
+    box-shadow: var(--dk-focus-ring);
+  }
+
+  :where([data-dk-part][data-disabled]) {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :where([data-dk-part]) {
+      transition: none;
+      animation: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    :where([data-dk-part]:focus-visible) {
+      outline: 2px solid CanvasText;
+      box-shadow: none;
+    }
+  }
+}

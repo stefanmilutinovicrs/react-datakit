@@ -1,0 +1,23 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Introduction" />
+
+# react-datakit
+
+Headless, accessible React components for data-heavy B2B apps: admin panels, dashboards and ERP systems.
+
+| Component       | What it solves                                 | Status  |
+| --------------- | ---------------------------------------------- | ------- |
+| Combobox        | Pick one value from a long, searchable list    | planned |
+| MultiSelect     | Pick several values, shown as chips            | planned |
+| DateRangePicker | Pick a period for dashboards, with presets     | planned |
+| FilterBar       | Linear/Notion-style filters, serialized to URL | planned |
+| Sparkline       | Tiny pure-SVG chart for tables and cards       | planned |
+
+## Principles
+
+- **Headless core + hook.** Every component is a hook (`useCombobox`) plus compound components built on it.
+- **Controlled or uncontrolled.** Every value works with `value` + `onChange` or `defaultValue`.
+- **WAI-ARIA Authoring Practices.** Roles, `aria-*` attributes and keyboard behavior follow the official patterns.
+- **Style with anything.** State is exposed as data attributes (`data-state`, `data-highlighted`, `data-selected`).
+- **Optional theme.** `import 'react-datakit/styles.css'` and change `--dk-accent`; your CSS always wins.

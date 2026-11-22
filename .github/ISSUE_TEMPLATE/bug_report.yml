@@ -1,0 +1,92 @@
+name: '🐛 Bug report'
+description: Report a reproducible bug or regression
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reporting an issue.
+
+        This tracker is for reproducible bugs and regressions. For questions, use
+        [Discussions](https://github.com/stefanmilutinovicrs/react-datakit/discussions).
+        Please search [existing issues](https://github.com/stefanmilutinovicrs/react-datakit/issues?q=is%3Aissue) first.
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear and concise description of the problem.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Your minimal, reproducible example
+      description: A link to a runnable reproduction (StackBlitz or CodeSandbox) with no dependencies other than React and react-datakit.
+      placeholder: e.g. StackBlitz or CodeSandbox
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Focus the combobox input
+        2. Press ArrowDown
+        3. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: I expected ___, but I am seeing ___
+    validations:
+      required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - Combobox
+        - MultiSelect
+        - DateRangePicker
+        - FilterBar
+        - Sparkline
+        - Theme / styles
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: assistive-tech
+    attributes:
+      label: Assistive technology
+      description: If this is an accessibility bug, which screen reader or tool and which version?
+      placeholder: e.g. NVDA 2026.3 with Firefox, VoiceOver on macOS 26
+  - type: textarea
+    id: platform
+    attributes:
+      label: Platform
+      placeholder: |
+        - OS: [e.g. macOS, Windows, Linux, iOS, Android]
+        - Browser and version: [e.g. Chrome 142]
+        - Framework: [e.g. Next.js 16 App Router, Vite]
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: react-datakit version
+      description: The exact version, not "latest".
+      placeholder: e.g. v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: react-version
+    attributes:
+      label: React version
+      placeholder: e.g. 19.3.1
+    validations:
+      required: true
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context

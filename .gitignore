@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+storybook-static/
+coverage/
+*.tsbuildinfo
+*.tgz
+
+# tests
+.vitest/
+__screenshots__/
+
+# local AI tooling (not part of the project)
+CLAUDE.md
+.claude/
+
+# misc
+.DS_Store
+.env
+.env.*
+*.log
+.vscode/settings.json
+.idea/
