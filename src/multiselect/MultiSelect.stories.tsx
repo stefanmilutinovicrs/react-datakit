@@ -74,7 +74,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Pick several values; selected values are chips. Built on the Combobox core: arrows move the highlight, Enter toggles and keeps the list open, Backspace in an empty input removes the last chip, ArrowLeft/ArrowRight move through the chips.',
+          'Pick several values; selected values are chips. Built on the Combobox core: arrows move the highlight, Enter toggles and keeps the list open, Backspace in an empty input removes the last chip, ArrowLeft/ArrowRight move through the chips. While focus is outside the component, chips stay on one line and the rest are counted by "+N more"; with focus inside, every chip is shown and chips wrap.',
       },
     },
   },
@@ -183,7 +183,7 @@ export const Controlled: Story = {
 };
 
 export const Overflow: Story = {
-  name: 'Edge case: many chips (+N more)',
+  name: 'Edge case: many chips (+N more until focused)',
   render: () => (
     <MultiSelect
       items={tags}

@@ -429,6 +429,145 @@ describe('MultiSelect', () => {
     });
   });
 
+  describe('chips when focus is outside or inside', () => {
+    const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
+    const control = () => document.querySelector('[data-dk-part="multiselect-control"]');
+    const allChips = () => [...document.querySelectorAll('[data-dk-part="multiselect-chip"]')];
+    const indicator = () => document.querySelector('[data-dk-part="multiselect-chips-overflow"]');
+    const focusedName = () => document.activeElement?.firstChild?.textContent;
+
+    async function renderMany(props: Partial<TestProps> = {}) {
+      await render(
+        <>
+          <UserMultiSelect items={many} defaultValue={many} controlWidth={320} {...props} />
+          <button type="button">Outside</button>
+        </>,
+      );
+      await expect.poll(() => indicator()?.textContent).toMatch(/^\+\d+ more$/);
+    }
+
+    it('keeps every chip in the accessibility tree and hides "+N more" from it while collapsed', async () => {
+      await renderMany();
+      expect(chipList().getByRole('listitem').elements()).toHaveLength(8);
+      const hidden = allChips().filter((el) => el.hasAttribute('data-overflow'));
+      expect(hidden.length).toBeGreaterThan(0);
+      expect(indicator()?.textContent).toBe(`+${hidden.length} more`);
+      expect(indicator()?.getAttribute('aria-hidden')).toBe('true');
+      expect(page.getByText(/more$/).elements()).toHaveLength(1);
+
+      const container = document.querySelector('[data-dk-part="multiselect-chips"]');
+      const right = container?.getBoundingClientRect().right ?? 0;
+      for (const el of allChips()) {
+        if (!el.hasAttribute('data-overflow'))
+          expect(el.getBoundingClientRect().right).toBeLessThanOrEqual(right + 0.5);
+      }
+      const lastVisible = allChips()
+        .filter((el) => !el.hasAttribute('data-overflow'))
+        .at(-1);
+      expect(right).toBeCloseTo(lastVisible?.getBoundingClientRect().right ?? 0, 0);
+    });
+
+    it('shows every chip while focus is in the component, and arrows reach all of them', async () => {
+      await renderMany();
+      await userEvent.click(input());
+      await expect.element(page.getByText(/more$/)).not.toBeInTheDocument();
+      expect(control()?.hasAttribute('data-expanded')).toBe(true);
+      expect(allChips().filter((el) => el.hasAttribute('data-overflow'))).toEqual([]);
+      const field = control()?.getBoundingClientRect();
+      for (const el of allChips()) {
+        const rect = el.getBoundingClientRect();
+        expect(rect.right).toBeLessThanOrEqual((field?.right ?? 0) + 0.5);
+        expect(rect.bottom).toBeLessThanOrEqual((field?.bottom ?? 0) + 0.5);
+      }
+
+      const visited: (string | null | undefined)[] = [];
+      for (let i = 0; i < 8; i++) {
+        await userEvent.keyboard('{ArrowLeft}');
+        visited.push(focusedName());
+      }
+      expect(visited).toEqual(many.map((u) => u.name).reverse());
+    });
+
+    it('collapses when focus leaves, not on a click on the empty Control or popup', async () => {
+      await renderMany();
+      await userEvent.click(input());
+      await userEvent.click(page.elementLocator(control() as Element), { position: { x: 1, y: 1 } });
+      expect(control()?.hasAttribute('data-expanded')).toBe(true);
+
+      await userEvent.keyboard('{ArrowDown}');
+      const popup = document.querySelector('[data-dk-part="multiselect-popup"]');
+      await userEvent.click(page.elementLocator(popup as Element), { position: { x: 1, y: 1 } });
+      expect(control()?.hasAttribute('data-expanded')).toBe(true);
+
+      await userEvent.click(page.getByRole('button', { name: 'Outside' }));
+      await expect.poll(() => control()?.hasAttribute('data-expanded')).toBe(false);
+      await expect.poll(() => indicator()?.textContent).toMatch(/^\+\d+ more$/);
+    });
+
+    it('keeps the popup below the field when the chips wrap', async () => {
+      await renderMany();
+      await userEvent.click(input());
+      await userEvent.keyboard('{ArrowDown}');
+      await expect.element(listbox()).toBeVisible();
+      const popup = document.querySelector('[data-dk-part="multiselect-popup"]');
+      const field = control()?.getBoundingClientRect();
+      expect(field?.height).toBeGreaterThan(60);
+      expect(popup?.getBoundingClientRect().top).toBeGreaterThanOrEqual(field?.bottom ?? Infinity);
+    });
+
+    it('Backspace removes the last chip, which is visible, and announces it', async () => {
+      const onChange = vi.fn();
+      await renderMany({ onChange });
+      await userEvent.click(input());
+      await expect.element(chip('Person 7')).toBeVisible();
+      await userEvent.keyboard('{Backspace}');
+      expect(onChange).toHaveBeenLastCalledWith(many.slice(0, 7));
+      await expect.element(page.getByRole('status')).toHaveTextContent('Person 7 removed');
+    });
+
+    it('announces a chip removed with its remove button', async () => {
+      await renderMany();
+      await userEvent.click(input());
+      await userEvent.click(page.getByRole('button', { name: 'Remove Person 3' }));
+      await expect.element(page.getByRole('status')).toHaveTextContent('Person 3 removed');
+    });
+
+    it('announces the same text again when two chips with the same name are removed', async () => {
+      const twins: User[] = [
+        { id: 1, name: 'Ana' },
+        { id: 2, name: 'Ana' },
+      ];
+      await render(<UserMultiSelect items={twins} defaultValue={twins} />);
+      await userEvent.click(input());
+      const region = page.getByRole('status').element();
+      await userEvent.keyboard('{Backspace}');
+      await expect.element(page.getByRole('status')).toHaveTextContent('Ana removed');
+      const first = region.textContent;
+
+      const changes: MutationRecord[] = [];
+      const observer = new MutationObserver((records) => changes.push(...records));
+      observer.observe(region, { subtree: true, childList: true, characterData: true });
+      await userEvent.keyboard('{Backspace}');
+      await expect.poll(() => changes.length).toBeGreaterThan(0);
+      observer.disconnect();
+      expect(region.textContent.trim()).toBe('Ana removed');
+      expect(region.textContent).not.toBe(first);
+    });
+
+    it('takes its texts from labels', async () => {
+      await render(
+        <UserMultiSelect
+          items={users}
+          defaultValue={[ana]}
+          labels={{ selected: 'Izabrano', remove: (item) => `Ukloni ${item}`, removed: (item) => `${item} uklonjen` }}
+        />,
+      );
+      await expect.element(page.getByRole('list', { name: 'Izabrano' })).toBeInTheDocument();
+      await userEvent.click(page.getByRole('button', { name: 'Ukloni Ana' }));
+      await expect.element(page.getByRole('status')).toHaveTextContent('Ana uklonjen');
+    });
+  });
+
   describe('overflow', () => {
     it('shows "+N more" instead of wrapping chips to a new line', async () => {
       const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));

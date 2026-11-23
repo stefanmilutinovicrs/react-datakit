@@ -1,9 +1,11 @@
 import {
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
   type ButtonHTMLAttributes,
+  type FocusEvent,
   type HTMLAttributes,
   type KeyboardEvent,
 } from 'react';
@@ -31,7 +33,24 @@ export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem>
   selectAll?: boolean | undefined;
   /** Adds a "Create" row when no option matches the typed text exactly; return the new item or a promise of it. */
   onCreate?: ((query: string) => TItem | Promise<TItem>) | undefined;
+  /** Texts for screen readers; English by default. */
+  labels?: Partial<MultiSelectLabels> | undefined;
 }
+
+export interface MultiSelectLabels {
+  /** Name of the list of chips. */
+  selected: string;
+  /** Name of a chip's remove button. */
+  remove: (item: string) => string;
+  /** Announced when a chip is removed. */
+  removed: (item: string) => string;
+}
+
+const defaultLabels: MultiSelectLabels = {
+  selected: 'Selected',
+  remove: (item) => `Remove ${item}`,
+  removed: (item) => `${item} removed`,
+};
 
 export const multiSelectOptionKeys = optionKeys<UseMultiSelectOptions<unknown>>()([
   ...comboboxBaseOptionKeys,
@@ -41,6 +60,7 @@ export const multiSelectOptionKeys = optionKeys<UseMultiSelectOptions<unknown>>(
   'max',
   'selectAll',
   'onCreate',
+  'labels',
 ]);
 
 export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
@@ -53,6 +73,8 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
   overflowIndex: number;
   setOverflowIndex: (index: number) => void;
   overflowCount: number;
+  /** Focus is somewhere in the component, so every chip is shown and chips wrap. */
+  expanded: boolean;
   focusChip: (index: number) => void;
   focusInput: () => void;
 
@@ -64,6 +86,7 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
 }
 
 const EMPTY: readonly never[] = [];
+const NO_BREAK_SPACE = String.fromCharCode(160);
 
 type FocusTarget = { type: 'chip'; index: number } | { type: 'input' };
 
@@ -79,7 +102,11 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     defaultValue: options.defaultValue ?? EMPTY,
     onChange: options.onChange,
   });
+  const labels = { ...defaultLabels, ...options.labels };
   const [overflowIndex, setOverflowIndex] = useState(-1);
+  const [expanded, setExpanded] = useState(false);
+  const [announcement, setAnnouncement] = useState<{ text: string; count: number; during: string } | null>(null);
+  const pointerInside = useRef(false);
   const pendingFocus = useRef<FocusTarget | null>(null);
 
   const selectedKeys = useMemo(() => new Set(selectedItems.map(itemToKey)), [selectedItems, itemToKey]);
@@ -114,8 +141,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
 
   const allSelected = (items: readonly TItem[]) => items.length > 0 && items.every(isSelected);
 
-  // Chips that fit; the hidden ones are skipped by keyboard navigation.
-  const visibleCount = overflowIndex >= 0 ? overflowIndex : selectedItems.length;
+  const visibleCount = !expanded && overflowIndex >= 0 ? overflowIndex : selectedItems.length;
 
   const core = useComboboxCore<TItem>(options, {
     part: 'multiselect',
@@ -150,7 +176,10 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
       if (event.key === 'Backspace' && !query && selectedItems.length > 0) {
         event.preventDefault();
         const last = selectedItems[selectedItems.length - 1];
-        if (last !== undefined) remove([last]);
+        if (last !== undefined) {
+          remove([last]);
+          announceRemoved(last);
+        }
         return true;
       }
       if (event.key === 'ArrowLeft' && caretAtStart && visibleCount > 0) {
@@ -162,7 +191,35 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     },
   });
 
-  const { ids, inputRef, close } = core;
+  const { ids, inputRef, close, rootRef, statusMessage } = core;
+
+  const announceRemoved = (item: TItem) => {
+    setAnnouncement((prev) => ({
+      text: labels.removed(itemToString(item)),
+      count: (prev?.count ?? 0) + 1,
+      during: statusMessage,
+    }));
+  };
+
+  // A click on a part that takes no focus (or prevents it) moves focus to the body without leaving
+  // the component; only a press outside collapses the chips then.
+  useEffect(() => {
+    if (!expanded) return;
+    const onPointerDown = (event: PointerEvent) => {
+      const root = rootRef.current;
+      if (!root || (event.target instanceof Node && root.contains(event.target))) return;
+      if (!root.contains(document.activeElement)) setExpanded(false);
+    };
+    const onPointerUp = () => {
+      pointerInside.current = false;
+    };
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointerup', onPointerUp);
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown);
+      document.removeEventListener('pointerup', onPointerUp);
+    };
+  }, [expanded, rootRef]);
   const chipId = useCallback((index: number) => `${ids.root}-chip-${index}`, [ids.root]);
 
   const focusChip = (index: number) => {
@@ -185,6 +242,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     const item = selectedItems[index];
     if (item === undefined) return;
     remove([item]);
+    announceRemoved(item);
     const remaining = selectedItems.length - 1;
     if (index > 0) pendingFocus.current = { type: 'chip', index: index - 1 };
     else if (remaining > 0) pendingFocus.current = { type: 'chip', index: 0 };
@@ -220,10 +278,34 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     }
   };
 
-  const overflowCount = overflowIndex >= 0 ? Math.max(0, selectedItems.length - overflowIndex) : 0;
+  const overflowCount = !expanded && overflowIndex >= 0 ? Math.max(0, selectedItems.length - overflowIndex) : 0;
+  const rootProps = core.getRootProps();
 
   return {
     ...core,
+    // A repeated text must change the region's content to be announced again, so every other
+    // announcement ends with a no-break space.
+    // The result count takes the live region back once the results change.
+    statusMessage:
+      announcement?.during === statusMessage
+        ? announcement.text + (announcement.count % 2 === 0 ? NO_BREAK_SPACE : '')
+        : statusMessage,
+    getRootProps: () => ({
+      ...rootProps,
+      onFocus: () => {
+        setExpanded(true);
+      },
+      onBlur: (event: FocusEvent<HTMLDivElement>) => {
+        rootProps.onBlur?.(event);
+        const next = event.relatedTarget;
+        if (next instanceof Node && event.currentTarget.contains(next)) return;
+        if (next === null && pointerInside.current) return;
+        setExpanded(false);
+      },
+      onPointerDown: () => {
+        pointerInside.current = true;
+      },
+    }),
     selectedItems,
     isAtMax,
     toggleItem,
@@ -236,12 +318,14 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     overflowIndex,
     setOverflowIndex,
     overflowCount,
+    expanded,
     focusChip,
     focusInput,
 
     getControlProps: () => ({
       'data-dk-part': multiselectParts.control,
       'data-state': core.isOpen ? 'open' : 'closed',
+      'data-expanded': expanded ? '' : undefined,
       // A click on the empty area of the field focuses the input.
       onMouseDown: (event) => {
         if (event.target !== event.currentTarget) return;
@@ -251,12 +335,14 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     }),
     getChipsProps: () => ({
       role: selectedItems.length > 0 ? 'list' : undefined,
-      'aria-label': selectedItems.length > 0 ? 'Selected' : undefined,
+      'aria-label': selectedItems.length > 0 ? labels.selected : undefined,
       'data-dk-part': multiselectParts.chips,
+      'data-expanded': expanded ? '' : undefined,
     }),
-    getChipsOverflowProps: () => ({ 'data-dk-part': multiselectParts.chipsOverflow }),
+    // The chips themselves stay in the accessibility tree, so the count would be read twice.
+    getChipsOverflowProps: () => ({ 'aria-hidden': true, 'data-dk-part': multiselectParts.chipsOverflow }),
     getChipProps: (item, index) => {
-      const overflowing = overflowIndex >= 0 && index >= overflowIndex;
+      const overflowing = !expanded && overflowIndex >= 0 && index >= overflowIndex;
       return {
         id: chipId(index),
         role: 'listitem',
@@ -271,7 +357,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     getChipRemoveProps: (item, index) => ({
       type: 'button',
       tabIndex: -1,
-      'aria-label': `Remove ${itemToString(item)}`,
+      'aria-label': labels.remove(itemToString(item)),
       onClick: () => {
         removeChip(index);
         pendingFocus.current = { type: 'input' };

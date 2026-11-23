@@ -149,13 +149,27 @@
     border-color: var(--dk-accent);
   }
 
-  /* One line of chips: the ones that don't fit get data-overflow and are counted by ChipsOverflow. */
+  /* One line of chips cut at the last one that fits; they wrap while focus is in the component. */
   :where([data-dk-part='multiselect-chips']) {
     display: flex;
     flex: 0 1 auto;
     gap: var(--dk-space-1);
     min-width: 0;
+    max-width: var(--dk-chips-visible-width, none);
     overflow: hidden;
+  }
+
+  :where([data-dk-part='multiselect-control'][data-expanded], [data-dk-part='multiselect-chips'][data-expanded]) {
+    flex-wrap: wrap;
+  }
+
+  :where([data-dk-part='multiselect-control'][data-expanded]) {
+    padding-block: var(--dk-space-1);
+  }
+
+  :where([data-dk-part='multiselect-chips'][data-expanded]) {
+    max-width: none;
+    overflow: visible;
   }
 
   :where([data-dk-part='multiselect-chip']) {
@@ -170,10 +184,6 @@
     color: var(--dk-text);
     white-space: nowrap;
     cursor: default;
-  }
-
-  :where([data-dk-part='multiselect-chip'][data-overflow]) {
-    visibility: hidden;
   }
 
   :where([data-dk-part='multiselect-chip-remove']) {
