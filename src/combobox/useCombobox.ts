@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useControllableState } from '../shared';
-import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from './useComboboxCore';
+import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from '../shared/combobox/useComboboxCore';
 
 export interface UseComboboxOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: TItem | null | undefined;

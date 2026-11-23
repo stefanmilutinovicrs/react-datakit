@@ -6,7 +6,7 @@ export { useId } from './useId';
 export { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 export { mergeProps } from './mergeProps';
 export { Part } from './Part';
-export type { DataAttributes, PartProps } from './Part';
+export type { DataAttributes, PartProps, WithRef } from './Part';
 export { useLatestRef } from './useLatestRef';
 export { useMergedRefs } from './useMergedRefs';
 export { visuallyHidden } from './visuallyHidden';

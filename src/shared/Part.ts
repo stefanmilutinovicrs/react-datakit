@@ -3,6 +3,9 @@ import { mergeProps } from './mergeProps';
 
 type Tag = 'div' | 'input' | 'label' | 'button' | 'h2';
 
+/** Adds the optional `ref` prop that a generic `forwardRef` component loses in its type. */
+export type WithRef<P, E> = P & { ref?: Ref<E> | undefined };
+
 /** `data-*` attributes, typed so prop getters can return them. */
 export type DataAttributes = { [key: `data-${string}`]: string | undefined };
 

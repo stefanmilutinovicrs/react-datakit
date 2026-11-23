@@ -1,6 +1,6 @@
 export { MultiSelect } from './MultiSelect';
+export type { MultiSelectProps, MultiSelectRootState } from './MultiSelect';
 export type {
-  MultiSelectActionState,
   MultiSelectChipProps,
   MultiSelectChipRemoveProps,
   MultiSelectChipState,
@@ -9,11 +9,12 @@ export type {
   MultiSelectChipsState,
   MultiSelectControlProps,
   MultiSelectControlState,
+} from './Chips';
+export type {
+  MultiSelectActionState,
   MultiSelectCreateProps,
   MultiSelectListProps,
-  MultiSelectProps,
-  MultiSelectRootState,
   MultiSelectSelectAllProps,
-} from './MultiSelect';
+} from './List';
 export { useMultiSelect } from './useMultiSelect';
 export type { UseMultiSelectOptions, UseMultiSelectReturn } from './useMultiSelect';

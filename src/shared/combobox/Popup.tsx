@@ -10,18 +10,11 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { Part, useIsomorphicLayoutEffect, useMergedRefs, visuallyHidden, type PartProps } from '../shared';
+import { Part, type PartProps } from '../Part';
+import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect';
+import { useMergedRefs } from '../useMergedRefs';
+import { useCoreContext } from './context';
 import { rowKey, type ComboboxCore, type ComboboxRow, type ComboboxStatus } from './useComboboxCore';
-
-// Shared by Combobox and MultiSelect through the core context; part names get the root's prefix.
-
-export const CoreContext = createContext<ComboboxCore<unknown> | null>(null);
-
-export function useCoreContext<TItem>(part: string): ComboboxCore<TItem> {
-  const context = useContext(CoreContext);
-  if (!context) throw new Error(`react-datakit: <${part}> must be rendered inside <Combobox> or <MultiSelect>.`);
-  return context as unknown as ComboboxCore<TItem>;
-}
 
 const RowIndexContext = createContext<number>(-1);
 const OptionHeightContext = createContext(36);
@@ -43,80 +36,6 @@ export function useRowLayout(part: string): { index: number; style: CSSPropertie
     },
   };
 }
-
-export interface ComboboxRootState {
-  open: boolean;
-  status: ComboboxStatus;
-}
-
-/** Renders a root element with the live region, and provides the core to the parts. */
-export function RootPart({
-  core,
-  partProps,
-  children,
-  forwardedRef,
-  extra,
-}: {
-  core: ComboboxCore<unknown>;
-  partProps: PartProps<'div', ComboboxRootState>;
-  children: ReactNode;
-  forwardedRef: Ref<HTMLDivElement>;
-  extra?: object | undefined;
-}) {
-  const mergedRef = useMergedRefs<HTMLDivElement>(core.rootRef, forwardedRef);
-  const state: ComboboxRootState = { open: core.isOpen, status: core.status };
-  return (
-    <CoreContext.Provider value={core}>
-      <Part
-        tag="div"
-        state={state}
-        ours={{
-          ...core.getRootProps(),
-          ...extra,
-          children: (
-            <>
-              {children}
-              <div role="status" aria-live="polite" aria-atomic="true" style={visuallyHidden}>
-                {core.statusMessage}
-              </div>
-            </>
-          ),
-        }}
-        theirs={partProps}
-        forwardedRef={mergedRef}
-      />
-    </CoreContext.Provider>
-  );
-}
-
-export interface ComboboxLabelState {
-  open: boolean;
-}
-
-export type ComboboxLabelProps = PartProps<'label', ComboboxLabelState>;
-
-export const Label = forwardRef<HTMLLabelElement, ComboboxLabelProps>(function Label(props, ref) {
-  const core = useCoreContext('Label');
-  const { registerLabel } = core;
-  useIsomorphicLayoutEffect(() => registerLabel(), [registerLabel]);
-  return (
-    <Part tag="label" state={{ open: core.isOpen }} ours={core.getLabelProps()} theirs={props} forwardedRef={ref} />
-  );
-});
-
-export interface ComboboxInputState {
-  open: boolean;
-  status: ComboboxStatus;
-}
-
-export type ComboboxInputProps = Omit<PartProps<'input', ComboboxInputState>, 'value' | 'defaultValue' | 'children'>;
-
-export const Input = forwardRef<HTMLInputElement, ComboboxInputProps>(function Input(props, ref) {
-  const core = useCoreContext('Input');
-  const mergedRef = useMergedRefs<HTMLInputElement>(core.inputRef, ref);
-  const state: ComboboxInputState = { open: core.isOpen, status: core.status };
-  return <Part tag="input" state={state} ours={core.getInputProps()} theirs={props} forwardedRef={mergedRef} />;
-});
 
 export interface ComboboxPopupState {
   status: ComboboxStatus;
@@ -266,64 +185,5 @@ export const Option = forwardRef(function Option<TItem>(
     index,
   };
   const ours = { ...core.getOptionProps(item, index), style };
-  return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
-});
-
-export interface ComboboxStatusPartState {
-  query: string | null;
-}
-
-export type ComboboxEmptyProps = PartProps<'div', ComboboxStatusPartState>;
-export type ComboboxLoadingProps = PartProps<'div', ComboboxStatusPartState>;
-
-/** Shown while open when the current query has no options. */
-export const Empty = forwardRef<HTMLDivElement, ComboboxEmptyProps>(function Empty(props, ref) {
-  const core = useCoreContext('Empty');
-  if (core.status !== 'success' || core.rows.length > 0) return null;
-  return (
-    <Part
-      tag="div"
-      state={{ query: core.query }}
-      ours={{ 'data-dk-part': `${core.part}-empty` }}
-      theirs={props}
-      forwardedRef={ref}
-    />
-  );
-});
-
-/** Shown while `loadOptions` runs for the current query. */
-export const Loading = forwardRef<HTMLDivElement, ComboboxLoadingProps>(function Loading(props, ref) {
-  const core = useCoreContext('Loading');
-  if (core.status !== 'loading') return null;
-  return (
-    <Part
-      tag="div"
-      state={{ query: core.query }}
-      ours={{ 'data-dk-part': `${core.part}-loading`, 'data-loading': '' }}
-      theirs={props}
-      forwardedRef={ref}
-    />
-  );
-});
-
-export interface ComboboxErrorState {
-  error: unknown;
-  retry: () => void;
-}
-
-export type ComboboxErrorProps = Omit<PartProps<'div', ComboboxErrorState>, 'children'> & {
-  children: ReactNode | ((state: ComboboxErrorState) => ReactNode);
-};
-
-/** Shown when `loadOptions` rejects for the current query. Announced with `role="alert"`. */
-export const ErrorPart = forwardRef<HTMLDivElement, ComboboxErrorProps>(function Error({ children, ...props }, ref) {
-  const core = useCoreContext('Error');
-  if (core.status !== 'error') return null;
-  const state: ComboboxErrorState = { error: core.error, retry: core.retry };
-  const ours = {
-    role: 'alert',
-    'data-dk-part': `${core.part}-error`,
-    children: typeof children === 'function' ? children(state) : children,
-  };
   return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });

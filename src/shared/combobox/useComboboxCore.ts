@@ -12,7 +12,10 @@ import {
   type LabelHTMLAttributes,
   type RefObject,
 } from 'react';
-import { useDebounce, useId, useLatestRef, type DataAttributes } from '../shared';
+import type { DataAttributes } from '../Part';
+import { useDebounce } from '../useDebounce';
+import { useId } from '../useId';
+import { useLatestRef } from '../useLatestRef';
 
 // Owns the query, popup, highlight, options and keyboard for Combobox and MultiSelect; the public hooks decide what selecting means.
 

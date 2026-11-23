@@ -7,7 +7,7 @@ import {
   type HTMLAttributes,
   type KeyboardEvent,
 } from 'react';
-import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from '../combobox/useComboboxCore';
+import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from '../shared/combobox/useComboboxCore';
 import { useControllableState, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
 
 export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem> {

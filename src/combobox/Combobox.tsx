@@ -1,20 +1,10 @@
 import { forwardRef, type ReactElement, type ReactNode, type Ref } from 'react';
-import type { PartProps } from '../shared';
-import {
-  Empty,
-  ErrorPart,
-  Input,
-  Label,
-  List,
-  Loading,
-  Option,
-  Popup,
-  RootPart,
-  type ComboboxListProps,
-  type ComboboxOptionProps,
-  type ComboboxRootState,
-} from './parts';
-import type { ComboboxCore } from './useComboboxCore';
+import type { PartProps, WithRef } from '../shared';
+import { Input, Label } from '../shared/combobox/Field';
+import { List, Option, Popup, type ComboboxListProps, type ComboboxOptionProps } from '../shared/combobox/Popup';
+import { RootPart, type ComboboxRootState } from '../shared/combobox/Root';
+import { Empty, ErrorPart, Loading } from '../shared/combobox/Status';
+import type { ComboboxCore } from '../shared/combobox/useComboboxCore';
 import { useCombobox, type UseComboboxOptions } from './useCombobox';
 
 export type ComboboxProps<TItem> = UseComboboxOptions<TItem> &
@@ -59,8 +49,6 @@ const ComboboxRoot = forwardRef(function Combobox<TItem>(props: ComboboxProps<TI
     </RootPart>
   );
 });
-
-type WithRef<P, E> = P & { ref?: Ref<E> | undefined };
 
 /**
  * Searchable select for large or remote option lists.

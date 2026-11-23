@@ -1,23 +1,27 @@
 export { Combobox } from './Combobox';
 export type { ComboboxProps } from './Combobox';
 export type {
-  ComboboxEmptyProps,
-  ComboboxErrorProps,
-  ComboboxErrorState,
   ComboboxInputProps,
   ComboboxInputState,
   ComboboxLabelProps,
   ComboboxLabelState,
+} from '../shared/combobox/Field';
+export type {
   ComboboxListProps,
   ComboboxListState,
-  ComboboxLoadingProps,
   ComboboxOptionProps,
   ComboboxOptionState,
   ComboboxPopupProps,
   ComboboxPopupState,
-  ComboboxRootState,
+} from '../shared/combobox/Popup';
+export type { ComboboxRootState } from '../shared/combobox/Root';
+export type {
+  ComboboxEmptyProps,
+  ComboboxErrorProps,
+  ComboboxErrorState,
+  ComboboxLoadingProps,
   ComboboxStatusPartState,
-} from './parts';
+} from '../shared/combobox/Status';
 export { useCombobox } from './useCombobox';
 export type { UseComboboxOptions, UseComboboxReturn } from './useCombobox';
 export type {
@@ -28,4 +32,4 @@ export type {
   ComboboxStatus,
   HighlightOrigin,
   LoadOptionsContext,
-} from './useComboboxCore';
+} from '../shared/combobox/useComboboxCore';
