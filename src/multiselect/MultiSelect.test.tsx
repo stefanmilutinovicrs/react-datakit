@@ -450,6 +450,44 @@ describe('MultiSelect', () => {
       expect(control?.getBoundingClientRect().height).toBeLessThan(60);
     });
 
+    // "+N more" sits in Control next to Chips and takes width from it, so showing the indicator
+    // can hide more chips; the measurement must settle instead of flipping between counts.
+    it('settles on one overflow count at every width, with "+N more" next to the chips', async () => {
+      const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
+      const screen = await render(<UserMultiSelect items={many} defaultValue={many} controlWidth={180} />);
+      const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+
+      for (let width = 180; width <= 700; width += 26) {
+        await screen.rerender(<UserMultiSelect items={many} defaultValue={many} controlWidth={width} />);
+        for (let i = 0; i < 4; i++) await frame();
+
+        const control = document.querySelector('[data-dk-part="multiselect-control"]');
+        if (!control) throw new Error('No control');
+        const changes: MutationRecord[] = [];
+        const observer = new MutationObserver((records) => changes.push(...records));
+        observer.observe(control, {
+          subtree: true,
+          childList: true,
+          characterData: true,
+          attributeFilter: ['data-overflow'],
+        });
+        await new Promise((resolve) => setTimeout(resolve, 120));
+        observer.disconnect();
+        expect(changes, `width ${width}`).toEqual([]);
+
+        const container = document.querySelector('[data-dk-part="multiselect-chips"]');
+        const chips = [...document.querySelectorAll('[data-dk-part="multiselect-chip"]')];
+        const hidden = chips.filter((el) => el.hasAttribute('data-overflow'));
+        const indicator = document.querySelector('[data-dk-part="multiselect-chips-overflow"]');
+        const right = container?.getBoundingClientRect().right ?? 0;
+        for (const el of chips) {
+          if (!el.hasAttribute('data-overflow'))
+            expect(el.getBoundingClientRect().right).toBeLessThanOrEqual(right + 0.5);
+        }
+        expect(indicator?.textContent ?? '', `width ${width}`).toBe(hidden.length > 0 ? `+${hidden.length} more` : '');
+      }
+    });
+
     it('shows no overflow indicator when every chip fits', async () => {
       await render(<UserMultiSelect items={users} defaultValue={[ana]} controlWidth={400} />);
       await expect.element(chip('Ana')).toBeVisible();
