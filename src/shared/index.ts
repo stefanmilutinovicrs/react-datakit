@@ -8,5 +8,6 @@ export { mergeProps } from './mergeProps';
 export { Part } from './Part';
 export type { DataAttributes, PartProps, WithRef } from './Part';
 export { useLatestRef } from './useLatestRef';
+export { optionKeys, splitProps } from './splitProps';
 export { useMergedRefs } from './useMergedRefs';
 export { visuallyHidden } from './visuallyHidden';

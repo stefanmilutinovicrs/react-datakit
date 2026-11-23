@@ -6,6 +6,8 @@ import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
+import { expectNoOptionsOnDom } from '../test/options';
+import { multiSelectOptionKeys } from './useMultiSelect';
 import { MultiSelect, type MultiSelectProps } from './index';
 
 // Built on the Combobox core: listbox popup, aria-multiselectable, selection keeps the list open.
@@ -73,6 +75,33 @@ async function focusInput() {
 }
 
 describe('MultiSelect', () => {
+  it('passes no hook option to the DOM', async () => {
+    await expectNoOptionsOnDom(async () => {
+      await render(
+        <MultiSelect
+          data-testid="root"
+          id="reviewers"
+          items={users}
+          loadOptions={() => Promise.resolve(users)}
+          filter={() => true}
+          itemToString={(u) => u?.name ?? ''}
+          itemToKey={(u) => u.id}
+          defaultValue={[]}
+          onChange={() => {}}
+          debounceMs={0}
+          formatResultCount={(count) => `${count}`}
+          max={2}
+          selectAll
+          onCreate={(name) => ({ id: 99, name })}
+        >
+          <MultiSelect.Label>Reviewers</MultiSelect.Label>
+          <MultiSelect.Input />
+        </MultiSelect>,
+      );
+      return page.getByTestId('root').element();
+    }, multiSelectOptionKeys);
+  });
+
   describe('ARIA', () => {
     it('exposes a multi-selectable listbox connected to the input', async () => {
       await render(<UserMultiSelect items={users} defaultValue={[bojan]} />);

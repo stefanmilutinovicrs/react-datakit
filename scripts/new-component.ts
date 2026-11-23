@@ -27,11 +27,13 @@ export function ${hook}Context(part: string): Use${name}Return {
   return context;
 }
 `,
-  [`${hook}.ts`]: `import { useId, type DataAttributes } from '../shared';
+  [`${hook}.ts`]: `import { optionKeys, useId, type DataAttributes } from '../shared';
 
 export interface Use${name}Options {
   id?: string | undefined;
 }
+
+export const ${folder}OptionKeys = optionKeys<Use${name}Options>()(['id']);
 
 export interface Use${name}Return {
   getRootProps: () => DataAttributes & { id: string };
@@ -46,9 +48,9 @@ export function ${hook}(options: Use${name}Options = {}): Use${name}Return {
 }
 `,
   [`${name}.tsx`]: `import { forwardRef, type ReactNode } from 'react';
-import { Part, type PartProps } from '../shared';
+import { Part, splitProps, type PartProps } from '../shared';
 import { ${name}Context } from './context';
-import { ${hook}, type Use${name}Options } from './${hook}';
+import { ${folder}OptionKeys, ${hook}, type Use${name}Options } from './${hook}';
 
 export type ${name}RootState = Record<string, never>;
 
@@ -57,11 +59,12 @@ export type ${name}Props = Use${name}Options &
     children?: ReactNode;
   };
 
-const Root = forwardRef<HTMLDivElement, ${name}Props>(function ${name}({ id, children, ...props }, ref) {
-  const value = ${hook}({ id });
+const Root = forwardRef<HTMLDivElement, ${name}Props>(function ${name}({ children, ...props }, ref) {
+  const [options, partProps] = splitProps(props, ${folder}OptionKeys);
+  const value = ${hook}(options);
   return (
     <${name}Context.Provider value={value}>
-      <Part tag="div" state={{}} ours={{ ...value.getRootProps(), children }} theirs={props} forwardedRef={ref} />
+      <Part tag="div" state={{}} ours={{ ...value.getRootProps(), children }} theirs={partProps} forwardedRef={ref} />
     </${name}Context.Provider>
   );
 });

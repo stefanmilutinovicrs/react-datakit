@@ -1,6 +1,11 @@
 import { useCallback } from 'react';
-import { useControllableState } from '../shared';
-import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from '../shared/combobox/useComboboxCore';
+import { optionKeys, useControllableState } from '../shared';
+import {
+  comboboxBaseOptionKeys,
+  useComboboxCore,
+  type ComboboxBaseOptions,
+  type ComboboxCore,
+} from '../shared/combobox/useComboboxCore';
 
 export interface UseComboboxOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: TItem | null | undefined;
@@ -9,6 +14,14 @@ export interface UseComboboxOptions<TItem> extends ComboboxBaseOptions<TItem> {
   /** Tab selects the highlighted option before focus moves on. Default false. */
   selectOnTab?: boolean | undefined;
 }
+
+export const comboboxOptionKeys = optionKeys<UseComboboxOptions<unknown>>()([
+  ...comboboxBaseOptionKeys,
+  'value',
+  'defaultValue',
+  'onChange',
+  'selectOnTab',
+]);
 
 export interface UseComboboxReturn<TItem> extends ComboboxCore<TItem> {
   selectedItem: TItem | null;

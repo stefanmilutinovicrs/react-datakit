@@ -16,6 +16,7 @@ import type { DataAttributes } from '../Part';
 import { useDebounce } from '../useDebounce';
 import { useId } from '../useId';
 import { useLatestRef } from '../useLatestRef';
+import { optionKeys } from '../splitProps';
 
 // Owns the query, popup, highlight, options and keyboard for Combobox and MultiSelect; the public hooks decide what selecting means.
 
@@ -42,6 +43,17 @@ export interface ComboboxBaseOptions<TItem> {
   /** Text for the screen reader announcement of the result count. Default "No results" / "1 result" / "N results". */
   formatResultCount?: ((count: number) => string) | undefined;
 }
+
+export const comboboxBaseOptionKeys = optionKeys<ComboboxBaseOptions<unknown>>()([
+  'id',
+  'items',
+  'loadOptions',
+  'filter',
+  'itemToString',
+  'itemToKey',
+  'debounceMs',
+  'formatResultCount',
+]);
 
 /** A row of the listbox: an option, or one of the MultiSelect action rows. */
 export type ComboboxRow<TItem> =

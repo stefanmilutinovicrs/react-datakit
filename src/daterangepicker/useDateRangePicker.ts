@@ -8,7 +8,7 @@ import {
   type MouseEvent,
   type RefObject,
 } from 'react';
-import { useControllableState, useId, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
+import { optionKeys, useControllableState, useId, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
 import {
   addDays,
   addMonths,
@@ -79,6 +79,26 @@ export interface UseDateRangePickerOptions {
   /** Close the dialog once a range is picked. Default true. */
   closeOnSelect?: boolean | undefined;
 }
+
+export const dateRangePickerOptionKeys = optionKeys<UseDateRangePickerOptions>()([
+  'id',
+  'value',
+  'defaultValue',
+  'onChange',
+  'open',
+  'defaultOpen',
+  'onOpenChange',
+  'timeZone',
+  'locale',
+  'weekStartsOn',
+  'numberOfMonths',
+  'minDate',
+  'maxDate',
+  'isDateDisabled',
+  'maxDays',
+  'presets',
+  'closeOnSelect',
+]);
 
 export interface DateRangePickerDayState {
   date: CalendarDate;

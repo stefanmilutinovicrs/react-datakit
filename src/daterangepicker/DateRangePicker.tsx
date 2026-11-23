@@ -1,10 +1,15 @@
 import { forwardRef, type ReactNode } from 'react';
-import { Part, useMergedRefs, type PartProps } from '../shared';
+import { Part, splitProps, useMergedRefs, type PartProps } from '../shared';
 import { Day, Grid, Month, MonthHeading, Months, NextMonth, PrevMonth } from './Calendar';
 import { PickerContext } from './context';
 import { Popover, Preset, Presets } from './Popover';
 import { Label, Trigger } from './Trigger';
-import { useDateRangePicker, type DateRange, type UseDateRangePickerOptions } from './useDateRangePicker';
+import {
+  dateRangePickerOptionKeys,
+  useDateRangePicker,
+  type DateRange,
+  type UseDateRangePickerOptions,
+} from './useDateRangePicker';
 
 export interface DateRangePickerRootState {
   open: boolean;
@@ -16,47 +21,9 @@ export type DateRangePickerProps = UseDateRangePickerOptions &
     children: ReactNode;
   };
 
-const Root = forwardRef<HTMLDivElement, DateRangePickerProps>(function DateRangePicker(props, ref) {
-  const {
-    id,
-    value,
-    defaultValue,
-    onChange,
-    open,
-    defaultOpen,
-    onOpenChange,
-    timeZone,
-    locale,
-    weekStartsOn,
-    numberOfMonths,
-    minDate,
-    maxDate,
-    isDateDisabled,
-    maxDays,
-    presets,
-    closeOnSelect,
-    children,
-    ...partProps
-  } = props;
-  const picker = useDateRangePicker({
-    id,
-    value,
-    defaultValue,
-    onChange,
-    open,
-    defaultOpen,
-    onOpenChange,
-    timeZone,
-    locale,
-    weekStartsOn,
-    numberOfMonths,
-    minDate,
-    maxDate,
-    isDateDisabled,
-    maxDays,
-    presets,
-    closeOnSelect,
-  });
+const Root = forwardRef<HTMLDivElement, DateRangePickerProps>(function DateRangePicker({ children, ...props }, ref) {
+  const [options, partProps] = splitProps(props, dateRangePickerOptionKeys);
+  const picker = useDateRangePicker(options);
   const mergedRef = useMergedRefs<HTMLDivElement>(picker.rootRef, ref);
   const state: DateRangePickerRootState = { open: picker.isOpen, value: picker.value };
   return (

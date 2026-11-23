@@ -6,6 +6,8 @@ import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { expectNoA11yViolations } from '../test/axe';
 import { deferred, type Deferred } from '../test/deferred';
+import { expectNoOptionsOnDom } from '../test/options';
+import { comboboxOptionKeys } from './useCombobox';
 import { Combobox, type ComboboxProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list")
@@ -65,6 +67,31 @@ async function focusInput() {
 }
 
 describe('Combobox', () => {
+  it('passes no hook option to the DOM', async () => {
+    await expectNoOptionsOnDom(async () => {
+      await render(
+        <Combobox
+          data-testid="root"
+          id="assignee"
+          items={users}
+          loadOptions={() => Promise.resolve(users)}
+          filter={() => true}
+          itemToString={(u) => u?.name ?? ''}
+          itemToKey={(u) => u.id}
+          defaultValue={null}
+          onChange={() => {}}
+          debounceMs={0}
+          selectOnTab
+          formatResultCount={(count) => `${count}`}
+        >
+          <Combobox.Label>Assignee</Combobox.Label>
+          <Combobox.Input />
+        </Combobox>,
+      );
+      return page.getByTestId('root').element();
+    }, comboboxOptionKeys);
+  });
+
   describe('ARIA', () => {
     it('labels the input and exposes the combobox role and attributes', async () => {
       await render(<UserCombobox items={users} />);

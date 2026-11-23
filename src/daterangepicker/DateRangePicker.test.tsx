@@ -5,6 +5,8 @@ import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type CalendarDate } from '../shared/date';
 import { expectNoA11yViolations } from '../test/axe';
+import { expectNoOptionsOnDom } from '../test/options';
+import { dateRangePickerOptionKeys } from './useDateRangePicker';
 import { DateRangePicker, type DateRange, type DateRangePickerProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
@@ -48,6 +50,35 @@ async function openWith(props: TestProps = {}) {
 }
 
 describe('DateRangePicker', () => {
+  it('passes no hook option to the DOM', async () => {
+    await expectNoOptionsOnDom(async () => {
+      await render(
+        <DateRangePicker
+          data-testid="root"
+          id="period"
+          defaultValue={march}
+          onChange={() => {}}
+          defaultOpen={false}
+          onOpenChange={() => {}}
+          timeZone={tz}
+          locale="en-US"
+          weekStartsOn={1}
+          numberOfMonths={1}
+          minDate={new Date('2026-01-01T00:00:00Z')}
+          maxDate={new Date('2026-12-31T00:00:00Z')}
+          isDateDisabled={() => false}
+          maxDays={31}
+          presets={[]}
+          closeOnSelect={false}
+        >
+          <DateRangePicker.Label>Period</DateRangePicker.Label>
+          <DateRangePicker.Trigger />
+        </DateRangePicker>,
+      );
+      return page.getByTestId('root').element();
+    }, dateRangePickerOptionKeys);
+  });
+
   describe('ARIA', () => {
     it('trigger is a button that controls a modal dialog', async () => {
       await render(<Picker defaultValue={march} />);

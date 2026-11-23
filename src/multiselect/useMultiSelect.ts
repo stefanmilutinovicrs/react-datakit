@@ -7,8 +7,13 @@ import {
   type HTMLAttributes,
   type KeyboardEvent,
 } from 'react';
-import { useComboboxCore, type ComboboxBaseOptions, type ComboboxCore } from '../shared/combobox/useComboboxCore';
-import { useControllableState, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
+import {
+  comboboxBaseOptionKeys,
+  useComboboxCore,
+  type ComboboxBaseOptions,
+  type ComboboxCore,
+} from '../shared/combobox/useComboboxCore';
+import { optionKeys, useControllableState, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
 
 export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: readonly TItem[] | undefined;
@@ -21,6 +26,16 @@ export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem>
   /** Adds a "Create" row when no option matches the typed text exactly; return the new item or a promise of it. */
   onCreate?: ((query: string) => TItem | Promise<TItem>) | undefined;
 }
+
+export const multiSelectOptionKeys = optionKeys<UseMultiSelectOptions<unknown>>()([
+  ...comboboxBaseOptionKeys,
+  'value',
+  'defaultValue',
+  'onChange',
+  'max',
+  'selectAll',
+  'onCreate',
+]);
 
 export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
   selectedItems: readonly TItem[];
