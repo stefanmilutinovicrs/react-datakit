@@ -9,3 +9,4 @@ export { Part } from './Part';
 export type { DataAttributes, PartProps } from './Part';
 export { useLatestRef } from './useLatestRef';
 export { useMergedRefs } from './useMergedRefs';
+export { visuallyHidden } from './visuallyHidden';

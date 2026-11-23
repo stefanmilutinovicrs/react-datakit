@@ -1,7 +1,7 @@
 import { createElement, type ComponentPropsWithoutRef, type ReactElement, type Ref } from 'react';
 import { mergeProps } from './mergeProps';
 
-type Tag = 'div' | 'input' | 'label' | 'button';
+type Tag = 'div' | 'input' | 'label' | 'button' | 'h2';
 
 /** `data-*` attributes, typed so prop getters can return them. */
 export type DataAttributes = { [key: `data-${string}`]: string | undefined };
@@ -23,7 +23,12 @@ interface PartElementProps<TTag extends Tag, TState> {
   ours: object;
   theirs: PartProps<TTag, TState>;
   forwardedRef:
-    Ref<HTMLDivElement> | Ref<HTMLInputElement> | Ref<HTMLLabelElement> | Ref<HTMLButtonElement> | undefined;
+    | Ref<HTMLDivElement>
+    | Ref<HTMLInputElement>
+    | Ref<HTMLLabelElement>
+    | Ref<HTMLButtonElement>
+    | Ref<HTMLHeadingElement>
+    | undefined;
 }
 
 /**

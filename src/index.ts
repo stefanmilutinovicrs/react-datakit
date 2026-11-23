@@ -2,3 +2,4 @@
 // own subpath export, e.g. `react-datakit/combobox`.
 export * from './combobox';
 export * from './multiselect';
+export * from './daterangepicker';

@@ -4,7 +4,7 @@
     "path": "dist/index.js",
     "import": "*",
     "ignore": ["react", "react-dom"],
-    "limit": "8 kB"
+    "limit": "12 kB"
   },
   {
     "name": "react-datakit/combobox (ESM)",
@@ -19,5 +19,12 @@
     "import": "{ MultiSelect }",
     "ignore": ["react", "react-dom"],
     "limit": "7 kB"
+  },
+  {
+    "name": "react-datakit/daterangepicker (ESM)",
+    "path": "dist/daterangepicker/index.js",
+    "import": "{ DateRangePicker }",
+    "ignore": ["react", "react-dom"],
+    "limit": "6 kB"
   }
 ]

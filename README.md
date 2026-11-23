@@ -24,7 +24,7 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 | --------------- | ------------------------------------------------- | ------------------- |
 | Combobox        | Pick one value from a long, searchable list       | experimental (v0.1) |
 | MultiSelect     | Pick several values, shown as removable chips     | experimental (v0.2) |
-| DateRangePicker | Pick a period for dashboards, with presets        | planned             |
+| DateRangePicker | Pick a period for dashboards, with presets        | experimental (v0.3) |
 | FilterBar       | Linear/Notion-style filters, serialized to a URL  | planned             |
 | Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned             |
 

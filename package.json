@@ -66,6 +66,16 @@
         "default": "./dist/multiselect/index.cjs"
       }
     },
+    "./daterangepicker": {
+      "import": {
+        "types": "./dist/daterangepicker/index.d.ts",
+        "default": "./dist/daterangepicker/index.js"
+      },
+      "require": {
+        "types": "./dist/daterangepicker/index.d.cts",
+        "default": "./dist/daterangepicker/index.cjs"
+      }
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },

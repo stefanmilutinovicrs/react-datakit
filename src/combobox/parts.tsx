@@ -10,7 +10,7 @@ import {
   type ReactNode,
   type Ref,
 } from 'react';
-import { Part, useIsomorphicLayoutEffect, useMergedRefs, type PartProps } from '../shared';
+import { Part, useIsomorphicLayoutEffect, useMergedRefs, visuallyHidden, type PartProps } from '../shared';
 import { rowKey, type ComboboxCore, type ComboboxRow, type ComboboxStatus } from './useComboboxCore';
 
 // Parts shared by Combobox and MultiSelect. They read the core from context, so the
@@ -44,19 +44,6 @@ export function useRowLayout(part: string): { index: number; style: CSSPropertie
     },
   };
 }
-
-// Visually hidden but announced. Inline because the live region must work without the theme.
-const visuallyHidden: CSSProperties = {
-  position: 'absolute',
-  width: 1,
-  height: 1,
-  margin: -1,
-  padding: 0,
-  overflow: 'hidden',
-  clipPath: 'inset(50%)',
-  whiteSpace: 'nowrap',
-  border: 0,
-};
 
 /* Root */
 

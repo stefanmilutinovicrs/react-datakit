@@ -267,6 +267,178 @@
     color: var(--dk-accent-strong);
   }
 
+  /* DateRangePicker */
+
+  :where([data-dk-part='daterangepicker']) {
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    gap: var(--dk-space-1);
+    color: var(--dk-text);
+  }
+
+  :where([data-dk-part='daterangepicker-label']) {
+    font-weight: 500;
+  }
+
+  :where([data-dk-part='daterangepicker-trigger']) {
+    display: inline-flex;
+    align-items: center;
+    min-width: 16rem;
+    height: var(--dk-control-height);
+    padding: 0 var(--dk-space-2);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--dk-surface);
+    color: var(--dk-text);
+    text-align: start;
+    cursor: pointer;
+  }
+
+  :where([data-dk-part='daterangepicker-trigger'][data-state='open']) {
+    border-color: var(--dk-accent);
+  }
+
+  :where([data-dk-part='daterangepicker-trigger'][data-placeholder]) {
+    color: var(--dk-text-muted);
+  }
+
+  :where([data-dk-part='daterangepicker-popover']) {
+    position: absolute;
+    top: calc(100% + var(--dk-space-1));
+    left: 0;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    grid-template-areas:
+      'presets prev . next'
+      'presets months months months';
+    gap: var(--dk-space-2);
+    padding: var(--dk-space-2);
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--dk-surface);
+    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
+  }
+
+  :where([data-dk-part='daterangepicker-presets']) {
+    grid-area: presets;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-inline-end: var(--dk-space-2);
+    border-inline-end: 1px solid var(--dk-border);
+  }
+
+  :where([data-dk-part='daterangepicker-preset']) {
+    padding: 6px var(--dk-space-2);
+    border: 0;
+    border-radius: calc(var(--dk-radius) - 2px);
+    background: none;
+    color: inherit;
+    text-align: start;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  :where([data-dk-part='daterangepicker-preset']:hover:not(:disabled)) {
+    background: var(--dk-accent-soft);
+  }
+
+  :where([data-dk-part='daterangepicker-preset'][data-selected]) {
+    color: var(--dk-accent-strong);
+    font-weight: 600;
+  }
+
+  :where([data-dk-part='daterangepicker-prev-month'], [data-dk-part='daterangepicker-next-month']) {
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--dk-surface);
+    color: inherit;
+    cursor: pointer;
+  }
+
+  :where([data-dk-part='daterangepicker-prev-month']) {
+    grid-area: prev;
+  }
+
+  :where([data-dk-part='daterangepicker-next-month']) {
+    grid-area: next;
+  }
+
+  :where([data-dk-part='daterangepicker-months']) {
+    grid-area: months;
+    display: flex;
+    gap: calc(var(--dk-space-2) * 3);
+  }
+
+  :where([data-dk-part='daterangepicker-month-heading']) {
+    margin: 0 0 var(--dk-space-2);
+    font-size: 1em;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  :where([data-dk-part='daterangepicker-weekdays'], [data-dk-part='daterangepicker-week']) {
+    display: grid;
+    grid-template-columns: repeat(7, 2.25rem);
+  }
+
+  :where([data-dk-part='daterangepicker-weekday']) {
+    padding-block: var(--dk-space-1);
+    color: var(--dk-text-muted);
+    font-size: 0.85em;
+    text-align: center;
+  }
+
+  :where([data-dk-part='daterangepicker-day']) {
+    display: grid;
+    place-items: center;
+    height: 2.25rem;
+    border-radius: calc(var(--dk-radius) - 2px);
+    cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+
+  :where([data-dk-part='daterangepicker-day']:hover:not([data-disabled])) {
+    background: var(--dk-accent-soft);
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-today]) {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-in-range]) {
+    border-radius: 0;
+    background: var(--dk-accent-soft);
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-range-start], [data-dk-part='daterangepicker-day'][data-range-end]) {
+    background: var(--dk-accent);
+    color: white;
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-range-start]:not([data-range-end])) {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-range-end]:not([data-range-start])) {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-preview][data-in-range]) {
+    background: color-mix(in oklab, var(--dk-accent) 6%, var(--dk-surface));
+    outline: 1px dashed var(--dk-accent);
+    outline-offset: -1px;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     :where([data-dk-part]) {
       transition: none;
@@ -287,6 +459,19 @@
     ) {
       outline: 2px solid Highlight;
       outline-offset: -2px;
+    }
+
+    :where(
+      [data-dk-part='daterangepicker-day'][data-range-start],
+      [data-dk-part='daterangepicker-day'][data-range-end]
+    ) {
+      background: Highlight;
+      color: HighlightText;
+    }
+
+    :where([data-dk-part='daterangepicker-day'][data-in-range]) {
+      outline: 1px solid Highlight;
+      outline-offset: -1px;
     }
   }
 }
