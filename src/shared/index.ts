@@ -8,5 +8,6 @@ export { Part } from './Part';
 export type { DataAttributes, PartProps, WithRef } from './Part';
 export { useLatestRef } from './useLatestRef';
 export { optionKeys, splitProps } from './splitProps';
+export { comboboxParts, daterangepickerParts, multiselectParts } from './partNames';
 export { useMergedRefs } from './useMergedRefs';
 export { visuallyHidden } from './visuallyHidden';

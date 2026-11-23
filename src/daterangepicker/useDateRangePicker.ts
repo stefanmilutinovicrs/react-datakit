@@ -8,7 +8,14 @@ import {
   type MouseEvent,
   type RefObject,
 } from 'react';
-import { optionKeys, useControllableState, useId, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
+import {
+  daterangepickerParts,
+  optionKeys,
+  useControllableState,
+  useId,
+  useIsomorphicLayoutEffect,
+  type DataAttributes,
+} from '../shared';
 import {
   addDays,
   addMonths,
@@ -546,13 +553,13 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     triggerRef,
     popoverRef,
     getRootProps: () => ({
-      'data-dk-part': 'daterangepicker',
+      'data-dk-part': daterangepickerParts.root,
       'data-state': isOpen ? 'open' : 'closed',
     }),
     getLabelProps: () => ({
       id: ids.label,
       htmlFor: ids.trigger,
-      'data-dk-part': 'daterangepicker-label',
+      'data-dk-part': daterangepickerParts.label,
     }),
     getTriggerProps: () => ({
       id: ids.trigger,
@@ -563,7 +570,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       // Named by the Label (`<label for>`); the picked range is the description. A self-including
       // aria-labelledby would put both in the name, but crashes Playwright's Firefox in tests.
       'aria-describedby': ids.value,
-      'data-dk-part': 'daterangepicker-trigger',
+      'data-dk-part': daterangepickerParts.trigger,
       'data-state': isOpen ? 'open' : 'closed',
       'data-placeholder': flag(value === null),
       onClick: () => {
@@ -573,14 +580,14 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     }),
     getTriggerValueProps: () => ({
       id: ids.value,
-      'data-dk-part': 'daterangepicker-value',
+      'data-dk-part': daterangepickerParts.value,
     }),
     getPopoverProps: () => ({
       id: ids.popover,
       role: 'dialog',
       'aria-modal': true,
       'aria-labelledby': hasLabel ? ids.label : undefined,
-      'data-dk-part': 'daterangepicker-popover',
+      'data-dk-part': daterangepickerParts.popover,
       'data-state': 'open',
       'data-pending': flag(pendingStart !== null),
       onKeyDown: onPopoverKeyDown,
@@ -591,7 +598,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     getPrevMonthProps: () => ({
       type: 'button',
       'aria-label': 'Previous month',
-      'data-dk-part': 'daterangepicker-prev-month',
+      'data-dk-part': daterangepickerParts.prevMonth,
       onClick: () => {
         goToMonth(-1);
       },
@@ -599,25 +606,25 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     getNextMonthProps: () => ({
       type: 'button',
       'aria-label': 'Next month',
-      'data-dk-part': 'daterangepicker-next-month',
+      'data-dk-part': daterangepickerParts.nextMonth,
       onClick: () => {
         goToMonth(1);
       },
     }),
     getMonthProps: (month) => ({
-      'data-dk-part': 'daterangepicker-month',
+      'data-dk-part': daterangepickerParts.month,
       'data-month': `${month.year}-${String(month.month).padStart(2, '0')}`,
     }),
     getMonthHeadingProps: (month) => ({
       id: ids.heading(month),
-      'data-dk-part': 'daterangepicker-month-heading',
+      'data-dk-part': daterangepickerParts.monthHeading,
       children: formatMonth(month),
     }),
     getGridProps: (month) => ({
       role: 'grid',
       'aria-labelledby': ids.heading(month),
       'aria-multiselectable': true,
-      'data-dk-part': 'daterangepicker-grid',
+      'data-dk-part': daterangepickerParts.grid,
     }),
     getDayProps: (date) => {
       const state = getDayState(date);
@@ -628,7 +635,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
         'aria-selected': state.selected,
         'aria-disabled': state.disabled || undefined,
         'aria-current': state.today ? 'date' : undefined,
-        'data-dk-part': 'daterangepicker-day',
+        'data-dk-part': daterangepickerParts.day,
         'data-date': toDateKey(date),
         'data-selected': flag(state.selected),
         'data-range-start': flag(state.rangeStart),
@@ -655,7 +662,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     },
     getPresetsProps: () => ({
       role: 'group',
-      'data-dk-part': 'daterangepicker-presets',
+      'data-dk-part': daterangepickerParts.presets,
     }),
     getPresetProps: (preset) => {
       const selected = isPresetSelected(preset);
@@ -664,7 +671,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
         type: 'button',
         disabled,
         'aria-pressed': selected,
-        'data-dk-part': 'daterangepicker-preset',
+        'data-dk-part': daterangepickerParts.preset,
         'data-selected': flag(selected),
         'data-disabled': flag(disabled),
         onClick: () => {

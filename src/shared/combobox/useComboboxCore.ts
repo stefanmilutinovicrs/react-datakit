@@ -16,6 +16,7 @@ import type { DataAttributes } from '../Part';
 import { useDebounce } from '../useDebounce';
 import { useId } from '../useId';
 import { useLatestRef } from '../useLatestRef';
+import { comboboxParts, multiselectParts } from '../partNames';
 import { optionKeys } from '../splitProps';
 
 export interface LoadOptionsContext {
@@ -161,6 +162,7 @@ export function useComboboxCore<TItem>(
 ): ComboboxCore<TItem> {
   const { items: staticSource, loadOptions, filter, itemToString, itemToKey } = options;
   const { part, multiple, isSelected, isDisabled } = behavior;
+  const names = part === 'combobox' ? comboboxParts : multiselectParts;
   const debounceMs = options.debounceMs ?? 250;
   const formatResultCount = options.formatResultCount ?? defaultFormatResultCount;
 
@@ -363,7 +365,12 @@ export function useComboboxCore<TItem>(
     const selected =
       row.type === 'option' ? isSelected(row.item) : row.type === 'select-all' ? behavior.allSelected(items) : false;
     const disabled = isRowDisabled(row);
-    const partName = row.type === 'option' ? 'option' : row.type;
+    const rowPart =
+      row.type === 'option'
+        ? names.option
+        : row.type === 'select-all'
+          ? multiselectParts.selectAll
+          : multiselectParts.create;
     return {
       id: rowId(index),
       role: 'option',
@@ -377,7 +384,7 @@ export function useComboboxCore<TItem>(
       onClick: () => {
         activate(row);
       },
-      'data-dk-part': `${part}-${partName}`,
+      'data-dk-part': rowPart,
       'data-highlighted': highlighted ? '' : undefined,
       'data-selected': selected ? '' : undefined,
       'data-disabled': disabled ? '' : undefined,
@@ -412,14 +419,14 @@ export function useComboboxCore<TItem>(
     registerLabel,
 
     getRootProps: () => ({
-      'data-dk-part': part,
+      'data-dk-part': names.root,
       'data-state': dataState,
       onBlur: onRootBlur,
     }),
     getLabelProps: () => ({
       id: ids.label,
       htmlFor: ids.input,
-      'data-dk-part': `${part}-label`,
+      'data-dk-part': names.label,
     }),
     getInputProps: () => ({
       id: ids.input,
@@ -433,7 +440,7 @@ export function useComboboxCore<TItem>(
       value: query ?? behavior.displayValue,
       onChange: onInputChange,
       onKeyDown,
-      'data-dk-part': `${part}-input`,
+      'data-dk-part': names.input,
       'data-state': dataState,
     }),
     getListProps: () => ({
@@ -447,7 +454,7 @@ export function useComboboxCore<TItem>(
       onMouseDown: (event) => {
         event.preventDefault();
       },
-      'data-dk-part': `${part}-list`,
+      'data-dk-part': names.list,
       'data-state': dataState,
       'data-loading': status === 'loading' ? '' : undefined,
     }),
@@ -456,13 +463,13 @@ export function useComboboxCore<TItem>(
       onMouseDown: (event) => {
         event.preventDefault();
       },
-      'data-dk-part': `${part}-popup`,
+      'data-dk-part': names.popup,
       'data-state': dataState,
       'data-loading': status === 'loading' ? '' : undefined,
     }),
-    getEmptyProps: () => ({ 'data-dk-part': `${part}-empty` }),
-    getLoadingProps: () => ({ 'data-dk-part': `${part}-loading`, 'data-loading': '' }),
-    getErrorProps: () => ({ role: 'alert', 'data-dk-part': `${part}-error` }),
+    getEmptyProps: () => ({ 'data-dk-part': names.empty }),
+    getLoadingProps: () => ({ 'data-dk-part': names.loading, 'data-loading': '' }),
+    getErrorProps: () => ({ role: 'alert', 'data-dk-part': names.error }),
     getRowProps,
     getOptionProps: (item, index) => getRowProps({ type: 'option', item }, index),
   };

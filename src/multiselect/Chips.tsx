@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, type ReactNode, type Ref } from 'react';
-import { Part, useMergedRefs, type PartProps } from '../shared';
+import { multiselectParts, Part, useMergedRefs, type PartProps } from '../shared';
 import { ChipContext, useChipContext, useMultiSelectContext } from './context';
 
 export interface MultiSelectControlState {
@@ -25,6 +25,8 @@ export type MultiSelectChipsProps<TItem> = Omit<PartProps<'div', MultiSelectChip
   children: (item: TItem, index: number) => ReactNode;
 };
 
+const chipSelector = `[data-dk-part="${multiselectParts.chip}"]`;
+
 export const Chips = forwardRef(function MultiSelectChips<TItem>(
   { children, ...props }: MultiSelectChipsProps<TItem>,
   ref: Ref<HTMLDivElement>,
@@ -41,7 +43,7 @@ export const Chips = forwardRef(function MultiSelectChips<TItem>(
     if (!container || typeof ResizeObserver === 'undefined') return;
     const measure = () => {
       const right = container.getBoundingClientRect().right;
-      const chips = container.querySelectorAll('[data-dk-part="multiselect-chip"]');
+      const chips = container.querySelectorAll(chipSelector);
       let index = -1;
       for (let i = 0; i < chips.length; i++) {
         const chip = chips[i];
@@ -54,7 +56,7 @@ export const Chips = forwardRef(function MultiSelectChips<TItem>(
     };
     const observer = new ResizeObserver(measure);
     observer.observe(container);
-    for (const chip of container.querySelectorAll('[data-dk-part="multiselect-chip"]')) observer.observe(chip);
+    for (const chip of container.querySelectorAll(chipSelector)) observer.observe(chip);
     return () => {
       observer.disconnect();
     };

@@ -13,7 +13,13 @@ import {
   type ComboboxBaseOptions,
   type ComboboxCore,
 } from '../shared/combobox/useComboboxCore';
-import { optionKeys, useControllableState, useIsomorphicLayoutEffect, type DataAttributes } from '../shared';
+import {
+  multiselectParts,
+  optionKeys,
+  useControllableState,
+  useIsomorphicLayoutEffect,
+  type DataAttributes,
+} from '../shared';
 
 export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: readonly TItem[] | undefined;
@@ -234,7 +240,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     focusInput,
 
     getControlProps: () => ({
-      'data-dk-part': 'multiselect-control',
+      'data-dk-part': multiselectParts.control,
       'data-state': core.isOpen ? 'open' : 'closed',
       // A click on the empty area of the field focuses the input.
       onMouseDown: (event) => {
@@ -246,9 +252,9 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     getChipsProps: () => ({
       role: selectedItems.length > 0 ? 'list' : undefined,
       'aria-label': selectedItems.length > 0 ? 'Selected' : undefined,
-      'data-dk-part': 'multiselect-chips',
+      'data-dk-part': multiselectParts.chips,
     }),
-    getChipsOverflowProps: () => ({ 'data-dk-part': 'multiselect-chips-overflow' }),
+    getChipsOverflowProps: () => ({ 'data-dk-part': multiselectParts.chipsOverflow }),
     getChipProps: (item, index) => {
       const overflowing = overflowIndex >= 0 && index >= overflowIndex;
       return {
@@ -257,7 +263,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
         tabIndex: -1,
         onKeyDown: onChipKeyDown(index),
         onFocus: close,
-        'data-dk-part': 'multiselect-chip',
+        'data-dk-part': multiselectParts.chip,
         'data-overflow': overflowing ? '' : undefined,
         'data-key': String(itemToKey(item)),
       };
@@ -270,7 +276,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
         removeChip(index);
         pendingFocus.current = { type: 'input' };
       },
-      'data-dk-part': 'multiselect-chip-remove',
+      'data-dk-part': multiselectParts.chipRemove,
     }),
   };
 }
