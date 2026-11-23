@@ -8,7 +8,7 @@ import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
 import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
-import { MultiSelect, type MultiSelectChipProps, type MultiSelectProps } from './index';
+import { MultiSelect, type MultiSelectChipProps, type MultiSelectProps, type UseMultiSelectReturn } from './index';
 
 // Built on the Combobox core: listbox popup, aria-multiselectable, selection keeps the list open.
 
@@ -224,6 +224,10 @@ describe('MultiSelect', () => {
   });
 
   describe('chips and keyboard', () => {
+    it('names the overflow indicator through a prop getter', () => {
+      expectTypeOf<UseMultiSelectReturn<User>>().toHaveProperty('getChipsOverflowProps');
+    });
+
     it('Chip reads its item from Chips, so it takes no item prop', () => {
       expectTypeOf<MultiSelectChipProps>().not.toHaveProperty('item');
     });

@@ -47,16 +47,9 @@ export type ComboboxPopupProps = PartProps<'div', ComboboxPopupState>;
 export const Popup = forwardRef<HTMLDivElement, ComboboxPopupProps>(function Popup(props, ref) {
   const core = useCoreContext('Popup');
   if (!core.isOpen) return null;
-  const ours = {
-    'data-dk-part': `${core.part}-popup`,
-    'data-state': 'open',
-    'data-loading': core.status === 'loading' ? '' : undefined,
-    // Clicks inside the popup (options, retry button) keep focus in the input.
-    onMouseDown: (event: { preventDefault: () => void }) => {
-      event.preventDefault();
-    },
-  };
-  return <Part tag="div" state={{ status: core.status }} ours={ours} theirs={props} forwardedRef={ref} />;
+  return (
+    <Part tag="div" state={{ status: core.status }} ours={core.getPopupProps()} theirs={props} forwardedRef={ref} />
+  );
 });
 
 export interface ComboboxListState {

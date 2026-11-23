@@ -132,6 +132,10 @@ export interface ComboboxCore<TItem> {
   getLabelProps: () => LabelHTMLAttributes<HTMLLabelElement> & DataAttributes;
   getInputProps: () => InputHTMLAttributes<HTMLInputElement> & DataAttributes;
   getListProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  getPopupProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  getEmptyProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  getLoadingProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  getErrorProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getRowProps: (row: ComboboxRow<TItem>, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
   /** Same as `getRowProps` for an option row. */
   getOptionProps: (item: TItem, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
@@ -455,6 +459,18 @@ export function useComboboxCore<TItem>(
       'data-state': dataState,
       'data-loading': status === 'loading' ? '' : undefined,
     }),
+    getPopupProps: () => ({
+      // Clicks inside the popup (options, retry button) keep focus in the input.
+      onMouseDown: (event) => {
+        event.preventDefault();
+      },
+      'data-dk-part': `${part}-popup`,
+      'data-state': dataState,
+      'data-loading': status === 'loading' ? '' : undefined,
+    }),
+    getEmptyProps: () => ({ 'data-dk-part': `${part}-empty` }),
+    getLoadingProps: () => ({ 'data-dk-part': `${part}-loading`, 'data-loading': '' }),
+    getErrorProps: () => ({ role: 'alert', 'data-dk-part': `${part}-error` }),
     getRowProps,
     getOptionProps: (item, index) => getRowProps({ type: 'option', item }, index),
   };

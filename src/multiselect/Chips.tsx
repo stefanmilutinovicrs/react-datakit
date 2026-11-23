@@ -114,7 +114,7 @@ export const ChipsOverflow = forwardRef<HTMLDivElement, MultiSelectChipsOverflow
     const multiSelect = useMultiSelectContext('ChipsOverflow');
     const count = multiSelect.overflowCount;
     if (count === 0) return null;
-    const ours = { 'data-dk-part': 'multiselect-chips-overflow', children: children(count) };
+    const ours = { ...multiSelect.getChipsOverflowProps(), children: children(count) };
     return <Part tag="div" state={{ count }} ours={ours} theirs={props} forwardedRef={ref} />;
   },
 );

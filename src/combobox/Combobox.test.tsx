@@ -8,7 +8,7 @@ import { expectNoA11yViolations } from '../test/axe';
 import { deferred, type Deferred } from '../test/deferred';
 import { expectNoOptionsOnDom } from '../test/options';
 import { comboboxOptionKeys } from './useCombobox';
-import { Combobox, type ComboboxProps } from './index';
+import { Combobox, type ComboboxCore, type ComboboxProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list")
 
@@ -398,6 +398,31 @@ describe('Combobox', () => {
       vi.fn((query: string) =>
         Promise.resolve(users.filter((u) => u.name.toLowerCase().includes(query.toLowerCase()))),
       );
+
+    it('names the popup and status parts through prop getters', async () => {
+      expectTypeOf<ComboboxCore<User>>().toHaveProperty('getPopupProps');
+      expectTypeOf<ComboboxCore<User>>().toHaveProperty('getEmptyProps');
+      expectTypeOf<ComboboxCore<User>>().toHaveProperty('getLoadingProps');
+      expectTypeOf<ComboboxCore<User>>().toHaveProperty('getErrorProps');
+
+      const { calls, loadOptions } = controlledLoader();
+      await render(<UserCombobox loadOptions={loadOptions} debounceMs={0} />);
+      await userEvent.type(input(), 'zz');
+      await expect.poll(() => calls.length).toBeGreaterThan(0);
+      const part = (text: string) => page.getByText(text).element().getAttribute('data-dk-part');
+      await expect.element(page.getByText('Searching…')).toBeVisible();
+      expect(part('Searching…')).toBe('combobox-loading');
+      expect(page.getByText('Searching…').element().parentElement?.getAttribute('data-dk-part')).toBe('combobox-popup');
+
+      calls.at(-1)?.response.resolve([]);
+      await expect.element(page.getByText('No users found')).toBeVisible();
+      expect(part('No users found')).toBe('combobox-empty');
+
+      await userEvent.type(input(), 'z');
+      await expect.poll(() => calls.length).toBeGreaterThan(1);
+      calls.at(-1)?.response.reject(new Error('Network'));
+      await expect.element(page.getByRole('alert')).toHaveAttribute('data-dk-part', 'combobox-error');
+    });
 
     it('debounces fast typing into a single request', async () => {
       const loadOptions = instantLoader();

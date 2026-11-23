@@ -13,15 +13,7 @@ export type ComboboxLoadingProps = PartProps<'div', ComboboxStatusPartState>;
 export const Empty = forwardRef<HTMLDivElement, ComboboxEmptyProps>(function Empty(props, ref) {
   const core = useCoreContext('Empty');
   if (core.status !== 'success' || core.rows.length > 0) return null;
-  return (
-    <Part
-      tag="div"
-      state={{ query: core.query }}
-      ours={{ 'data-dk-part': `${core.part}-empty` }}
-      theirs={props}
-      forwardedRef={ref}
-    />
-  );
+  return <Part tag="div" state={{ query: core.query }} ours={core.getEmptyProps()} theirs={props} forwardedRef={ref} />;
 });
 
 /** Shown while `loadOptions` runs for the current query. */
@@ -29,13 +21,7 @@ export const Loading = forwardRef<HTMLDivElement, ComboboxLoadingProps>(function
   const core = useCoreContext('Loading');
   if (core.status !== 'loading') return null;
   return (
-    <Part
-      tag="div"
-      state={{ query: core.query }}
-      ours={{ 'data-dk-part': `${core.part}-loading`, 'data-loading': '' }}
-      theirs={props}
-      forwardedRef={ref}
-    />
+    <Part tag="div" state={{ query: core.query }} ours={core.getLoadingProps()} theirs={props} forwardedRef={ref} />
   );
 });
 
@@ -54,8 +40,7 @@ export const ErrorPart = forwardRef<HTMLDivElement, ComboboxErrorProps>(function
   if (core.status !== 'error') return null;
   const state: ComboboxErrorState = { error: core.error, retry: core.retry };
   const ours = {
-    role: 'alert',
-    'data-dk-part': `${core.part}-error`,
+    ...core.getErrorProps(),
     children: typeof children === 'function' ? children(state) : children,
   };
   return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;

@@ -53,6 +53,7 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
 
   getControlProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipsProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  getChipsOverflowProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipProps: (item: TItem, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipRemoveProps: (item: TItem, index: number) => ButtonHTMLAttributes<HTMLButtonElement> & DataAttributes;
 }
@@ -248,6 +249,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
       'aria-label': selectedItems.length > 0 ? 'Selected' : undefined,
       'data-dk-part': 'multiselect-chips',
     }),
+    getChipsOverflowProps: () => ({ 'data-dk-part': 'multiselect-chips-overflow' }),
     getChipProps: (item, index) => {
       const overflowing = overflowIndex >= 0 && index >= overflowIndex;
       return {
