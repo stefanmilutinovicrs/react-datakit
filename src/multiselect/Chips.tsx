@@ -77,16 +77,11 @@ export interface MultiSelectChipState {
   overflow: boolean;
 }
 
-export type MultiSelectChipProps<TItem> = PartProps<'div', MultiSelectChipState> & {
-  item: TItem;
-};
+export type MultiSelectChipProps = PartProps<'div', MultiSelectChipState>;
 
-export const Chip = forwardRef(function MultiSelectChip<TItem>(
-  { item, ...props }: MultiSelectChipProps<TItem>,
-  ref: Ref<HTMLDivElement>,
-) {
-  const multiSelect = useMultiSelectContext<TItem>('Chip');
-  const { index } = useChipContext('Chip');
+export const Chip = forwardRef<HTMLDivElement, MultiSelectChipProps>(function MultiSelectChip(props, ref) {
+  const multiSelect = useMultiSelectContext('Chip');
+  const { item, index } = useChipContext('Chip');
   const state = { index, overflow: multiSelect.overflowIndex >= 0 && index >= multiSelect.overflowIndex };
   return (
     <Part tag="div" state={state} ours={multiSelect.getChipProps(item, index)} theirs={props} forwardedRef={ref} />

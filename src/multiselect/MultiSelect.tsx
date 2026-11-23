@@ -5,15 +5,7 @@ import { RootPart, type ComboboxRootState } from '../shared/combobox/Root';
 import { Empty, ErrorPart, Loading } from '../shared/combobox/Status';
 import type { ComboboxCore } from '../shared/combobox/useComboboxCore';
 import { splitProps, type PartProps, type WithRef } from '../shared';
-import {
-  Chip,
-  ChipRemove,
-  Chips,
-  ChipsOverflow,
-  Control,
-  type MultiSelectChipProps,
-  type MultiSelectChipsProps,
-} from './Chips';
+import { Chip, ChipRemove, Chips, ChipsOverflow, Control, type MultiSelectChipsProps } from './Chips';
 import { MultiSelectContext } from './context';
 import { Create, MultiSelectList, SelectAll, type MultiSelectListProps } from './List';
 import {
@@ -56,7 +48,7 @@ export const MultiSelect = Object.assign(
     Label,
     Control,
     Chips: Chips as <TItem>(props: WithRef<MultiSelectChipsProps<TItem>, HTMLDivElement>) => ReactElement,
-    Chip: Chip as <TItem>(props: WithRef<MultiSelectChipProps<TItem>, HTMLDivElement>) => ReactElement,
+    Chip,
     ChipRemove,
     ChipsOverflow,
     Input,

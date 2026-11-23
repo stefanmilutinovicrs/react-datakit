@@ -8,7 +8,7 @@ import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
 import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
-import { MultiSelect, type MultiSelectProps } from './index';
+import { MultiSelect, type MultiSelectChipProps, type MultiSelectProps } from './index';
 
 // Built on the Combobox core: listbox popup, aria-multiselectable, selection keeps the list open.
 
@@ -34,7 +34,7 @@ function UserMultiSelect({ controlWidth, ...props }: TestProps) {
       <MultiSelect.Control style={controlWidth ? { width: controlWidth } : undefined}>
         <MultiSelect.Chips>
           {(user: User) => (
-            <MultiSelect.Chip item={user}>
+            <MultiSelect.Chip>
               {user.name}
               <MultiSelect.ChipRemove />
             </MultiSelect.Chip>
@@ -224,6 +224,10 @@ describe('MultiSelect', () => {
   });
 
   describe('chips and keyboard', () => {
+    it('Chip reads its item from Chips, so it takes no item prop', () => {
+      expectTypeOf<MultiSelectChipProps>().not.toHaveProperty('item');
+    });
+
     it('Backspace in an empty input removes the last chip', async () => {
       const onChange = vi.fn();
       await render(<UserMultiSelect items={users} defaultValue={[ana, bojan]} onChange={onChange} />);

@@ -46,7 +46,7 @@ function Parts({ placeholder = 'Add labels…' }: { placeholder?: string }) {
       <MultiSelect.Control>
         <MultiSelect.Chips>
           {(tag: Tag) => (
-            <MultiSelect.Chip item={tag}>
+            <MultiSelect.Chip>
               {tag.name}
               <MultiSelect.ChipRemove />
             </MultiSelect.Chip>
