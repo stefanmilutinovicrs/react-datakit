@@ -10,7 +10,7 @@ import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
 import { MultiSelect, type MultiSelectChipProps, type MultiSelectProps, type UseMultiSelectReturn } from './index';
 
-// Built on the Combobox core: listbox popup, aria-multiselectable, selection keeps the list open.
+// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/
 
 interface User {
   id: number;

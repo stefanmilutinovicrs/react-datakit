@@ -1,17 +1,4 @@
-/*
- * react-datakit default theme (optional): import 'react-datakit/styles.css'.
- *
- * Rules:
- * - Everything lives in @layer datakit, so any unlayered user CSS wins
- *   regardless of specificity or load order.
- * - Selectors only inside :where() (specificity 0).
- * - Parts are targeted by [data-dk-part], state by data attributes
- *   (data-state, data-highlighted, data-selected, data-disabled, data-loading).
- * - Most users only need --dk-accent; the other colors derive from it.
- *
- * With Tailwind v4, declare the layer order first in your main CSS file:
- *   @layer datakit, theme, base, components, utilities;
- */
+/* Optional default theme; see https://github.com/stefanmilutinovicrs/react-datakit#theming */
 @layer datakit {
   :where(:root) {
     color-scheme: light dark;

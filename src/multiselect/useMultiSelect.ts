@@ -46,7 +46,6 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
   /** Index of the first chip that does not fit, or -1 when all fit. Set by the Chips part. */
   overflowIndex: number;
   setOverflowIndex: (index: number) => void;
-  /** Number of chips hidden behind the overflow indicator. */
   overflowCount: number;
   focusChip: (index: number) => void;
   focusInput: () => void;

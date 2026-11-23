@@ -61,6 +61,18 @@ import 'react-datakit/styles.css'; // optional default theme
 }
 ```
 
+## Theming
+
+`react-datakit/styles.css` is an optional default theme. Every rule lives in `@layer datakit` and uses `:where()` selectors, so any CSS you write wins regardless of specificity or load order.
+
+- Most apps only set `--dk-accent`; the other colors derive from it.
+- Parts are targeted by `[data-dk-part]` and state by data attributes such as `data-state`, `data-highlighted`, `data-selected`, `data-disabled` and `data-loading`.
+- With Tailwind v4, declare the layer order first in your main CSS file:
+
+  ```css
+  @layer datakit, theme, base, components, utilities;
+  ```
+
 ## Get involved
 
 - We welcome issues and pull requests!

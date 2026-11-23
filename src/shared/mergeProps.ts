@@ -9,14 +9,7 @@ function isDefaultPrevented(event: unknown): boolean {
   return typeof event === 'object' && event !== null && 'defaultPrevented' in event && event.defaultPrevented === true;
 }
 
-/**
- * Merges the props a part computes (`ours`) with the props the user passed (`theirs`).
- *
- * - Plain props: the user wins, but `undefined` never overrides.
- * - Event handlers: both run, the user's first. If it calls `event.preventDefault()`,
- *   ours is skipped, which is how users opt out of built-in behavior.
- * - `className`: joined. `style`: merged, with our values (computed positions) last.
- */
+/** Merges a part's props with the user's; `event.preventDefault()` in the user's handler skips the built-in one. */
 export function mergeProps<A extends object, B extends object>(ours: A, theirs: B): A & B {
   const result: Props = { ...(ours as Props) };
   for (const [key, theirValue] of Object.entries(theirs)) {

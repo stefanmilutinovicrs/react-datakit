@@ -51,11 +51,9 @@ export function getDayOfWeek(date: CalendarDate): number {
 export interface UseDateRangePickerOptions {
   /** Base id for the parts. Generated when omitted. */
   id?: string | undefined;
-  /** Controlled value. `null` = no range. */
   value?: DateRange | null | undefined;
   defaultValue?: DateRange | null | undefined;
   onChange?: ((value: DateRange | null) => void) | undefined;
-  /** Controlled open state of the dialog. */
   open?: boolean | undefined;
   defaultOpen?: boolean | undefined;
   onOpenChange?: ((open: boolean) => void) | undefined;
@@ -390,7 +388,8 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     wasOpen.current = isOpen;
   });
 
-  // Move DOM focus to the focused day after keyboard moves and on open.
+  // The APG date picker moves DOM focus to the day itself, unlike Combobox, which keeps focus in
+  // the input and uses aria-activedescendant: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
   useIsomorphicLayoutEffect(() => {
     if (!isOpen || !focusDayRequested.current) return;
     const cell = popoverRef.current?.querySelector<HTMLElement>(`[data-date="${toDateKey(focusedDate)}"]`);

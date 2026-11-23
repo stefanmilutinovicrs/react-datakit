@@ -18,8 +18,6 @@ import { useId } from '../useId';
 import { useLatestRef } from '../useLatestRef';
 import { optionKeys } from '../splitProps';
 
-// Owns the query, popup, highlight, options and keyboard for Combobox and MultiSelect; the public hooks decide what selecting means.
-
 export interface LoadOptionsContext {
   /** Aborted when a newer query starts, the list closes or the component unmounts. */
   signal: AbortSignal;
@@ -34,7 +32,6 @@ export interface ComboboxBaseOptions<TItem> {
   loadOptions?: ((query: string, context: LoadOptionsContext) => Promise<readonly TItem[]>) | undefined;
   /** Local filter for `items`. Defaults to a case-insensitive "contains" on `itemToString`. */
   filter?: ((item: TItem, query: string) => boolean) | undefined;
-  /** Text for an item; `null` means no item. */
   itemToString: (item: TItem | null) => string;
   /** Stable, unique key for an item. */
   itemToKey: (item: TItem) => string | number;
@@ -81,12 +78,10 @@ export interface ComboboxCoreBehavior<TItem> {
   createDisabled: boolean;
   /** Whether the select-all row reads as selected for the given options. */
   allSelected: (items: readonly TItem[]) => boolean;
-  /** Applies a row the user picked. */
   activate: (row: ComboboxRow<TItem>, items: readonly TItem[]) => void;
   selectOnTab: boolean;
   /** Escape on a closed popup. Returns true when it changed something. */
   clearOnEscape: (query: string | null) => boolean;
-  /** Focus left the component. */
   onLeave: (query: string | null) => void;
   /** Runs before the core keyboard handling; return true to stop it. */
   onInputKeyDown?: ((event: KeyboardEvent<HTMLInputElement>, query: string | null) => boolean) | undefined;
@@ -101,7 +96,6 @@ export interface ComboboxCore<TItem> {
   inputValue: string;
   /** What the user typed since the last selection, or `null` when not searching. */
   query: string | null;
-  /** Options for the current query. */
   items: readonly TItem[];
   /** Listbox rows: the options plus action rows (select all, create). */
   rows: readonly ComboboxRow<TItem>[];
@@ -116,7 +110,6 @@ export interface ComboboxCore<TItem> {
   open: (highlight?: 'first' | 'last' | 'none') => void;
   close: () => void;
   highlight: (index: number, origin?: HighlightOrigin) => void;
-  /** Applies a row as if the user picked it. */
   activate: (row: ComboboxRow<TItem>) => void;
   /** Loads the current query again after an error. */
   retry: () => void;
@@ -137,7 +130,6 @@ export interface ComboboxCore<TItem> {
   getLoadingProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getErrorProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getRowProps: (row: ComboboxRow<TItem>, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
-  /** Same as `getRowProps` for an option row. */
   getOptionProps: (item: TItem, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
 }
 

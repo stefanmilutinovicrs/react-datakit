@@ -1,5 +1,3 @@
-// Only `Intl` is used, so no date library ships with the package.
-
 /** A day on the calendar. `month` is 1-12. */
 export interface CalendarDate {
   year: number;

@@ -72,6 +72,7 @@ Checklist:
 - Write a `//` comment only for a non-obvious decision: a browser or screen reader quirk, a race condition, a WAI-ARIA requirement (link the spec).
 - Write JSDoc only when it adds something the name and the type don't say: one sentence, no `@example` (examples live in Storybook). `@experimental` and `@deprecated` are allowed.
 - JSDoc only on exported code: components, props and types.
+- JSDoc on a prop only when it states a requirement or behavior that the name and the type don't show: a default, a unit, what `null` or `-1` means, when it is called. `itemToKey` says the key must be stable and unique; `items` or `open` need nothing.
 
 ### Component folders
 

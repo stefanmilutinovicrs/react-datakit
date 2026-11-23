@@ -11,7 +11,6 @@ export type DataAttributes = { [key: `data-${string}`]: string | undefined };
 
 /** Props every part accepts on top of the native props of its element. */
 export type PartProps<TTag extends Tag, TState> = Omit<ComponentPropsWithoutRef<TTag>, 'className'> & {
-  /** A class name, or a function of the part's state that returns one. */
   className?: string | ((state: TState) => string | undefined) | undefined;
   /** Replaces the default element; spread the final props, including `ref`, onto your element. */
   render?: ((props: ComponentPropsWithoutRef<TTag> & { ref: Ref<never> }, state: TState) => ReactElement) | undefined;

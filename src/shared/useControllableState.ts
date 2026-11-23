@@ -12,14 +12,6 @@ export interface UseControllableStateParams<T> {
 
 export type SetControllableState<T> = (next: T | ((prev: T) => T)) => void;
 
-/**
- * One state primitive for every component, so each value works both ways:
- * controlled (`value` + `onChange`) or uncontrolled (`defaultValue`).
- *
- * - `undefined` means "uncontrolled"; use `null` for an empty controlled value.
- * - The setter is stable and accepts an updater function, like `useState`.
- * - `onChange` fires only when the value actually changes (`Object.is`).
- */
 export function useControllableState<T>({
   value,
   defaultValue,
