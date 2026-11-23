@@ -20,8 +20,7 @@ export interface UseComboboxReturn<TItem> extends ComboboxCore<TItem> {
 const never = () => false;
 
 /**
- * Headless combobox (WAI-ARIA APG pattern with a listbox popup and `aria-autocomplete="list"`).
- * DOM focus stays in the input; the highlighted option is exposed with `aria-activedescendant`.
+ * Headless combobox (WAI-ARIA APG, listbox popup) that keeps DOM focus in the input and exposes the highlighted option with `aria-activedescendant`.
  *
  * @experimental
  */

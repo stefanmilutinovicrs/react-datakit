@@ -13,8 +13,7 @@ import {
 import { Part, useIsomorphicLayoutEffect, useMergedRefs, visuallyHidden, type PartProps } from '../shared';
 import { rowKey, type ComboboxCore, type ComboboxRow, type ComboboxStatus } from './useComboboxCore';
 
-// Parts shared by Combobox and MultiSelect. They read the core from context, so the
-// same Input, List or Option works under either root. Part names get the root's prefix.
+// Shared by Combobox and MultiSelect through the core context; part names get the root's prefix.
 
 export const CoreContext = createContext<ComboboxCore<unknown> | null>(null);
 

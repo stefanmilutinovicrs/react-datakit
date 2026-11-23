@@ -1,10 +1,6 @@
 import { useEffect, useState } from 'react';
 
-/**
- * Returns `value`, delayed until it has stopped changing for `delayMs`.
- * Each change restarts the timer, so fast typing produces a single update.
- * A delay of 0 or less disables debouncing and returns `value` as is.
- */
+/** Returns `value` once it has stopped changing for `delayMs`; a delay of 0 or less returns it as is. */
 export function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
   const enabled = delayMs > 0;

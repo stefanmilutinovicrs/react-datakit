@@ -14,16 +14,13 @@ import {
 } from 'react';
 import { useDebounce, useId, useLatestRef, type DataAttributes } from '../shared';
 
-// Internal core shared by Combobox (single value) and MultiSelect (many values).
-// It owns the query, the popup, the highlight, static or async options and the keyboard;
-// the public hooks decide what selecting means.
+// Owns the query, popup, highlight, options and keyboard for Combobox and MultiSelect; the public hooks decide what selecting means.
 
 export interface LoadOptionsContext {
   /** Aborted when a newer query starts, the list closes or the component unmounts. */
   signal: AbortSignal;
 }
 
-/** Options shared by `useCombobox` and `useMultiSelect`. */
 export interface ComboboxBaseOptions<TItem> {
   /** Base id for the generated element ids. Defaults to a `useId()` value. */
   id?: string | undefined;
@@ -86,7 +83,6 @@ export interface ComboboxCore<TItem> {
   rootRef: RefObject<HTMLDivElement | null>;
   inputRef: RefObject<HTMLInputElement | null>;
   isOpen: boolean;
-  /** Text in the input. */
   inputValue: string;
   /** What the user typed since the last selection, or `null` when not searching. */
   query: string | null;
@@ -144,7 +140,6 @@ function withEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map<K, V> {
   return next;
 }
 
-/** React key for a row. */
 export function rowKey<TItem>(row: ComboboxRow<TItem>, itemToKey: (item: TItem) => string | number): string {
   return row.type === 'option' ? `option:${itemToKey(row.item)}` : row.type;
 }
@@ -174,7 +169,6 @@ export function useComboboxCore<TItem>(
   });
   const [labelCount, setLabelCount] = useState(0);
 
-  // Static options.
   const isAsync = loadOptions !== undefined;
   const staticItems = useMemo(() => {
     if (isAsync) return EMPTY;
@@ -219,7 +213,6 @@ export function useComboboxCore<TItem>(
   const items: readonly TItem[] = isAsync ? (current?.status === 'success' ? current.items : EMPTY) : staticItems;
   const error = current?.status === 'error' ? current.error : undefined;
 
-  // Rows: [select all] + options + [create].
   const trimmedQuery = query?.trim() ?? '';
   const showSelectAll = behavior.selectAll && status === 'success' && items.length > 0;
   const showCreate =
@@ -240,7 +233,6 @@ export function useComboboxCore<TItem>(
   const highlightedIndex = isOpen && highlightState.index < rows.length ? highlightState.index : -1;
   const statusMessage = status === 'success' ? formatResultCount(items.length) : '';
 
-  // Actions.
   const highlight = useCallback((index: number, origin: HighlightOrigin = 'keyboard') => {
     setHighlightState({ index, origin });
   }, []);
@@ -291,7 +283,6 @@ export function useComboboxCore<TItem>(
     };
   }, []);
 
-  // Event handlers.
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (behavior.onInputKeyDown?.(event, query)) return;
     const count = rows.length;

@@ -8,8 +8,7 @@ import { expectNoA11yViolations } from '../test/axe';
 import { deferred, type Deferred } from '../test/deferred';
 import { Combobox, type ComboboxProps } from './index';
 
-// Spec: "react-datakit: opis i plan" → Specifikacija: Combobox.
-// Pattern: https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list").
+// https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list")
 
 interface User {
   id: number;

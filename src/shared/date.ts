@@ -1,5 +1,4 @@
-// Calendar dates without a time or a time zone, and their conversion to instants in a
-// time zone. Only `Intl` is used, so no date library ships with the package.
+// Only `Intl` is used, so no date library ships with the package.
 
 /** A day on the calendar. `month` is 1-12. */
 export interface CalendarDate {
@@ -67,10 +66,7 @@ export function toDateKey(date: CalendarDate): string {
   return `${pad(date.year, 4)}-${pad(date.month, 2)}-${pad(date.day, 2)}`;
 }
 
-/**
- * The weeks of a month, each 7 days long, starting on `weekStart` (0 = Sunday).
- * Days of the previous and next month are `null`.
- */
+/** Weeks of 7 days starting on `weekStart` (0 = Sunday), with `null` for days of other months. */
 export function getMonthWeeks(year: number, month: number, weekStart: number): (CalendarDate | null)[][] {
   const first: CalendarDate = { year, month, day: 1 };
   const leading = (dayOfWeek(first) - weekStart + 7) % 7;
@@ -120,7 +116,7 @@ function partsFormatter(timeZone: string): Intl.DateTimeFormat {
   return formatter;
 }
 
-/** Wall-clock time of an instant in a time zone, as if that wall clock were UTC. */
+// The wall-clock time in `timeZone`, read as if it were UTC, so offsets are plain subtraction.
 function wallClockMs(ms: number, timeZone: string): number {
   const values: Record<string, number> = {};
   for (const part of partsFormatter(timeZone).formatToParts(ms)) {
@@ -130,21 +126,16 @@ function wallClockMs(ms: number, timeZone: string): number {
   return Date.UTC(year, month - 1, day, hour, minute, second);
 }
 
-/** The local time zone of the runtime. */
 export function getLocalTimeZone(): string {
   return new Intl.DateTimeFormat().resolvedOptions().timeZone;
 }
 
-/** The calendar date of an instant in a time zone. */
 export function toCalendarDate(instant: Date | number, timeZone: string): CalendarDate {
   const ms = typeof instant === 'number' ? instant : instant.getTime();
   return fromUtcMs(Math.floor(wallClockMs(ms, timeZone) / DAY_MS) * DAY_MS);
 }
 
-/**
- * The first instant of a day in a time zone. Usually local midnight; on a day where
- * midnight is skipped by a DST change, the first instant after the gap.
- */
+/** Local midnight, or the first instant after the gap on a day whose midnight is skipped by DST. */
 export function startOfDayInZone(date: CalendarDate, timeZone: string): Date {
   const midnight = toUtcMs(date);
   // The offset at local midnight is either the offset just before or just after it,

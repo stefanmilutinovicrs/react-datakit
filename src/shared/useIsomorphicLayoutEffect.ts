@@ -1,7 +1,4 @@
 import { useEffect, useLayoutEffect } from 'react';
 
-/**
- * `useLayoutEffect` in the browser, `useEffect` on the server, so components
- * stay SSR-safe (Next.js App Router) without React's server warning.
- */
+// useLayoutEffect warns during server rendering (Next.js App Router), so the server gets useEffect.
 export const useIsomorphicLayoutEffect = typeof document !== 'undefined' ? useLayoutEffect : useEffect;

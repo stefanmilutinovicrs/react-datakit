@@ -8,7 +8,6 @@ import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
 import { MultiSelect, type MultiSelectProps } from './index';
 
-// Spec: "react-datakit: opis i plan" → Specifikacija: ostale komponente → MultiSelect.
 // Built on the Combobox core: listbox popup, aria-multiselectable, selection keeps the list open.
 
 interface User {

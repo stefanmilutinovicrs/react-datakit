@@ -18,20 +18,15 @@ export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem>
   max?: number | undefined;
   /** Adds a "Select all" row that selects (or deselects) every option matching the query. */
   selectAll?: boolean | undefined;
-  /**
-   * Makes the typed text creatable: a "Create" row appears when no option matches it exactly.
-   * Return the new item (or a promise of it); it is added to the value.
-   */
+  /** Adds a "Create" row when no option matches the typed text exactly; return the new item or a promise of it. */
   onCreate?: ((query: string) => TItem | Promise<TItem>) | undefined;
 }
 
 export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
   selectedItems: readonly TItem[];
-  /** True when `max` values are selected. */
   isAtMax: boolean;
   toggleItem: (item: TItem) => void;
   removeItem: (item: TItem) => void;
-  /** Removes every value. */
   clear: () => void;
   /** Index of the first chip that does not fit, or -1 when all fit. Set by the Chips part. */
   overflowIndex: number;
@@ -52,8 +47,7 @@ const EMPTY: readonly never[] = [];
 type FocusTarget = { type: 'chip'; index: number } | { type: 'input' };
 
 /**
- * Headless multi-select built on the combobox core: a listbox with `aria-multiselectable`,
- * where picking an option toggles it and keeps the list open. Selected values are chips.
+ * Headless multi-select on the combobox core, where picking an option toggles it and keeps the list open.
  *
  * @experimental
  */

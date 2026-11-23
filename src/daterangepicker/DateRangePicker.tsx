@@ -327,11 +327,7 @@ export type DateRangePickerGridProps = Omit<PartProps<'div', DateRangePickerMont
   children?: ((date: CalendarDate) => ReactNode) | undefined;
 };
 
-/**
- * The days of the month as an ARIA grid: a row of weekday headers, then one row per week.
- * Rows and headers are styled through `daterangepicker-week`, `daterangepicker-weekdays`,
- * `daterangepicker-weekday` and `daterangepicker-blank` (days of other months).
- */
+/** The days of the month as an ARIA grid; style its rows with `daterangepicker-weekdays`, `-weekday`, `-week` and `-blank` (days of other months). */
 const Grid = forwardRef<HTMLDivElement, DateRangePickerGridProps>(function Grid({ children, ...props }, ref) {
   const picker = usePicker('Grid');
   const month = useMonth('Grid');
@@ -388,7 +384,7 @@ function formatDayNumber(date: CalendarDate, locale: string | undefined): string
   return formatter.format(Date.UTC(date.year, date.month - 1, date.day));
 }
 
-/** One day cell (`role="gridcell"`). Only the focused day is in the tab order. */
+/** A `role="gridcell"` day; only the focused day is in the tab order. */
 const Day = forwardRef<HTMLDivElement, DateRangePickerDayProps>(function Day({ date, children, ...props }, ref) {
   const picker = usePicker('Day');
   const state = picker.getDayState(date);
@@ -405,8 +401,7 @@ const Day = forwardRef<HTMLDivElement, DateRangePickerDayProps>(function Day({ d
 });
 
 /**
- * Pick a range of whole days in a time zone. Compound parts: Label, Trigger, Popover,
- * Presets, Preset, PrevMonth, NextMonth, Months, Month, MonthHeading, Grid and Day.
+ * Pick a range of whole days in a time zone.
  *
  * @experimental
  */

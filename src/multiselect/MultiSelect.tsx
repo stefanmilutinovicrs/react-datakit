@@ -91,8 +91,6 @@ const MultiSelectRoot = forwardRef(function MultiSelect<TItem>(
   );
 });
 
-/* Control: the field that holds the chips and the input */
-
 export interface MultiSelectControlState {
   open: boolean;
   count: number;

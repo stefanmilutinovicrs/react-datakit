@@ -118,7 +118,6 @@ export interface UseDateRangePickerOptions {
   closeOnSelect?: boolean | undefined;
 }
 
-/** What a day cell knows about itself. */
 export interface DateRangePickerDayState {
   date: CalendarDate;
   /** Inside the selected (or previewed) range, ends included. */
@@ -200,9 +199,7 @@ function between(date: CalendarDate, a: CalendarDate, b: CalendarDate): boolean 
 }
 
 /**
- * Headless date range picker (WAI-ARIA APG Date Picker Dialog): a button opens a modal
- * dialog with one grid of days per visible month. The first pick sets the start, the
- * second the end. The value is two instants covering whole days in `timeZone`.
+ * Headless date range picker (WAI-ARIA APG Date Picker Dialog) whose first pick sets the start and second pick the end.
  *
  * @experimental
  */
@@ -421,7 +418,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     }
   });
 
-  // A pointer press outside the component closes the dialog.
   useEffect(() => {
     if (!isOpen) return;
     const onPointerDown = (event: PointerEvent) => {
@@ -521,7 +517,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       return;
     }
     if (event.key !== 'Tab') return;
-    // Modal dialog: Tab and Shift+Tab cycle through the dialog's tabbable elements.
+    // A modal dialog keeps Tab inside it: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
     const container = popoverRef.current;
     if (!container) return;
     const tabbable = Array.from(

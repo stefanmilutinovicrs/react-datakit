@@ -7,8 +7,7 @@ import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type Calenda
 import { expectNoA11yViolations } from '../test/axe';
 import { DateRangePicker, type DateRange, type DateRangePickerProps } from './index';
 
-// Spec: "react-datakit: opis i plan" → Specifikacija: ostale komponente → DateRangePicker.
-// WAI-ARIA APG Date Picker Dialog: a button opens a modal dialog with a grid of days.
+// https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
 
 const tz = 'Europe/Belgrade';
 const d = (year: number, month: number, day: number): CalendarDate => ({ year, month, day });

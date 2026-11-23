@@ -50,8 +50,6 @@
     cursor: not-allowed;
   }
 
-  /* Combobox */
-
   :where([data-dk-part='combobox'], [data-dk-part='multiselect']) {
     position: relative;
     display: inline-flex;
@@ -147,8 +145,6 @@
     text-decoration: underline;
     cursor: pointer;
   }
-
-  /* MultiSelect */
 
   :where([data-dk-part='multiselect-control']) {
     display: flex;
@@ -266,8 +262,6 @@
   :where([data-dk-part='multiselect-create']) {
     color: var(--dk-accent-strong);
   }
-
-  /* DateRangePicker */
 
   :where([data-dk-part='daterangepicker']) {
     position: relative;

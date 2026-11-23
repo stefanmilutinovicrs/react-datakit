@@ -27,7 +27,6 @@ const manyTags: Tag[] = Array.from({ length: 10_000 }, (_, i) => ({ id: `tag-${i
 const itemToString = (tag: Tag | null) => tag?.name ?? '';
 const itemToKey = (tag: Tag) => tag.id;
 
-/** A fake API: 500 ms latency, honors the abort signal. */
 function searchTags(query: string, { signal }: { signal: AbortSignal }) {
   return new Promise<Tag[]>((resolve, reject) => {
     const timer = setTimeout(() => {

@@ -26,7 +26,6 @@ const manyUsers = makeUsers(10_000);
 const itemToString = (user: User | null) => user?.name ?? '';
 const itemToKey = (user: User) => user.id;
 
-/** A fake API: 500 ms latency, honors the abort signal. */
 function searchUsers(query: string, { signal }: { signal: AbortSignal }, options: { fail?: boolean } = {}) {
   return new Promise<User[]>((resolve, reject) => {
     const timer = setTimeout(() => {
