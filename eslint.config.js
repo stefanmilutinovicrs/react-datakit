@@ -1,14 +1,34 @@
 import js from '@eslint/js';
 import { defineConfig, globalIgnores } from 'eslint/config';
+import jsdoc from 'eslint-plugin-jsdoc';
 import reactHooks from 'eslint-plugin-react-hooks';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import local from './eslint-rules/index.js';
 
 export default defineConfig(
   globalIgnores(['dist', 'storybook-static', 'coverage', '.vitest']),
   js.configs.recommended,
   tseslint.configs.strictTypeChecked,
   reactHooks.configs.flat['recommended-latest'],
+  {
+    plugins: { jsdoc, local },
+    rules: {
+      'local/no-section-comments': 'error',
+      'local/no-todo-without-issue': 'error',
+      'jsdoc/no-restricted-syntax': [
+        'error',
+        {
+          contexts: [
+            {
+              comment: 'JsdocBlock:has(JsdocTag[tag=example])',
+              message: 'Use Storybook for examples instead of @example.',
+            },
+          ],
+        },
+      ],
+    },
+  },
   {
     languageOptions: {
       globals: { ...globals.browser },

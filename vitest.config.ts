@@ -10,18 +10,23 @@ const browsers = ['chromium', 'firefox', 'webkit'] as const;
 export default defineConfig({
   plugins: [react()],
   test: {
-    projects: browsers.map((browser) => ({
-      extends: true,
-      test: {
-        name: browser,
-        include: ['src/**/*.test.{ts,tsx}'],
-        browser: {
-          enabled: true,
-          headless: true,
-          provider: playwright(),
-          instances: [{ browser }],
-        },
+    projects: [
+      {
+        test: { name: 'node', include: ['eslint-rules/**/*.test.js'], environment: 'node' },
       },
-    })),
+      ...browsers.map((browser) => ({
+        extends: true,
+        test: {
+          name: browser,
+          include: ['src/**/*.test.{ts,tsx}'],
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser }],
+          },
+        },
+      })),
+    ],
   },
 });

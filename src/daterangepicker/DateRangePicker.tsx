@@ -27,8 +27,6 @@ function useMonth(part: string): CalendarMonth {
   return month;
 }
 
-/* Root */
-
 export interface DateRangePickerRootState {
   open: boolean;
   value: DateRange | null;
@@ -95,8 +93,6 @@ const Root = forwardRef<HTMLDivElement, DateRangePickerProps>(function DateRange
   );
 });
 
-/* Label */
-
 export interface DateRangePickerLabelState {
   open: boolean;
 }
@@ -111,8 +107,6 @@ const Label = forwardRef<HTMLLabelElement, DateRangePickerLabelProps>(function L
     <Part tag="label" state={{ open: picker.isOpen }} ours={picker.getLabelProps()} theirs={props} forwardedRef={ref} />
   );
 });
-
-/* Trigger */
 
 export interface DateRangePickerTriggerState {
   open: boolean;
@@ -151,8 +145,6 @@ const Trigger = forwardRef<HTMLButtonElement, DateRangePickerTriggerProps>(funct
   );
 });
 
-/* Popover */
-
 export interface DateRangePickerPopoverState {
   /** A start is picked and the end is not yet. */
   pending: boolean;
@@ -186,8 +178,6 @@ const Popover = forwardRef<HTMLDivElement, DateRangePickerPopoverProps>(function
     />
   );
 });
-
-/* Presets */
 
 export interface DateRangePickerPresetsState {
   count: number;
@@ -234,8 +224,6 @@ const Preset = forwardRef<HTMLButtonElement, DateRangePickerPresetProps>(functio
   return <Part tag="button" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });
 
-/* Month navigation */
-
 export interface DateRangePickerNavState {
   visibleMonths: CalendarMonth[];
 }
@@ -269,8 +257,6 @@ const NextMonth = forwardRef<HTMLButtonElement, DateRangePickerNavProps>(functio
     />
   );
 });
-
-/* Months */
 
 export interface DateRangePickerMonthsState {
   visibleMonths: CalendarMonth[];
@@ -336,8 +322,6 @@ const MonthHeading = forwardRef<HTMLHeadingElement, DateRangePickerMonthHeadingP
   },
 );
 
-/* Grid */
-
 export type DateRangePickerGridProps = Omit<PartProps<'div', DateRangePickerMonthState>, 'children'> & {
   /** Renders one day. Default: `<DateRangePicker.Day date={date} />`. */
   children?: ((date: CalendarDate) => ReactNode) | undefined;
@@ -385,8 +369,6 @@ const Grid = forwardRef<HTMLDivElement, DateRangePickerGridProps>(function Grid(
   };
   return <Part tag="div" state={{ month }} ours={ours} theirs={props} forwardedRef={ref} />;
 });
-
-/* Day */
 
 export type DateRangePickerDayProps = Omit<PartProps<'div', DateRangePickerDayState>, 'children'> & {
   date: CalendarDate;

@@ -100,8 +100,6 @@ export function getWeekStart(locale: string | undefined): number {
   return region && SUNDAY_REGIONS.has(region) ? 0 : 1;
 }
 
-/* Time zones */
-
 const partsFormatters = new Map<string, Intl.DateTimeFormat>();
 
 function partsFormatter(timeZone: string): Intl.DateTimeFormat {

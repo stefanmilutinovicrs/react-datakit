@@ -45,8 +45,6 @@ export function useRowLayout(part: string): { index: number; style: CSSPropertie
   };
 }
 
-/* Root */
-
 export interface ComboboxRootState {
   open: boolean;
   status: ComboboxStatus;
@@ -92,8 +90,6 @@ export function RootPart({
   );
 }
 
-/* Label */
-
 export interface ComboboxLabelState {
   open: boolean;
 }
@@ -109,8 +105,6 @@ export const Label = forwardRef<HTMLLabelElement, ComboboxLabelProps>(function L
   );
 });
 
-/* Input */
-
 export interface ComboboxInputState {
   open: boolean;
   status: ComboboxStatus;
@@ -124,8 +118,6 @@ export const Input = forwardRef<HTMLInputElement, ComboboxInputProps>(function I
   const state: ComboboxInputState = { open: core.isOpen, status: core.status };
   return <Part tag="input" state={state} ours={core.getInputProps()} theirs={props} forwardedRef={mergedRef} />;
 });
-
-/* Popup */
 
 export interface ComboboxPopupState {
   status: ComboboxStatus;
@@ -148,8 +140,6 @@ export const Popup = forwardRef<HTMLDivElement, ComboboxPopupProps>(function Pop
   };
   return <Part tag="div" state={{ status: core.status }} ours={ours} theirs={props} forwardedRef={ref} />;
 });
-
-/* List (virtualized) */
 
 export interface ComboboxListState {
   open: boolean;
@@ -253,8 +243,6 @@ function VirtualList<TItem>({
   return <Part tag="div" state={state} ours={ours} theirs={partProps} forwardedRef={mergedRef} />;
 }
 
-/* Option */
-
 export interface ComboboxOptionState {
   highlighted: boolean;
   selected: boolean;
@@ -281,8 +269,6 @@ export const Option = forwardRef(function Option<TItem>(
   const ours = { ...core.getOptionProps(item, index), style };
   return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });
-
-/* Empty, Loading, Error */
 
 export interface ComboboxStatusPartState {
   query: string | null;

@@ -89,10 +89,10 @@
     "build": "tsdown",
     "dev": "tsdown --watch",
     "typecheck": "node node_modules/typescript-7/bin/tsc --noEmit",
-    "test": "vitest run --project chromium",
+    "test": "vitest run --project node --project chromium",
     "test:watch": "vitest --project chromium",
     "test:all-browsers": "vitest run",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "check:package": "publint && attw --pack . --profile node16 --exclude-entrypoints styles.css",
@@ -101,7 +101,9 @@
     "build-storybook": "storybook build",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "release": "npm run build && changeset publish"
+    "release": "npm run build && changeset publish",
+    "new-component": "node scripts/new-component.ts",
+    "prepare": "git config core.hooksPath .githooks || exit 0"
   },
   "peerDependencies": {
     "react": "^18.0.0 || ^19.0.0",
@@ -123,6 +125,7 @@
     "@vitest/browser-playwright": "^5.1.1",
     "axe-core": "^4.14.1",
     "eslint": "^10.15.0",
+    "eslint-plugin-jsdoc": "^65.5.3",
     "eslint-plugin-react-hooks": "^7.1.1",
     "globals": "^17.14.0",
     "playwright": "^1.65.1",

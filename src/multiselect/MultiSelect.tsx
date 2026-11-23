@@ -37,8 +37,6 @@ function useMultiSelectContext<TItem>(part: string): UseMultiSelectReturn<TItem>
   return context as unknown as UseMultiSelectReturn<TItem>;
 }
 
-/* Root */
-
 export type MultiSelectRootState = ComboboxRootState;
 
 export type MultiSelectProps<TItem> = UseMultiSelectOptions<TItem> &
@@ -107,8 +105,6 @@ const Control = forwardRef<HTMLDivElement, MultiSelectControlProps>(function Mul
   const state = { open: multiSelect.isOpen, count: multiSelect.selectedItems.length };
   return <Part tag="div" state={state} ours={multiSelect.getControlProps()} theirs={props} forwardedRef={ref} />;
 });
-
-/* Chips */
 
 export interface MultiSelectChipsState {
   count: number;
@@ -226,8 +222,6 @@ const ChipsOverflow = forwardRef<HTMLDivElement, MultiSelectChipsOverflowProps>(
   return <Part tag="div" state={{ count }} ours={ours} theirs={props} forwardedRef={ref} />;
 });
 
-/* List with the action rows */
-
 export interface MultiSelectActionState {
   highlighted: boolean;
   selected: boolean;
@@ -281,34 +275,12 @@ const MultiSelectList = forwardRef(function MultiSelectList<TItem>(
   return <List {...props} renderAction={renderAction} ref={ref} />;
 });
 
-/* Public compound component */
-
 type WithRef<P, E> = P & { ref?: Ref<E> | undefined };
 
 /**
  * Pick several values from a long or remote list; selected values are shown as removable chips.
  *
  * @experimental
- * @example
- * <MultiSelect items={labels} itemToString={(l) => l?.name ?? ''} itemToKey={(l) => l.id} selectAll>
- *   <MultiSelect.Label>Labels</MultiSelect.Label>
- *   <MultiSelect.Control>
- *     <MultiSelect.Chips>
- *       {(label: Label) => (
- *         <MultiSelect.Chip item={label}>
- *           {label.name}
- *           <MultiSelect.ChipRemove />
- *         </MultiSelect.Chip>
- *       )}
- *     </MultiSelect.Chips>
- *     <MultiSelect.ChipsOverflow>{(count) => `+${count} more`}</MultiSelect.ChipsOverflow>
- *     <MultiSelect.Input />
- *   </MultiSelect.Control>
- *   <MultiSelect.Popup>
- *     <MultiSelect.List>{(label: Label) => <MultiSelect.Option item={label}>{label.name}</MultiSelect.Option>}</MultiSelect.List>
- *     <MultiSelect.Empty>No labels found</MultiSelect.Empty>
- *   </MultiSelect.Popup>
- * </MultiSelect>
  */
 export const MultiSelect = Object.assign(
   MultiSelectRoot as <TItem>(props: WithRef<MultiSelectProps<TItem>, HTMLDivElement>) => ReactElement,

@@ -277,8 +277,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     [firstVisible, numberOfMonths],
   );
 
-  /* Formatting */
-
   const formatters = useMemo(
     () => ({
       month: new Intl.DateTimeFormat(locale, { month: 'long', year: 'numeric', timeZone: 'UTC' }),
@@ -307,8 +305,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
   const formattedValue = value ? formatters.range.formatRange(value.start, value.end) : null;
   const visibleMonthsLabel = visibleMonths.map(formatMonth).join(' – ');
 
-  /* Constraints */
-
   const isDateDisabled = (date: CalendarDate): boolean => {
     if (min && compareDates(date, min) < 0) return true;
     if (max && compareDates(date, max) > 0) return true;
@@ -334,8 +330,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       isSameDate(presetRange.end, selectedRange.end)
     );
   };
-
-  /* Actions */
 
   const showDate = (date: CalendarDate) => {
     const first = visibleMonths[0] as CalendarMonth;
@@ -452,8 +446,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     };
   }, []);
 
-  /* Day state */
-
   const previewEnd = pendingStart ? (hoveredDate ?? focusedDate) : null;
   const shownRange =
     pendingStart && previewEnd
@@ -476,8 +468,6 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       focused: isSameDate(date, focusedDate),
     };
   };
-
-  /* Prop getters */
 
   const flag = (on: boolean) => (on ? '' : undefined);
   const hasLabel = labelCount > 0;

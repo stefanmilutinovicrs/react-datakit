@@ -37,6 +37,8 @@ Every pull request must follow the [pull request template](.github/pull_request_
   npx playwright install chromium
   ```
 
+  `npm install` also turns on the pre-commit hook in `.githooks/`, which runs `npm run lint`.
+
 - Start Storybook while you work:
 
   ```bash

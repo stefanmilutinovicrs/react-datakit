@@ -66,15 +66,6 @@ type WithRef<P, E> = P & { ref?: Ref<E> | undefined };
  * Searchable select for large or remote option lists.
  *
  * @experimental
- * @example
- * <Combobox items={users} itemToString={(u) => u?.name ?? ''} itemToKey={(u) => u.id}>
- *   <Combobox.Label>Assignee</Combobox.Label>
- *   <Combobox.Input />
- *   <Combobox.Popup>
- *     <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
- *     <Combobox.Empty>No users found</Combobox.Empty>
- *   </Combobox.Popup>
- * </Combobox>
  */
 export const Combobox = Object.assign(
   ComboboxRoot as <TItem>(props: WithRef<ComboboxProps<TItem>, HTMLDivElement>) => ReactElement,
