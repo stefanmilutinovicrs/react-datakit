@@ -62,6 +62,39 @@ Checklist:
 - [ ] axe passes in every state; tested in Chromium, Firefox and WebKit
 - [ ] No hydration warnings in the Next.js App Router
 
+## Code style
+
+### Comments
+
+- Comments explain why, never what. No section headers or dividers, no comments that restate the code, no commented-out code, no TODOs without an issue link.
+- Write a `//` comment only for a non-obvious decision: a browser or screen reader quirk, a race condition, a WAI-ARIA requirement (link the spec).
+- Write JSDoc only when it adds something the name and the type don't say: one sentence, no `@example` (examples live in Storybook). `@experimental` and `@deprecated` are allowed.
+- JSDoc only on exported code: components, props and types.
+
+### Component folders
+
+A component folder is split by group of parts, not one file per part:
+
+```
+src/<name>/
+  context.ts           React context and its hook
+  use<Name>.ts         the headless hook
+  <Group>.tsx          one file per group of related parts, e.g. Chips.tsx, Calendar.tsx
+  <Name>.tsx           the root part and the compound export
+  index.ts             the public exports of the subpath
+  <Name>.test.tsx
+  <Name>.stories.tsx
+```
+
+- Files with components are PascalCase (`Chips.tsx`, `Trigger.tsx`); hooks and everything else are camelCase (`useMultiSelect.ts`, `context.ts`, `presets.ts`).
+- Logic used by more than one component lives in `src/shared/`, never copied.
+- Leave out a file that would only re-export something; don't add files just to match the layout.
+- `npm run new-component <name>` creates a folder that follows these rules.
+
+### What lint checks
+
+`npm run lint` fails on section-header and divider comments, TODOs without an issue link and `@example` in JSDoc. It runs in CI and in the pre-commit hook. Everything else in this section is checked in review: lint can't tell a "why" comment from a "what" comment.
+
 ## Changesets
 
 This repo uses [Changesets](https://github.com/changesets/changesets). Every change that affects the published package must include a changeset: run `npx changeset` and commit the generated file. Descriptions end up in the changelog, so make them clear. Documentation, CI and other development-only changes do not need one.
