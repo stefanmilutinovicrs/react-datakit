@@ -9,7 +9,7 @@ export interface DateRangePickerNavState {
 
 export type DateRangePickerNavProps = PartProps<'button', DateRangePickerNavState>;
 
-/** Shows the previous month. Labelled "Previous month"; pass `aria-label` to translate. */
+/** Shows the previous month; its name comes from `labels.previousMonth`. */
 export const PrevMonth = forwardRef<HTMLButtonElement, DateRangePickerNavProps>(function PrevMonth(props, ref) {
   const picker = usePicker('PrevMonth');
   return (
@@ -23,7 +23,7 @@ export const PrevMonth = forwardRef<HTMLButtonElement, DateRangePickerNavProps>(
   );
 });
 
-/** Shows the next month. Labelled "Next month"; pass `aria-label` to translate. */
+/** Shows the next month; its name comes from `labels.nextMonth`. */
 export const NextMonth = forwardRef<HTMLButtonElement, DateRangePickerNavProps>(function NextMonth(props, ref) {
   const picker = usePicker('NextMonth');
   return (

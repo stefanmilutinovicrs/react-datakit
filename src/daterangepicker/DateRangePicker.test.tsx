@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
@@ -7,7 +7,7 @@ import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type Calenda
 import { expectNoA11yViolations } from '../test/axe';
 import { expectNoOptionsOnDom } from '../test/options';
 import { dateRangePickerOptionKeys } from './useDateRangePicker';
-import { DateRangePicker, type DateRange, type DateRangePickerProps } from './index';
+import { DateRangePicker, type DateRange, type DateRangePickerLabels, type DateRangePickerProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
 
@@ -281,7 +281,25 @@ describe('DateRangePicker', () => {
     it('announces the visible months when they change', async () => {
       await openWith({ defaultValue: march });
       await userEvent.click(page.getByRole('button', { name: 'Next month' }));
-      await expect.element(page.getByRole('status')).toHaveTextContent('April 2026 – May 2026');
+      await expect.poll(() => page.getByRole('status').element().textContent).toMatch(/^April\s–\sMay 2026$/);
+    });
+
+    it('announces the visible months in the locale of the component', async () => {
+      await openWith({ defaultValue: march, locale: 'sr-Latn-RS', numberOfMonths: 1 });
+      await userEvent.click(page.getByRole('button', { name: 'Next month' }));
+      const expected = new Intl.DateTimeFormat('sr-Latn-RS', {
+        month: 'long',
+        year: 'numeric',
+        timeZone: 'UTC',
+      }).format(Date.UTC(2026, 3, 1));
+      await expect.element(page.getByRole('status')).toHaveTextContent(expected);
+    });
+
+    it('names the month buttons from labels', async () => {
+      expectTypeOf<keyof DateRangePickerLabels>().toEqualTypeOf<'previousMonth' | 'nextMonth'>();
+      await openWith({ defaultValue: march, labels: { previousMonth: 'Prethodni mesec', nextMonth: 'Sledeći mesec' } });
+      await expect.element(page.getByRole('button', { name: 'Prethodni mesec' })).toBeVisible();
+      await expect.element(page.getByRole('button', { name: 'Sledeći mesec' })).toBeVisible();
     });
 
     it('a click outside closes the dialog', async () => {

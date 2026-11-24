@@ -23,10 +23,12 @@ export type {
   ComboboxStatusPartState,
 } from '../shared/combobox/Status';
 export { useCombobox } from './useCombobox';
+export { defaultComboboxLabels } from '../shared/combobox/useComboboxCore';
 export type { UseComboboxOptions, UseComboboxReturn } from './useCombobox';
 export type {
   ComboboxBaseOptions,
   ComboboxCore,
+  ComboboxLabels,
   ComboboxPartPrefix,
   ComboboxRow,
   ComboboxStatus,

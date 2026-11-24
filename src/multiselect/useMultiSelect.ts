@@ -11,9 +11,11 @@ import {
 } from 'react';
 import {
   comboboxBaseOptionKeys,
+  defaultComboboxLabels,
   useComboboxCore,
   type ComboboxBaseOptions,
   type ComboboxCore,
+  type ComboboxLabels,
 } from '../shared/combobox/useComboboxCore';
 import {
   multiselectParts,
@@ -37,7 +39,7 @@ export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem>
   labels?: Partial<MultiSelectLabels> | undefined;
 }
 
-export interface MultiSelectLabels {
+export interface MultiSelectLabels extends ComboboxLabels {
   /** Name of the list of chips. */
   selected: string;
   /** Name of a chip's remove button. */
@@ -46,7 +48,8 @@ export interface MultiSelectLabels {
   removed: (item: string) => string;
 }
 
-const defaultLabels: MultiSelectLabels = {
+export const defaultMultiSelectLabels: MultiSelectLabels = {
+  ...defaultComboboxLabels,
   selected: 'Selected',
   remove: (item) => `Remove ${item}`,
   removed: (item) => `${item} removed`,
@@ -60,7 +63,6 @@ export const multiSelectOptionKeys = optionKeys<UseMultiSelectOptions<unknown>>(
   'max',
   'selectAll',
   'onCreate',
-  'labels',
 ]);
 
 export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
@@ -102,7 +104,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     defaultValue: options.defaultValue ?? EMPTY,
     onChange: options.onChange,
   });
-  const labels = { ...defaultLabels, ...options.labels };
+  const labels = { ...defaultMultiSelectLabels, ...options.labels };
   const [overflowIndex, setOverflowIndex] = useState(-1);
   const [expanded, setExpanded] = useState(false);
   const [announcement, setAnnouncement] = useState<{ text: string; count: number; during: string } | null>(null);

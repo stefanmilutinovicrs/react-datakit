@@ -38,9 +38,18 @@ export interface ComboboxBaseOptions<TItem> {
   itemToKey: (item: TItem) => string | number;
   /** Debounce for `loadOptions`, in milliseconds. Default 250. */
   debounceMs?: number | undefined;
-  /** Text for the screen reader announcement of the result count. Default "No results" / "1 result" / "N results". */
-  formatResultCount?: ((count: number) => string) | undefined;
+  /** Screen reader texts; English by default. */
+  labels?: Partial<ComboboxLabels> | undefined;
 }
+
+export interface ComboboxLabels {
+  /** Announced in the live region after each search. */
+  resultCount: (count: number) => string;
+}
+
+export const defaultComboboxLabels: ComboboxLabels = {
+  resultCount: (count) => (count === 0 ? 'No results' : count === 1 ? '1 result' : `${count} results`),
+};
 
 export const comboboxBaseOptionKeys = optionKeys<ComboboxBaseOptions<unknown>>()([
   'id',
@@ -50,7 +59,7 @@ export const comboboxBaseOptionKeys = optionKeys<ComboboxBaseOptions<unknown>>()
   'itemToString',
   'itemToKey',
   'debounceMs',
-  'formatResultCount',
+  'labels',
 ]);
 
 /** A row of the listbox: an option, or one of the MultiSelect action rows. */
@@ -139,11 +148,6 @@ type AsyncResult<TItem> = { status: 'success'; items: readonly TItem[] } | { sta
 const EMPTY: readonly never[] = [];
 const MAX_CACHED_QUERIES = 100;
 
-function defaultFormatResultCount(count: number): string {
-  if (count === 0) return 'No results';
-  return count === 1 ? '1 result' : `${count} results`;
-}
-
 function withEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map<K, V> {
   const next = new Map(map);
   next.delete(key);
@@ -164,7 +168,7 @@ export function useComboboxCore<TItem>(
   const { part, multiple, isSelected, isDisabled } = behavior;
   const names = part === 'combobox' ? comboboxParts : multiselectParts;
   const debounceMs = options.debounceMs ?? 250;
-  const formatResultCount = options.formatResultCount ?? defaultFormatResultCount;
+  const resultCount = options.labels?.resultCount ?? defaultComboboxLabels.resultCount;
 
   const baseId = useId(options.id);
   const ids = useMemo(
@@ -244,7 +248,7 @@ export function useComboboxCore<TItem>(
   }, [items, showSelectAll, showCreate, trimmedQuery]);
 
   const highlightedIndex = isOpen && highlightState.index < rows.length ? highlightState.index : -1;
-  const statusMessage = status === 'success' ? formatResultCount(items.length) : '';
+  const statusMessage = status === 'success' ? resultCount(items.length) : '';
 
   const highlight = useCallback((index: number, origin: HighlightOrigin = 'keyboard') => {
     setHighlightState({ index, origin });

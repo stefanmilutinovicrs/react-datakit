@@ -27,12 +27,13 @@ export type {
 } from './Calendar';
 export { defaultPresets } from './presets';
 export type { DateRangePreset, DateRangePresetContext } from './presets';
-export { getDayOfWeek, useDateRangePicker } from './useDateRangePicker';
+export { defaultDateRangePickerLabels, getDayOfWeek, useDateRangePicker } from './useDateRangePicker';
 export type {
   CalendarDate,
   CalendarMonth,
   DateRange,
   DateRangePickerDayState,
+  DateRangePickerLabels,
   UseDateRangePickerOptions,
   UseDateRangePickerReturn,
 } from './useDateRangePicker';

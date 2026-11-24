@@ -134,7 +134,11 @@ export const Constraints: Story = {
 export const OneMonthLocalized: Story = {
   name: 'Edge case: one month, Serbian locale',
   render: () => (
-    <DateRangePicker locale="sr-Latn-RS" numberOfMonths={1}>
+    <DateRangePicker
+      locale="sr-Latn-RS"
+      numberOfMonths={1}
+      labels={{ previousMonth: 'Prethodni mesec', nextMonth: 'Sledeći mesec' }}
+    >
       <DateRangePicker.Label>Period</DateRangePicker.Label>
       <DateRangePicker.Trigger placeholder="Izaberite period" />
       <DateRangePicker.Popover>
@@ -151,8 +155,8 @@ export const OneMonthLocalized: Story = {
             </DateRangePicker.Preset>
           )}
         </DateRangePicker.Presets>
-        <DateRangePicker.PrevMonth aria-label="Prethodni mesec">‹</DateRangePicker.PrevMonth>
-        <DateRangePicker.NextMonth aria-label="Sledeći mesec">›</DateRangePicker.NextMonth>
+        <DateRangePicker.PrevMonth>‹</DateRangePicker.PrevMonth>
+        <DateRangePicker.NextMonth>›</DateRangePicker.NextMonth>
         <DateRangePicker.Months />
       </DateRangePicker.Popover>
     </DateRangePicker>

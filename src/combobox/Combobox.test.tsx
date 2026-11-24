@@ -8,7 +8,7 @@ import { expectNoA11yViolations } from '../test/axe';
 import { deferred, type Deferred } from '../test/deferred';
 import { expectNoOptionsOnDom } from '../test/options';
 import { comboboxOptionKeys } from './useCombobox';
-import { Combobox, type ComboboxCore, type ComboboxProps } from './index';
+import { Combobox, type ComboboxCore, type ComboboxLabels, type ComboboxProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list")
 
@@ -82,7 +82,7 @@ describe('Combobox', () => {
           onChange={() => {}}
           debounceMs={0}
           selectOnTab
-          formatResultCount={(count) => `${count}`}
+          labels={{ resultCount: (count) => `${count}` }}
         >
           <Combobox.Label>Assignee</Combobox.Label>
           <Combobox.Input />
@@ -498,6 +498,16 @@ describe('Combobox', () => {
       calls.at(-1)?.response.resolve([]);
       await expect.element(page.getByText('No users found')).toBeVisible();
       await expect.element(status()).toHaveTextContent('No results');
+    });
+
+    it('announces the result count from labels', async () => {
+      expectTypeOf<keyof ComboboxLabels>().toEqualTypeOf<'resultCount'>();
+      expectTypeOf<ComboboxProps<User>>().not.toHaveProperty('formatResultCount');
+      await render(
+        <UserCombobox items={users} labels={{ resultCount: (count) => `${count} rezultata` }} debounceMs={0} />,
+      );
+      await userEvent.type(input(), 'a');
+      await expect.poll(() => status().element().textContent).toMatch(/^\d+ rezultata$/);
     });
 
     it('shows an error with a retry that loads the same query again', async () => {

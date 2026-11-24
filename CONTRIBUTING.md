@@ -60,6 +60,7 @@ Checklist:
 - [ ] Follows the WAI-ARIA pattern, with full keyboard support
 - [ ] Controlled and uncontrolled via `useControllableState`
 - [ ] Every part has `data-dk-part`, state data attributes, `className`, `style`, a render prop and a forwarded ref
+- [ ] Text users can't reach through a part (ARIA names, list names, live region announcements) is in a `labels` option with English defaults, exported as `default<Name>Labels`; visible content is changed through parts, never `labels`
 - [ ] Theme rules live in `@layer datakit` and use `:where()` selectors only
 - [ ] axe passes in every state; tested in Chromium, Firefox and WebKit
 - [ ] No hydration warnings in the Next.js App Router

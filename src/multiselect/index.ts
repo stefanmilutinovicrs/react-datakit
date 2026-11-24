@@ -16,5 +16,5 @@ export type {
   MultiSelectListProps,
   MultiSelectSelectAllProps,
 } from './List';
-export { useMultiSelect } from './useMultiSelect';
+export { defaultMultiSelectLabels, useMultiSelect } from './useMultiSelect';
 export type { MultiSelectLabels, UseMultiSelectOptions, UseMultiSelectReturn } from './useMultiSelect';

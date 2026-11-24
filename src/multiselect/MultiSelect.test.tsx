@@ -8,7 +8,13 @@ import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
 import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
-import { MultiSelect, type MultiSelectChipProps, type MultiSelectProps, type UseMultiSelectReturn } from './index';
+import {
+  MultiSelect,
+  type MultiSelectChipProps,
+  type MultiSelectLabels,
+  type MultiSelectProps,
+  type UseMultiSelectReturn,
+} from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/
 
@@ -89,7 +95,7 @@ describe('MultiSelect', () => {
           defaultValue={[]}
           onChange={() => {}}
           debounceMs={0}
-          formatResultCount={(count) => `${count}`}
+          labels={{ resultCount: (count) => `${count}` }}
           max={2}
           selectAll
           onCreate={(name) => ({ id: 99, name })}
@@ -559,10 +565,19 @@ describe('MultiSelect', () => {
         <UserMultiSelect
           items={users}
           defaultValue={[ana]}
-          labels={{ selected: 'Izabrano', remove: (item) => `Ukloni ${item}`, removed: (item) => `${item} uklonjen` }}
+          labels={{
+            selected: 'Izabrano',
+            remove: (item) => `Ukloni ${item}`,
+            removed: (item) => `${item} uklonjen`,
+            resultCount: (count) => `${count} rezultata`,
+          }}
+          debounceMs={0}
         />,
       );
+      expectTypeOf<keyof MultiSelectLabels>().toEqualTypeOf<'resultCount' | 'selected' | 'remove' | 'removed'>();
       await expect.element(page.getByRole('list', { name: 'Izabrano' })).toBeInTheDocument();
+      await userEvent.type(input(), 'a');
+      await expect.poll(() => page.getByRole('status').element().textContent).toMatch(/^\d+ rezultata$/);
       await userEvent.click(page.getByRole('button', { name: 'Ukloni Ana' }));
       await expect.element(page.getByRole('status')).toHaveTextContent('Ana uklonjen');
     });

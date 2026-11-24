@@ -55,6 +55,16 @@ export function getDayOfWeek(date: CalendarDate): number {
   return dayOfWeek(date);
 }
 
+export interface DateRangePickerLabels {
+  previousMonth: string;
+  nextMonth: string;
+}
+
+export const defaultDateRangePickerLabels: DateRangePickerLabels = {
+  previousMonth: 'Previous month',
+  nextMonth: 'Next month',
+};
+
 export interface UseDateRangePickerOptions {
   /** Base id for the parts. Generated when omitted. */
   id?: string | undefined;
@@ -83,6 +93,8 @@ export interface UseDateRangePickerOptions {
   presets?: readonly DateRangePreset[] | undefined;
   /** Close the dialog once a range is picked. Default true. */
   closeOnSelect?: boolean | undefined;
+  /** Screen reader texts; English by default. */
+  labels?: Partial<DateRangePickerLabels> | undefined;
 }
 
 export const dateRangePickerOptionKeys = optionKeys<UseDateRangePickerOptions>()([
@@ -103,6 +115,7 @@ export const dateRangePickerOptionKeys = optionKeys<UseDateRangePickerOptions>()
   'maxDays',
   'presets',
   'closeOnSelect',
+  'labels',
 ]);
 
 export interface DateRangePickerDayState {
@@ -200,6 +213,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     isDateDisabled: isDateDisabledOption,
   } = options;
   const id = useId(options.id);
+  const labels = { ...defaultDateRangePickerLabels, ...options.labels };
   const ids = {
     label: `${id}-label`,
     trigger: `${id}-trigger`,
@@ -287,7 +301,12 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     [formatters, weekStartsOn],
   );
   const formattedValue = value ? formatters.range.formatRange(value.start, value.end) : null;
-  const visibleMonthsLabel = visibleMonths.map(formatMonth).join(' – ');
+  const firstMonth = visibleMonths[0] as CalendarMonth;
+  const lastMonth = visibleMonths[visibleMonths.length - 1] as CalendarMonth;
+  const visibleMonthsLabel = formatters.month.formatRange(
+    Date.UTC(firstMonth.year, firstMonth.month - 1, 1),
+    Date.UTC(lastMonth.year, lastMonth.month - 1, 1),
+  );
 
   const isDateDisabled = (date: CalendarDate): boolean => {
     if (min && compareDates(date, min) < 0) return true;
@@ -597,7 +616,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     }),
     getPrevMonthProps: () => ({
       type: 'button',
-      'aria-label': 'Previous month',
+      'aria-label': labels.previousMonth,
       'data-dk-part': daterangepickerParts.prevMonth,
       onClick: () => {
         goToMonth(-1);
@@ -605,7 +624,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     }),
     getNextMonthProps: () => ({
       type: 'button',
-      'aria-label': 'Next month',
+      'aria-label': labels.nextMonth,
       'data-dk-part': daterangepickerParts.nextMonth,
       onClick: () => {
         goToMonth(1);
