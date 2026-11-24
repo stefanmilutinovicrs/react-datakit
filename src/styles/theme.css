@@ -378,7 +378,7 @@
     text-align: center;
   }
 
-  :where([data-dk-part='daterangepicker-weekdays'], [data-dk-part='daterangepicker-week']) {
+  :where([data-dk-part='daterangepicker-grid'] > [role='row']) {
     display: grid;
     grid-template-columns: repeat(7, 2.25rem);
   }

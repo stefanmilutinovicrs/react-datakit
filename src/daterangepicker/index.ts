@@ -26,6 +26,8 @@ export type {
   DateRangePickerMonthsState,
   DateRangePickerNavProps,
   DateRangePickerNavState,
+  DateRangePickerWeekdayProps,
+  DateRangePickerWeekdayState,
 } from './Calendar';
 export { defaultPresets } from './presets';
 export type { DateRangePreset, DateRangePresetContext } from './presets';
@@ -36,6 +38,7 @@ export type {
   DateRange,
   DateRangePickerDayState,
   DateRangePickerLabels,
+  DateRangePickerWeekday,
   UseDateRangePickerOptions,
   UseDateRangePickerReturn,
 } from './useDateRangePicker';

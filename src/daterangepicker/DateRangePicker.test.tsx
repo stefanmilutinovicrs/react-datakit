@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { page, server, userEvent } from 'vitest/browser';
-import { render } from 'vitest-browser-react';
+import { render, renderHook } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type CalendarDate } from '../shared/date';
+import { daterangepickerParts } from '../shared';
 import { expectNoA11yViolations } from '../test/axe';
 import { expectNoOptionsOnDom } from '../test/options';
-import { dateRangePickerOptionKeys } from './useDateRangePicker';
+import { dateRangePickerOptionKeys, useDateRangePicker } from './useDateRangePicker';
 import { DateRangePicker, type DateRange, type DateRangePickerLabels, type DateRangePickerProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
@@ -594,6 +595,89 @@ describe('DateRangePicker', () => {
   });
 
   describe('parts', () => {
+    it('takes every data-dk-part from daterangepickerParts; rows and blank cells have only a role', async () => {
+      const screen = await openWith({ defaultValue: march });
+      const names = new Set<string>(Object.values(daterangepickerParts));
+      const used = [...screen.container.querySelectorAll('[data-dk-part]')].map((el) =>
+        el.getAttribute('data-dk-part'),
+      );
+      expect(used.filter((name) => name === null || !names.has(name))).toEqual([]);
+
+      const rows = [...screen.container.querySelectorAll('[role="row"]')];
+      const blanks = [...screen.container.querySelectorAll('[role="gridcell"]:not([data-date])')];
+      expect(rows.length).toBeGreaterThan(0);
+      expect(blanks.length).toBeGreaterThan(0);
+      for (const element of [...rows, ...blanks]) expect(element.getAttributeNames()).toEqual(['role']);
+      for (const row of rows) expect(getComputedStyle(row).gridTemplateColumns.split(' ')).toHaveLength(7);
+    });
+
+    it('Weekday is a full part with a default in Grid', async () => {
+      await openWith({ defaultValue: march, numberOfMonths: 1 });
+      const headers = page.getByRole('columnheader');
+      expect(headers.elements().map((header) => header.textContent)).toEqual([
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat',
+      ]);
+      await expect.element(headers.first()).toHaveAttribute('aria-label', 'Sunday');
+      await expect.element(headers.first()).toHaveAttribute('data-dk-part', 'daterangepicker-weekday');
+    });
+
+    it('Grid renders weekdays with the weekday function', async () => {
+      const ref = { current: null as HTMLDivElement | null };
+      await render(
+        <DateRangePicker locale="en-US" timeZone={tz} defaultValue={march} numberOfMonths={1} defaultOpen>
+          <DateRangePicker.Label>Period</DateRangePicker.Label>
+          <DateRangePicker.Popover>
+            <DateRangePicker.Months>
+              {(month) => (
+                <DateRangePicker.Month month={month}>
+                  <DateRangePicker.MonthHeading />
+                  <DateRangePicker.Grid
+                    weekday={(weekday) => (
+                      <DateRangePicker.Weekday
+                        weekday={weekday}
+                        ref={weekday.long === 'Sunday' ? ref : undefined}
+                        className={(state) => `is-${state.weekday.long}`}
+                        style={{ color: 'rgb(1, 2, 3)' }}
+                        data-testid={weekday.long}
+                        render={(props) => <span {...props} />}
+                      >
+                        {weekday.long.slice(0, 1)}
+                      </DateRangePicker.Weekday>
+                    )}
+                  />
+                </DateRangePicker.Month>
+              )}
+            </DateRangePicker.Months>
+          </DateRangePicker.Popover>
+        </DateRangePicker>,
+      );
+      const sunday = page.getByRole('columnheader', { name: 'Sunday' });
+      expect(ref.current).toBe(sunday.element());
+      expect(sunday.element().tagName).toBe('SPAN');
+      await expect.element(sunday).toHaveTextContent('S');
+      await expect.element(sunday).toHaveClass('is-Sunday');
+      await expect.element(sunday).toHaveStyle({ color: 'rgb(1, 2, 3)' });
+      await expect.element(sunday).toHaveAttribute('data-testid', 'Sunday');
+      expect(grids().getByRole('columnheader').elements()).toHaveLength(7);
+    });
+
+    it('the hook has a getter for Months and Weekday', async () => {
+      const { result } = await renderHook(() => useDateRangePicker({ locale: 'en-US', timeZone: tz }));
+      expect(result.current.getMonthsProps()).toEqual({ 'data-dk-part': 'daterangepicker-months' });
+      expect(result.current.getWeekdayProps({ short: 'Sun', long: 'Sunday' })).toEqual({
+        role: 'columnheader',
+        'aria-label': 'Sunday',
+        'data-dk-part': 'daterangepicker-weekday',
+        children: 'Sun',
+      });
+    });
+
     it('accept className as a function of state, render and ref', async () => {
       const ref = { current: null as HTMLButtonElement | null };
       await render(

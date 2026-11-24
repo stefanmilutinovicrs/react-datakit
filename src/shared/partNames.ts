@@ -45,9 +45,6 @@ export const daterangepickerParts = {
   month: 'daterangepicker-month',
   monthHeading: 'daterangepicker-month-heading',
   grid: 'daterangepicker-grid',
-  weekdays: 'daterangepicker-weekdays',
   weekday: 'daterangepicker-weekday',
-  week: 'daterangepicker-week',
-  blank: 'daterangepicker-blank',
   day: 'daterangepicker-day',
 } as const;

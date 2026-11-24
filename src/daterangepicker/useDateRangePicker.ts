@@ -55,6 +55,11 @@ export function getDayOfWeek(date: CalendarDate): number {
   return dayOfWeek(date);
 }
 
+export interface DateRangePickerWeekday {
+  short: string;
+  long: string;
+}
+
 export interface DateRangePickerLabels {
   previousMonth: string;
   nextMonth: string;
@@ -164,7 +169,7 @@ export interface UseDateRangePickerReturn {
   getDayState: (date: CalendarDate) => DateRangePickerDayState;
   getMonthWeeks: (month: CalendarMonth) => (CalendarDate | null)[][];
   /** Weekday names in display order, starting with `weekStartsOn`. */
-  weekdays: { short: string; long: string }[];
+  weekdays: DateRangePickerWeekday[];
   formatMonth: (month: CalendarMonth) => string;
   formatDay: (date: CalendarDate) => string;
   registerLabel: () => () => void;
@@ -179,9 +184,11 @@ export interface UseDateRangePickerReturn {
   getPopoverProps: () => Props;
   getPrevMonthProps: () => Props;
   getNextMonthProps: () => Props;
+  getMonthsProps: () => Props;
   getMonthProps: (month: CalendarMonth) => Props;
   getMonthHeadingProps: (month: CalendarMonth) => Props;
   getGridProps: (month: CalendarMonth) => Props;
+  getWeekdayProps: (weekday: DateRangePickerWeekday) => Props;
   getDayProps: (date: CalendarDate) => Props;
   getPresetsProps: () => Props;
   getPresetProps: (preset: DateRangePreset) => Props;
@@ -635,6 +642,9 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
         goToMonth(1);
       },
     }),
+    getMonthsProps: () => ({
+      'data-dk-part': daterangepickerParts.months,
+    }),
     getMonthProps: (month) => ({
       'data-dk-part': daterangepickerParts.month,
       'data-month': `${month.year}-${String(month.month).padStart(2, '0')}`,
@@ -649,6 +659,12 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       'aria-labelledby': ids.heading(month),
       'aria-multiselectable': true,
       'data-dk-part': daterangepickerParts.grid,
+    }),
+    getWeekdayProps: (weekday) => ({
+      role: 'columnheader',
+      'aria-label': weekday.long,
+      'data-dk-part': daterangepickerParts.weekday,
+      children: weekday.short,
     }),
     getDayProps: (date) => {
       const state = getDayState(date);

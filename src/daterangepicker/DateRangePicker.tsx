@@ -1,6 +1,6 @@
 import { forwardRef, type ReactNode } from 'react';
 import { Part, splitProps, useMergedRefs, type PartProps } from '../shared';
-import { Day, Grid, Month, MonthHeading, Months, NextMonth, PrevMonth } from './Calendar';
+import { Day, Grid, Month, MonthHeading, Months, NextMonth, PrevMonth, Weekday } from './Calendar';
 import { PickerContext } from './context';
 import { CustomPreset, Popover, Preset, Presets } from './Popover';
 import { Label, Trigger } from './Trigger';
@@ -57,5 +57,6 @@ export const DateRangePicker = Object.assign(Root, {
   Month,
   MonthHeading,
   Grid,
+  Weekday,
   Day,
 });

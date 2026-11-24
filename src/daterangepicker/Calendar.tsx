@@ -1,7 +1,12 @@
 import { forwardRef, Fragment, type ReactNode } from 'react';
 import { Part, type PartProps } from '../shared';
 import { MonthContext, useMonth, usePicker } from './context';
-import type { CalendarDate, CalendarMonth, DateRangePickerDayState } from './useDateRangePicker';
+import type {
+  CalendarDate,
+  CalendarMonth,
+  DateRangePickerDayState,
+  DateRangePickerWeekday,
+} from './useDateRangePicker';
 
 export interface DateRangePickerNavState {
   visibleMonths: CalendarMonth[];
@@ -61,7 +66,7 @@ export const Months = forwardRef<HTMLDivElement, DateRangePickerMonthsProps>(fun
   const picker = usePicker('Months');
   const renderMonth = children ?? defaultMonth;
   const ours = {
-    'data-dk-part': 'daterangepicker-months',
+    ...picker.getMonthsProps(),
     children: picker.visibleMonths.map((month, index) => (
       <MonthContext.Provider key={`${month.year}-${month.month}`} value={month}>
         {renderMonth(month, index)}
@@ -107,38 +112,33 @@ export const MonthHeading = forwardRef<HTMLHeadingElement, DateRangePickerMonthH
 export type DateRangePickerGridProps = Omit<PartProps<'div', DateRangePickerMonthState>, 'children'> & {
   /** Renders one day. Default: `<DateRangePicker.Day date={date} />`. */
   children?: ((date: CalendarDate) => ReactNode) | undefined;
+  /** Renders one weekday header. Default: `<DateRangePicker.Weekday weekday={weekday} />`. */
+  weekday?: ((weekday: DateRangePickerWeekday) => ReactNode) | undefined;
 };
 
-/** The days of the month as an ARIA grid; style its rows with `daterangepicker-weekdays`, `-weekday`, `-week` and `-blank` (days of other months). */
-export const Grid = forwardRef<HTMLDivElement, DateRangePickerGridProps>(function Grid({ children, ...props }, ref) {
+/** The days of the month as an ARIA grid; style its rows as `[data-dk-part='daterangepicker-grid'] > [role='row']`. */
+export const Grid = forwardRef<HTMLDivElement, DateRangePickerGridProps>(function Grid(
+  { children, weekday: renderWeekdayProp, ...props },
+  ref,
+) {
   const picker = usePicker('Grid');
   const month = useMonth('Grid');
   const renderDay = children ?? ((date: CalendarDate) => <Day date={date} />);
+  const renderWeekday = renderWeekdayProp ?? ((weekday: DateRangePickerWeekday) => <Weekday weekday={weekday} />);
   const weeks = picker.getMonthWeeks(month);
   const ours = {
     ...picker.getGridProps(month),
     children: (
       <>
-        <div role="row" data-dk-part="daterangepicker-weekdays">
+        <div role="row">
           {picker.weekdays.map((weekday) => (
-            <div
-              key={weekday.long}
-              role="columnheader"
-              aria-label={weekday.long}
-              data-dk-part="daterangepicker-weekday"
-            >
-              {weekday.short}
-            </div>
+            <Fragment key={weekday.long}>{renderWeekday(weekday)}</Fragment>
           ))}
         </div>
         {weeks.map((week, row) => (
-          <div key={row} role="row" data-dk-part="daterangepicker-week">
+          <div key={row} role="row">
             {week.map((date, col) =>
-              date ? (
-                <Fragment key={col}>{renderDay(date)}</Fragment>
-              ) : (
-                <div key={col} role="gridcell" data-dk-part="daterangepicker-blank" />
-              ),
+              date ? <Fragment key={col}>{renderDay(date)}</Fragment> : <div key={col} role="gridcell" />,
             )}
           </div>
         ))}
@@ -146,6 +146,25 @@ export const Grid = forwardRef<HTMLDivElement, DateRangePickerGridProps>(functio
     ),
   };
   return <Part tag="div" state={{ month }} ours={ours} theirs={props} forwardedRef={ref} />;
+});
+
+export interface DateRangePickerWeekdayState {
+  weekday: DateRangePickerWeekday;
+}
+
+export type DateRangePickerWeekdayProps = PartProps<'div', DateRangePickerWeekdayState> & {
+  weekday: DateRangePickerWeekday;
+};
+
+/** A column header: the short weekday name, with the long one as its accessible name. */
+export const Weekday = forwardRef<HTMLDivElement, DateRangePickerWeekdayProps>(function Weekday(
+  { weekday, ...props },
+  ref,
+) {
+  const picker = usePicker('Weekday');
+  return (
+    <Part tag="div" state={{ weekday }} ours={picker.getWeekdayProps(weekday)} theirs={props} forwardedRef={ref} />
+  );
 });
 
 export type DateRangePickerDayProps = Omit<PartProps<'div', DateRangePickerDayState>, 'children'> & {
