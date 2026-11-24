@@ -42,7 +42,7 @@ export const Create = forwardRef<HTMLDivElement, MultiSelectCreateProps>(functio
 });
 
 export type MultiSelectListProps<TItem> = ComboboxListProps<TItem> & {
-  /** Content of the "Select all" row (enable the row with `selectAll` on the root). */
+  /** Content of the "Select all" row, which `selectAll` on the root turns on; `null` renders the default content. */
   selectAll?: ReactNode;
   /** Content of the "Create" row for the typed text (enable the row with `onCreate` on the root). */
   create?: ((query: string) => ReactNode) | undefined;

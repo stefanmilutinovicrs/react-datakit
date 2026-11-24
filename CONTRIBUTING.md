@@ -19,6 +19,8 @@ Every pull request must follow the [pull request template](.github/pull_request_
 - Search the [open and closed pull requests](https://github.com/stefanmilutinovicrs/react-datakit/pulls?q=is%3Apr) before starting work.
 - Keep each pull request focused on one change. Unrelated changes belong in separate pull requests.
 - Explain what changed and why.
+- Never deviate from the spec, raise a size limit, or skip a styling rule on your own. Stop and ask first, with the trade-off.
+- Never weaken accessibility to work around a test tool; skip the assertion for that browser with an issue link instead.
 - You may use AI tools, but you remain responsible for understanding, testing and verifying every line you submit.
 
 ## Development

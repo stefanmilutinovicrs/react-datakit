@@ -49,7 +49,7 @@ export interface DateRangePickerPresetsState {
 export type DateRangePickerPresetsProps = Omit<PartProps<'div', DateRangePickerPresetsState>, 'children'> & {
   /** Renders one preset. Default: a `Preset` button with the preset's label. */
   children?: ((preset: DateRangePreset, index: number) => ReactNode) | undefined;
-  /** Rendered after the last preset. Default: a `CustomPreset`; `null` renders none. */
+  /** Rendered after the last preset, a `CustomPreset` by default; `null` renders none. */
   custom?: ReactNode;
 };
 
