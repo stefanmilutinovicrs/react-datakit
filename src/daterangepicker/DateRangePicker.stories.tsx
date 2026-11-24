@@ -142,7 +142,10 @@ export const OneMonthLocalized: Story = {
       <DateRangePicker.Label>Period</DateRangePicker.Label>
       <DateRangePicker.Trigger placeholder="Izaberite period" />
       <DateRangePicker.Popover>
-        <DateRangePicker.Presets aria-label="Brzi izbor">
+        <DateRangePicker.Presets
+          aria-label="Brzi izbor"
+          custom={<DateRangePicker.CustomPreset>Prilagođeno</DateRangePicker.CustomPreset>}
+        >
           {(preset) => (
             <DateRangePicker.Preset preset={preset}>
               {{

@@ -42,27 +42,37 @@ export const Popover = forwardRef<HTMLDivElement, DateRangePickerPopoverProps>(f
 
 export interface DateRangePickerPresetsState {
   count: number;
+  /** The value is set and matches none of the presets. */
+  custom: boolean;
 }
 
 export type DateRangePickerPresetsProps = Omit<PartProps<'div', DateRangePickerPresetsState>, 'children'> & {
   /** Renders one preset. Default: a `Preset` button with the preset's label. */
   children?: ((preset: DateRangePreset, index: number) => ReactNode) | undefined;
+  /** Rendered after the last preset. Default: a `CustomPreset`; `null` renders none. */
+  custom?: ReactNode;
 };
 
 /** A group of preset buttons. Give it an `aria-label`, e.g. "Presets". */
 export const Presets = forwardRef<HTMLDivElement, DateRangePickerPresetsProps>(function Presets(
-  { children, ...props },
+  { children, custom = <CustomPreset />, ...props },
   ref,
 ) {
   const picker = usePicker('Presets');
   const renderPreset = children ?? ((preset: DateRangePreset) => <Preset preset={preset} />);
   const ours = {
     ...picker.getPresetsProps(),
-    children: picker.presets.map((preset, index) => (
-      <Fragment key={preset.label}>{renderPreset(preset, index)}</Fragment>
-    )),
+    children: (
+      <>
+        {picker.presets.map((preset, index) => (
+          <Fragment key={preset.label}>{renderPreset(preset, index)}</Fragment>
+        ))}
+        {custom}
+      </>
+    ),
   };
-  return <Part tag="div" state={{ count: picker.presets.length }} ours={ours} theirs={props} forwardedRef={ref} />;
+  const state = { count: picker.presets.length, custom: picker.isCustomRange };
+  return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });
 
 export interface DateRangePickerPresetState {
@@ -86,4 +96,20 @@ export const Preset = forwardRef<HTMLButtonElement, DateRangePickerPresetProps>(
   };
   const ours = { ...picker.getPresetProps(preset), children: children ?? preset.label };
   return <Part tag="button" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
+});
+
+export interface DateRangePickerCustomPresetState {
+  selected: boolean;
+}
+
+export type DateRangePickerCustomPresetProps = PartProps<'button', DateRangePickerCustomPresetState>;
+
+/** Pressed when the value matches no preset; a click keeps the value and moves focus to the calendar. Pass it to `<DateRangePicker.Presets custom={…}>` to change its content. */
+export const CustomPreset = forwardRef<HTMLButtonElement, DateRangePickerCustomPresetProps>(function CustomPreset(
+  { children, ...props },
+  ref,
+) {
+  const picker = usePicker('CustomPreset');
+  const ours = { ...picker.getCustomPresetProps(), children: children ?? 'Custom' };
+  return <Part tag="button" state={{ selected: picker.isCustomRange }} ours={ours} theirs={props} forwardedRef={ref} />;
 });

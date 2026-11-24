@@ -7,6 +7,8 @@ export type {
   DateRangePickerTriggerState,
 } from './Trigger';
 export type {
+  DateRangePickerCustomPresetProps,
+  DateRangePickerCustomPresetState,
   DateRangePickerPopoverProps,
   DateRangePickerPopoverState,
   DateRangePickerPresetProps,

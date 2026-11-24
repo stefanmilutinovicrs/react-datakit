@@ -321,7 +321,7 @@
     border-inline-end: 1px solid var(--dk-border);
   }
 
-  :where([data-dk-part='daterangepicker-preset']) {
+  :where([data-dk-part='daterangepicker-preset'], [data-dk-part='daterangepicker-custom-preset']) {
     padding: 6px var(--dk-space-2);
     border: 0;
     border-radius: calc(var(--dk-radius) - 2px);
@@ -332,11 +332,17 @@
     cursor: pointer;
   }
 
-  :where([data-dk-part='daterangepicker-preset']:hover:not(:disabled)) {
+  :where(
+    [data-dk-part='daterangepicker-preset']:hover:not(:disabled),
+    [data-dk-part='daterangepicker-custom-preset']:hover
+  ) {
     background: var(--dk-accent-soft);
   }
 
-  :where([data-dk-part='daterangepicker-preset'][data-selected]) {
+  :where(
+    [data-dk-part='daterangepicker-preset'][data-selected],
+    [data-dk-part='daterangepicker-custom-preset'][data-selected]
+  ) {
     color: var(--dk-accent-strong);
     font-weight: 600;
   }

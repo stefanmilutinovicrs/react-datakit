@@ -38,6 +38,7 @@ export const daterangepickerParts = {
   popover: 'daterangepicker-popover',
   presets: 'daterangepicker-presets',
   preset: 'daterangepicker-preset',
+  customPreset: 'daterangepicker-custom-preset',
   prevMonth: 'daterangepicker-prev-month',
   nextMonth: 'daterangepicker-next-month',
   months: 'daterangepicker-months',

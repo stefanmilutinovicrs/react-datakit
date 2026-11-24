@@ -158,6 +158,8 @@ export interface UseDateRangePickerReturn {
   applyPreset: (preset: DateRangePreset) => void;
   getPresetRange: (preset: DateRangePreset) => { start: CalendarDate; end: CalendarDate } | null;
   isPresetSelected: (preset: DateRangePreset) => boolean;
+  /** The value is set and matches none of the presets. */
+  isCustomRange: boolean;
   isDateDisabled: (date: CalendarDate) => boolean;
   getDayState: (date: CalendarDate) => DateRangePickerDayState;
   getMonthWeeks: (month: CalendarMonth) => (CalendarDate | null)[][];
@@ -183,6 +185,7 @@ export interface UseDateRangePickerReturn {
   getDayProps: (date: CalendarDate) => Props;
   getPresetsProps: () => Props;
   getPresetProps: (preset: DateRangePreset) => Props;
+  getCustomPresetProps: () => Props;
 }
 
 const monthKey = (month: CalendarMonth) => `${month.year}-${month.month}`;
@@ -333,6 +336,8 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       isSameDate(presetRange.end, selectedRange.end)
     );
   };
+
+  const isCustomRange = selectedRange !== null && !presets.some(isPresetSelected);
 
   const showDate = (date: CalendarDate) => {
     const first = visibleMonths[0] as CalendarMonth;
@@ -561,6 +566,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     applyPreset,
     getPresetRange,
     isPresetSelected,
+    isCustomRange,
     isDateDisabled,
     getDayState,
     getMonthWeeks: (month) => getMonthWeeks(month.year, month.month, weekStartsOn),
@@ -681,6 +687,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     getPresetsProps: () => ({
       role: 'group',
       'data-dk-part': daterangepickerParts.presets,
+      'data-custom': flag(isCustomRange),
     }),
     getPresetProps: (preset) => {
       const selected = isPresetSelected(preset);
@@ -697,5 +704,17 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
         },
       };
     },
+    getCustomPresetProps: () => ({
+      type: 'button',
+      'aria-pressed': isCustomRange,
+      'data-dk-part': daterangepickerParts.customPreset,
+      'data-selected': flag(isCustomRange),
+      // A custom range is picked in the calendar, so this only hands focus to the grid, where the
+      // APG date picker starts: the selected date, or today: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/examples/datepicker-dialog/
+      onClick: () => {
+        // A fresh object, so focus moves even when the focused date already equals the target.
+        moveFocus({ ...(selectedRange?.start ?? refreshToday()) });
+      },
+    }),
   };
 }

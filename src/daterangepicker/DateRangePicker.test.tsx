@@ -40,6 +40,19 @@ const trigger = () => page.getByRole('button', { name: /^Period/ });
 const dialog = () => page.getByRole('dialog', { name: 'Period' });
 const grids = () => page.getByRole('grid');
 const day = (label: string) => page.getByRole('gridcell', { name: label, exact: true });
+const presets = () => page.getByRole('group', { name: 'Presets' });
+const customPreset = () => page.getByRole('button', { name: 'Custom', exact: true });
+const pressed = () =>
+  presets()
+    .getByRole('button')
+    .elements()
+    .filter((button) => button.getAttribute('aria-pressed') === 'true')
+    .map((button) => button.textContent);
+const presetTexts = () =>
+  presets()
+    .getByRole('button')
+    .elements()
+    .map((button) => button.textContent);
 const focusedLabel = () => document.activeElement?.getAttribute('aria-label');
 
 async function openWith(props: TestProps = {}) {
@@ -143,17 +156,24 @@ describe('DateRangePicker', () => {
   });
 
   describe('keyboard', () => {
-    it('focuses the start of the value when opened', async () => {
-      await openWith({ defaultValue: march });
+    it('focuses the start of the value when opened, and again from Custom', async () => {
+      const onChange = vi.fn();
+      await openWith({ defaultValue: march, onChange });
       expect(focusedLabel()).toBe('Tuesday, March 10, 2026');
+      await userEvent.click(customPreset());
+      expect(focusedLabel()).toBe('Tuesday, March 10, 2026');
+      expect(onChange).not.toHaveBeenCalled();
     });
 
-    it('focuses today when opened without a value', async () => {
+    it('focuses today when opened without a value, and again from Custom', async () => {
       await openWith();
       const today = toCalendarDate(new Date(), tz);
-      expect(document.activeElement?.getAttribute('data-date')).toBe(
-        `${today.year}-${String(today.month).padStart(2, '0')}-${String(today.day).padStart(2, '0')}`,
-      );
+      const todayKey = `${today.year}-${String(today.month).padStart(2, '0')}-${String(today.day).padStart(2, '0')}`;
+      expect(document.activeElement?.getAttribute('data-date')).toBe(todayKey);
+      await userEvent.keyboard('{ArrowRight}');
+      await userEvent.click(customPreset());
+      expect(document.activeElement?.getAttribute('data-date')).toBe(todayKey);
+      await expect.element(dialog()).toBeVisible();
     });
 
     it('moves by day and week with the arrow keys', async () => {
@@ -401,6 +421,31 @@ describe('DateRangePicker', () => {
       await openWith({ defaultValue: range(today, today) });
       await expect.element(page.getByRole('button', { name: 'Today' })).toHaveAttribute('aria-pressed', 'true');
       await expect.element(page.getByRole('button', { name: 'Last 7 days' })).toHaveAttribute('aria-pressed', 'false');
+      await expect.element(customPreset()).toHaveAttribute('aria-pressed', 'false');
+      await expect.element(customPreset()).not.toHaveAttribute('data-selected');
+      await expect.element(presets()).not.toHaveAttribute('data-custom');
+      expect(pressed()).toEqual(['Today']);
+    });
+
+    it('marks the matching preset when the same range is picked in the calendar', async () => {
+      await openWith({ closeOnSelect: false });
+      await userEvent.keyboard('{Enter}{Enter}');
+      expect(pressed()).toEqual(['Today']);
+      await expect.element(presets()).not.toHaveAttribute('data-custom');
+    });
+
+    it('presses Custom when the value matches no preset', async () => {
+      await openWith({ defaultValue: march });
+      expect(pressed()).toEqual(['Custom']);
+      await expect.element(customPreset()).toHaveAttribute('data-selected');
+      await expect.element(presets()).toHaveAttribute('data-custom');
+    });
+
+    it('presses nothing when the value is empty', async () => {
+      await openWith();
+      expect(pressed()).toEqual([]);
+      await expect.element(customPreset()).toHaveAttribute('aria-pressed', 'false');
+      await expect.element(presets()).not.toHaveAttribute('data-custom');
     });
 
     it('takes a custom list of presets', async () => {
@@ -409,7 +454,12 @@ describe('DateRangePicker', () => {
         onChange,
         presets: [{ label: 'Next 3 days', range: ({ today, addDays }) => ({ start: today, end: addDays(today, 2) }) }],
       });
-      expect(page.getByRole('group', { name: 'Presets' }).getByRole('button').elements()).toHaveLength(1);
+      expect(
+        presets()
+          .getByRole('button')
+          .elements()
+          .map((button) => button.textContent),
+      ).toEqual(['Next 3 days', 'Custom']);
       await userEvent.click(page.getByRole('button', { name: 'Next 3 days' }));
       const today = toCalendarDate(new Date(), tz);
       expect(toCalendarDate((onChange.mock.calls[0]?.[0] as DateRange).end, tz)).toEqual(addDays(today, 2));
@@ -419,6 +469,80 @@ describe('DateRangePicker', () => {
       await openWith({ maxDays: 5 });
       await expect.element(page.getByRole('button', { name: 'Last 7 days' })).toBeDisabled();
       await expect.element(page.getByRole('button', { name: 'Today' })).toBeEnabled();
+    });
+
+    it('keeps Custom last with custom children', async () => {
+      await render(
+        <DateRangePicker locale="en-US" timeZone={tz} defaultValue={march} defaultOpen>
+          <DateRangePicker.Label>Period</DateRangePicker.Label>
+          <DateRangePicker.Popover>
+            <DateRangePicker.Presets aria-label="Presets">
+              {(preset) => <DateRangePicker.Preset preset={preset}>{`${preset.label}!`}</DateRangePicker.Preset>}
+            </DateRangePicker.Presets>
+            <DateRangePicker.Months />
+          </DateRangePicker.Popover>
+        </DateRangePicker>,
+      );
+      expect(presetTexts()).toEqual([
+        'Today!',
+        'Last 7 days!',
+        'Last 30 days!',
+        'This month!',
+        'Last month!',
+        'Custom',
+      ]);
+    });
+
+    it('custom={null} renders no Custom', async () => {
+      await render(
+        <DateRangePicker locale="en-US" timeZone={tz} defaultValue={march} defaultOpen>
+          <DateRangePicker.Label>Period</DateRangePicker.Label>
+          <DateRangePicker.Popover>
+            <DateRangePicker.Presets aria-label="Presets" custom={null} />
+            <DateRangePicker.Months />
+          </DateRangePicker.Popover>
+        </DateRangePicker>,
+      );
+      expect(presetTexts()).toEqual(['Today', 'Last 7 days', 'Last 30 days', 'This month', 'Last month']);
+      await expect.element(presets()).toHaveAttribute('data-custom');
+      await expect.element(presets()).not.toHaveAttribute('custom');
+    });
+
+    it('custom takes a node, rendered last; CustomPreset is a full part', async () => {
+      const ref = { current: null as HTMLButtonElement | null };
+      await render(
+        <DateRangePicker locale="en-US" timeZone={tz} defaultValue={march} defaultOpen>
+          <DateRangePicker.Label>Period</DateRangePicker.Label>
+          <DateRangePicker.Popover>
+            <DateRangePicker.Presets
+              aria-label="Presets"
+              className={({ custom }) => (custom ? 'is-custom' : '')}
+              custom={
+                <DateRangePicker.CustomPreset
+                  ref={ref}
+                  className={({ selected }) => (selected ? 'is-selected' : '')}
+                  style={{ color: 'rgb(1, 2, 3)' }}
+                  data-testid="custom"
+                  render={(props) => <button {...props} data-rendered="" />}
+                >
+                  Own range
+                </DateRangePicker.CustomPreset>
+              }
+            />
+            <DateRangePicker.Months />
+          </DateRangePicker.Popover>
+        </DateRangePicker>,
+      );
+      expect(presetTexts().at(-1)).toBe('Own range');
+      expect(presetTexts()).toHaveLength(6);
+      await expect.element(presets()).toHaveClass('is-custom');
+      const custom = page.getByRole('button', { name: 'Own range' });
+      expect(ref.current).toBe(custom.element());
+      await expect.element(custom).toHaveClass('is-selected');
+      await expect.element(custom).toHaveStyle({ color: 'rgb(1, 2, 3)' });
+      await expect.element(custom).toHaveAttribute('data-testid', 'custom');
+      await expect.element(custom).toHaveAttribute('data-rendered');
+      await expect.element(custom).toHaveAttribute('data-dk-part', 'daterangepicker-custom-preset');
     });
   });
 
