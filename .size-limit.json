@@ -1,30 +1,29 @@
 [
   {
-    "name": "react-datakit (whole package, ESM)",
+    "name": "react-datakit (whole package, ESM, reported only)",
     "path": "dist/index.js",
     "import": "*",
-    "ignore": ["react", "react-dom"],
-    "limit": "12 kB"
+    "ignore": ["react", "react-dom"]
   },
   {
     "name": "react-datakit/combobox (ESM)",
     "path": "dist/combobox/index.js",
     "import": "{ Combobox }",
     "ignore": ["react", "react-dom"],
-    "limit": "5 kB"
+    "limit": "4.75 kB"
   },
   {
     "name": "react-datakit/multiselect (ESM)",
     "path": "dist/multiselect/index.js",
     "import": "{ MultiSelect }",
     "ignore": ["react", "react-dom"],
-    "limit": "7 kB"
+    "limit": "6.8 kB"
   },
   {
     "name": "react-datakit/daterangepicker (ESM)",
     "path": "dist/daterangepicker/index.js",
     "import": "{ DateRangePicker }",
     "ignore": ["react", "react-dom"],
-    "limit": "6 kB"
+    "limit": "6.15 kB"
   }
 ]
