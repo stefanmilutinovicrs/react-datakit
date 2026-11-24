@@ -172,7 +172,7 @@ export interface UseDateRangePickerReturn {
   getRootProps: () => Props;
   getLabelProps: () => Props;
   getTriggerProps: () => Props;
-  /** Props of the element inside the trigger that shows the value (the trigger's description). */
+  /** Props of the element inside the trigger that shows the value; it is part of the trigger's name. */
   getTriggerValueProps: () => Props;
   getPopoverProps: () => Props;
   getPrevMonthProps: () => Props;
@@ -586,9 +586,8 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       'aria-haspopup': 'dialog',
       'aria-expanded': isOpen,
       'aria-controls': isOpen ? ids.popover : undefined,
-      // Named by the Label (`<label for>`); the picked range is the description. A self-including
-      // aria-labelledby would put both in the name, but crashes Playwright's Firefox in tests.
-      'aria-describedby': ids.value,
+      // The name is the label plus the picked range; the button's own content would drop the label.
+      'aria-labelledby': hasLabel ? `${ids.label} ${ids.value}` : undefined,
       'data-dk-part': daterangepickerParts.trigger,
       'data-state': isOpen ? 'open' : 'closed',
       'data-placeholder': flag(value === null),

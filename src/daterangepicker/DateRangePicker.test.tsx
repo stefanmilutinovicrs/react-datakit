@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
-import { page, userEvent } from 'vitest/browser';
+import { page, server, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type CalendarDate } from '../shared/date';
@@ -36,7 +36,7 @@ function Picker(props: TestProps) {
   );
 }
 
-const trigger = () => page.getByRole('button', { name: 'Period', exact: true });
+const trigger = () => page.getByRole('button', { name: /^Period/ });
 const dialog = () => page.getByRole('dialog', { name: 'Period' });
 const grids = () => page.getByRole('grid');
 const day = (label: string) => page.getByRole('gridcell', { name: label, exact: true });
@@ -84,8 +84,8 @@ describe('DateRangePicker', () => {
       await render(<Picker defaultValue={march} />);
       await expect.element(trigger()).toHaveAttribute('aria-haspopup', 'dialog');
       await expect.element(trigger()).toHaveAttribute('aria-expanded', 'false');
-      await expect.element(trigger()).toHaveAccessibleName('Period');
-      await expect.element(trigger()).toHaveAccessibleDescription(/^Mar 10\s–\s14, 2026$/);
+      await expect.element(trigger()).toHaveAccessibleName(/^Period Mar 10\s–\s14, 2026$/);
+      await expect.element(trigger()).not.toHaveAttribute('aria-describedby');
 
       await userEvent.click(trigger());
       await expect.element(trigger()).toHaveAttribute('aria-expanded', 'true');
@@ -130,6 +130,12 @@ describe('DateRangePicker', () => {
     it('has no axe violations when closed or open', async () => {
       const screen = await render(<Picker defaultValue={march} />);
       await expectNoA11yViolations(screen.container);
+      // Firefox crashes when a role+name locator resolves after axe-core has read
+      // ariaLabelledByElements in the page. Fixed in Firefox 163; remove this skip once
+      // Playwright ships a Firefox 163+ build.
+      // https://github.com/microsoft/playwright/issues/43967
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=2090055
+      if (server.browser === 'firefox') return;
       await userEvent.click(trigger());
       await expect.element(dialog()).toBeVisible();
       await expectNoA11yViolations(screen.container);
