@@ -311,6 +311,31 @@ describe('DateRangePicker', () => {
       await expect.poll(() => page.getByRole('status').element().textContent).toMatch(/^April\s–\sMay 2026$/);
     });
 
+    it('announces navigation through one live region, with no aria-live on the headings', async () => {
+      const screen = await openWith({ defaultValue: march });
+      const liveRegions = () => [
+        ...screen.container.querySelectorAll('[aria-live], output, [role="status"], [role="alert"], [role="log"]'),
+      ];
+      const region = page.getByRole('status').element();
+      expect(liveRegions()).toEqual([region]);
+
+      await userEvent.click(page.getByRole('button', { name: 'Next month' }));
+      await expect.poll(() => region.textContent).toMatch(/^April\s–\sMay 2026$/);
+      await userEvent.click(page.getByRole('button', { name: 'Previous month' }));
+      await expect.poll(() => region.textContent).toMatch(/^March\s–\sApril 2026$/);
+      (document.querySelector('[data-date="2026-03-10"]') as HTMLElement).focus();
+      await userEvent.keyboard('{Shift>}{PageDown}{/Shift}');
+      await expect.poll(() => region.textContent).toMatch(/2027$/);
+
+      expect(liveRegions()).toEqual([region]);
+      const headings = page.getByRole('heading').elements();
+      expect(headings).toHaveLength(2);
+      for (const heading of headings) {
+        expect(heading.hasAttribute('aria-live')).toBe(false);
+        expect(heading.closest('[aria-live], [role="status"]')).toBeNull();
+      }
+    });
+
     it('announces the visible months in the locale of the component', async () => {
       await openWith({ defaultValue: march, locale: 'sr-Latn-RS', numberOfMonths: 1 });
       await userEvent.click(page.getByRole('button', { name: 'Next month' }));
