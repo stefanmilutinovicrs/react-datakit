@@ -109,7 +109,7 @@ Versioning follows semver: a fix is a patch, a new option or prop is a minor, an
 
 ## Releases
 
-Releases are made with the [Changesets Action](https://github.com/changesets/action): it opens a "Version Packages" pull request from the merged changesets, and merging it publishes to npm with provenance.
+Releases are made with the [Changesets Action](https://github.com/changesets/action) in `.github/workflows/release.yml`. Changesets merged to `main` open or update a "chore: version packages" pull request. Merging it builds the package, and a job in the `npm` environment publishes it with [trusted publishing](https://docs.npmjs.com/trusted-publishers) (no npm token, provenance included), then creates the git tag and the GitHub release.
 
 ## Test
 

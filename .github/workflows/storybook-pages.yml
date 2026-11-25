@@ -1,10 +1,8 @@
 name: Storybook on GitHub Pages
 
-# Manual only while the repository is private (GitHub Pages needs a public repo on the free plan).
-# When the repo goes public, enable Settings → Pages → Source: GitHub Actions and add back:
-#   push:
-#     branches: [main]
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

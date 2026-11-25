@@ -1,7 +1,7 @@
 {
   "name": "react-datakit",
   "version": "0.0.0",
-  "description": "Headless, accessible React components for data-heavy B2B apps: Combobox, MultiSelect, DateRangePicker, FilterBar, Sparkline.",
+  "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect and DateRangePicker.",
   "keywords": [
     "react",
     "headless",
@@ -11,8 +11,6 @@
     "combobox",
     "multiselect",
     "date-range-picker",
-    "filter",
-    "sparkline",
     "typescript"
   ],
   "license": "MIT",
@@ -76,7 +74,10 @@
         "default": "./dist/daterangepicker/index.cjs"
       }
     },
-    "./styles.css": "./dist/styles.css",
+    "./styles.css": {
+      "types": "./dist/styles.css.d.cts",
+      "default": "./dist/styles.css"
+    },
     "./package.json": "./package.json"
   },
   "publishConfig": {
@@ -88,20 +89,18 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "node node_modules/typescript-7/bin/tsc --noEmit",
+    "typecheck": "node node_modules/typescript-7/bin/tsc --noEmit && node node_modules/typescript-7/bin/tsc -p tsconfig.test-d.json",
     "test": "vitest run --project node --project chromium",
     "test:watch": "vitest --project chromium",
     "test:all-browsers": "vitest run",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:package": "publint && attw --pack . --profile node16 --exclude-entrypoints styles.css",
+    "check:package": "publint && attw --pack . --profile node16",
     "size": "size-limit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "npm run build && changeset publish",
     "new-component": "node scripts/new-component.ts",
     "prepare": "git config core.hooksPath .githooks || exit 0"
   },

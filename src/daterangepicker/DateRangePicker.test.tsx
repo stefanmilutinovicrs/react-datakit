@@ -620,6 +620,110 @@ describe('DateRangePicker', () => {
     });
   });
 
+  describe('layout (default theme)', () => {
+    const isInside = (inner: DOMRect, outer: Pick<DOMRect, 'left' | 'top' | 'right' | 'bottom'>) =>
+      inner.left >= outer.left - 0.5 &&
+      inner.top >= outer.top - 0.5 &&
+      inner.right <= outer.right + 0.5 &&
+      inner.bottom <= outer.bottom + 0.5;
+
+    it.each([
+      [1024, 'left'],
+      [1024, 'right'],
+      [375, 'left'],
+      [375, 'right'],
+    ] as const)(
+      'at %i px with the trigger at the %s edge, both months and the next-month button are inside the popover, and the popover is inside the viewport',
+      async (width, edge) => {
+        const initial = { width: window.innerWidth, height: window.innerHeight };
+        await page.viewport(width, 900);
+        try {
+          await render(
+            <div style={{ display: 'flex', justifyContent: edge === 'left' ? 'flex-start' : 'flex-end' }}>
+              <Picker defaultValue={march} />
+            </div>,
+          );
+          await userEvent.click(trigger());
+          await expect.element(dialog()).toBeVisible();
+
+          const popover = dialog().element().getBoundingClientRect();
+          const months = [...document.querySelectorAll('[data-dk-part="daterangepicker-month"]')];
+          const next = document.querySelector('[data-dk-part="daterangepicker-next-month"]');
+          const viewport = { left: 0, top: 0, right: document.documentElement.clientWidth, bottom: Infinity };
+
+          expect(months).toHaveLength(2);
+          expect(months.map((month) => isInside(month.getBoundingClientRect(), popover))).toEqual([true, true]);
+          expect(next && isInside(next.getBoundingClientRect(), popover)).toBe(true);
+          expect(isInside(popover, viewport)).toBe(true);
+        } finally {
+          await page.viewport(initial.width, initial.height);
+        }
+      },
+    );
+
+    it.each(['top', 'bottom'] as const)(
+      'at 375 × 667 with the trigger near the %s of the page, every day, preset and month button can be reached',
+      async (edge) => {
+        const initial = { width: window.innerWidth, height: window.innerHeight };
+        await page.viewport(375, 667);
+        try {
+          await render(
+            <div style={{ paddingTop: edge === 'top' ? 16 : 1200, paddingBottom: 16 }}>
+              <Picker defaultValue={march} />
+            </div>,
+          );
+          trigger().element().scrollIntoView({ block: 'end' });
+          await userEvent.click(trigger());
+          await expect.element(dialog()).toBeVisible();
+
+          const popover = dialog().element();
+          const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: document.documentElement.clientHeight };
+          const visible = (element: Element) => {
+            const rect = element.getBoundingClientRect();
+            return isInside(rect, viewport) && isInside(rect, popover.getBoundingClientRect());
+          };
+          const focusedVisible = () => document.activeElement !== null && visible(document.activeElement);
+
+          expect(isInside(popover.getBoundingClientRect(), viewport)).toBe(true);
+
+          expect(focusedLabel()).toBe('Tuesday, March 10, 2026');
+          for (let i = 0; i < 9; i++) await userEvent.keyboard('{ArrowLeft}');
+          const reached: (string | null | undefined)[] = [];
+          const hidden: (string | null | undefined)[] = [];
+          for (let i = 0; i < 61; i++) {
+            if (i > 0) await userEvent.keyboard('{ArrowRight}');
+            reached.push(focusedLabel());
+            if (!focusedVisible()) hidden.push(focusedLabel());
+          }
+          expect(reached[0]).toBe('Sunday, March 1, 2026');
+          expect(reached.at(-1)).toBe('Thursday, April 30, 2026');
+          expect(hidden).toEqual([]);
+
+          const controls = [
+            ...popover.querySelectorAll<HTMLElement>(
+              '[data-dk-part="daterangepicker-preset"], [data-dk-part="daterangepicker-custom-preset"], [data-dk-part="daterangepicker-prev-month"], [data-dk-part="daterangepicker-next-month"]',
+            ),
+          ];
+          expect(controls.length).toBeGreaterThan(2);
+          const tabbed = new Set<Element>();
+          const hiddenControls: (string | null)[] = [];
+          for (let i = 0; i < controls.length; i++) {
+            await userEvent.keyboard('{Shift>}{Tab}{/Shift}');
+            const focused = document.activeElement;
+            if (focused === null) continue;
+            tabbed.add(focused);
+            if (!visible(focused)) hiddenControls.push(focused.textContent);
+          }
+          expect(controls.filter((control) => !tabbed.has(control)).map((control) => control.textContent)).toEqual([]);
+          expect(hiddenControls).toEqual([]);
+        } finally {
+          window.scrollTo(0, 0);
+          await page.viewport(initial.width, initial.height);
+        }
+      },
+    );
+  });
+
   describe('parts', () => {
     it('takes every data-dk-part from daterangepickerParts; rows and blank cells have only a role', async () => {
       const screen = await openWith({ defaultValue: march });

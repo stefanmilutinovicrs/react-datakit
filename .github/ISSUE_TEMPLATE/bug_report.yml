@@ -49,8 +49,6 @@ body:
         - Combobox
         - MultiSelect
         - DateRangePicker
-        - FilterBar
-        - Sparkline
         - Theme / styles
         - Other
     validations:

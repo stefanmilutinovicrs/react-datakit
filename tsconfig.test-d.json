@@ -1,0 +1,7 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strictFunctionTypes": false
+  },
+  "include": ["src/**/*.test-d.tsx", "src/vite-env.d.ts"]
+}

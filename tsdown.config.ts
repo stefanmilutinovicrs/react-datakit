@@ -18,5 +18,10 @@ export default defineConfig({
   // Components use hooks and browser APIs, so every entry is a client module
   // for React Server Components (Next.js App Router) out of the box.
   banner: { js: '"use client";' },
-  copy: [{ from: 'src/styles/theme.css', to: 'dist', rename: 'styles.css' }],
+  // The empty declaration lets `import 'react-datakit/styles.css'` type-check without
+  // bundler CSS types (TypeScript 6 checks side-effect imports by default).
+  copy: [
+    { from: 'src/styles/theme.css', to: 'dist', rename: 'styles.css' },
+    { from: 'src/styles/styles.css.d.cts', to: 'dist' },
+  ],
 });
