@@ -449,7 +449,22 @@ describe('MultiSelect', () => {
           <button type="button">Outside</button>
         </>,
       );
-      await expect.poll(() => indicator()?.textContent).toMatch(/^\+\d+ more$/);
+      await waitForSettledOverflow();
+    }
+
+    // The overflow is measured twice: "+N more" takes room from the chips once it appears.
+    async function waitForSettledOverflow() {
+      const frames = () =>
+        new Promise((resolve) =>
+          requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve))),
+        );
+      await expect
+        .poll(async () => {
+          const before = indicator()?.textContent;
+          await frames();
+          return before !== undefined && /^\+\d+ more$/.test(before) && before === indicator()?.textContent;
+        })
+        .toBe(true);
     }
 
     it('keeps every chip in the accessibility tree and hides "+N more" from it while collapsed', async () => {
@@ -497,12 +512,13 @@ describe('MultiSelect', () => {
     it('collapses when focus leaves, not on a click on the empty Control or popup', async () => {
       await renderMany();
       await userEvent.click(input());
-      await userEvent.click(page.elementLocator(control() as Element), { position: { x: 1, y: 1 } });
+      // Inside the padding, below the rounded corner, where no chip, input or option is.
+      await userEvent.click(page.elementLocator(control() as Element), { position: { x: 2, y: 20 } });
       expect(control()?.hasAttribute('data-expanded')).toBe(true);
 
       await userEvent.keyboard('{ArrowDown}');
       const popup = document.querySelector('[data-dk-part="multiselect-popup"]');
-      await userEvent.click(page.elementLocator(popup as Element), { position: { x: 1, y: 1 } });
+      await userEvent.click(page.elementLocator(popup as Element), { position: { x: 2, y: 20 } });
       expect(control()?.hasAttribute('data-expanded')).toBe(true);
 
       await userEvent.click(page.getByRole('button', { name: 'Outside' }));

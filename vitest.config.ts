@@ -1,11 +1,14 @@
 import react from '@vitejs/plugin-react';
-import { playwright } from '@vitest/browser-playwright';
+import { defineBrowserCommand, playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import type { EmulatedMedia } from './src/test/media';
 
 // Tests run in real browsers (Vitest Browser Mode), never in jsdom:
 // focus, scrolling and virtualization only behave correctly in a real engine.
 // `npm test` runs Chromium; CI and `npm run test:all-browsers` run all three.
 const browsers = ['chromium', 'firefox', 'webkit'] as const;
+
+const emulateMedia = defineBrowserCommand<[EmulatedMedia]>(({ page }, media) => page.emulateMedia(media));
 
 export default defineConfig({
   plugins: [react()],
@@ -24,6 +27,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             instances: [{ browser }],
+            commands: { emulateMedia },
           },
         },
       })),
