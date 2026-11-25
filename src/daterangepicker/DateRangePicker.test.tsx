@@ -141,17 +141,18 @@ describe('DateRangePicker', () => {
       expect(cell?.hasAttribute('data-today')).toBe(true);
     });
 
-    it('has no axe violations when closed or open', async () => {
+    it('has no axe violations when closed', async () => {
       const screen = await render(<Picker defaultValue={march} />);
       await expectNoA11yViolations(screen.container);
-      // Firefox crashes when a role+name locator resolves after axe-core has read
-      // ariaLabelledByElements in the page. Fixed in Firefox 163; remove this skip once
-      // Playwright ships a Firefox 163+ build.
-      // https://github.com/microsoft/playwright/issues/43967
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=2090055
-      if (server.browser === 'firefox') return;
-      await userEvent.click(trigger());
-      await expect.element(dialog()).toBeVisible();
+    });
+
+    // Firefox crashes when a role+name locator resolves after axe-core has read
+    // ariaLabelledByElements in the page. Fixed in Firefox 163; remove this skip once
+    // Playwright ships a Firefox 163+ build.
+    // https://github.com/microsoft/playwright/issues/43967
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=2090055
+    it.skipIf(server.browser === 'firefox')('has no axe violations when open', async () => {
+      const screen = await openWith({ defaultValue: march });
       await expectNoA11yViolations(screen.container);
     });
   });
