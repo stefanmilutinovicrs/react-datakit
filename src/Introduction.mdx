@@ -1,17 +1,51 @@
-import { Meta } from '@storybook/addon-docs/blocks';
+import { Meta, Unstyled } from '@storybook/addon-docs/blocks';
+import demo from '../.github/assets/demo.gif';
+import '../.storybook/introduction.css';
 
 <Meta title="Introduction" />
 
-# react-datakit
+<Unstyled>
+  <div className="dk-intro">
+    <header className="dk-intro-hero">
+      <h1>react-datakit</h1>
+      <p>Headless, accessible React components for data-heavy apps: admin panels, dashboards and ERP systems.</p>
+      <code className="dk-intro-install">npm install react-datakit</code>
+      <nav className="dk-intro-links" aria-label="Project">
+        <a href="https://www.npmjs.com/package/react-datakit" target="_blank" rel="noreferrer">npm</a>
+        <a href="https://github.com/stefanmilutinovicrs/react-datakit" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/stefanmilutinovicrs/react-datakit#theming" target="_blank" rel="noreferrer">Theming</a>
+      </nav>
+    </header>
 
-Headless, accessible React components for data-heavy B2B apps: admin panels, dashboards and ERP systems.
+    <img
+      className="dk-intro-demo"
+      src={demo}
+      width="740"
+      height="640"
+      alt="A filter row used with the keyboard only: an Assignee combobox searches people and selects Ana Petrović, a Labels multi-select adds frontend and accessibility as removable chips, and a Period date range picker selects a one-week range in its two-month calendar with the arrow keys."
+    />
 
-The [README](https://github.com/stefanmilutinovicrs/react-datakit#components) lists every component and its status.
+    <h2>Components</h2>
+    <ul className="dk-intro-cards">
+      <li>
+        <a href="./?path=/docs/components-combobox--docs" target="_top">
+          <strong>Combobox</strong>
+          <span>Pick one value from a long or remote list, with search.</span>
+        </a>
+      </li>
+      <li>
+        <a href="./?path=/docs/components-multiselect--docs" target="_top">
+          <strong>MultiSelect</strong>
+          <span>Pick several values, shown as removable chips.</span>
+        </a>
+      </li>
+      <li>
+        <a href="./?path=/docs/components-daterangepicker--docs" target="_top">
+          <strong>DateRangePicker</strong>
+          <span>Pick a period in a time zone, with presets and two months.</span>
+        </a>
+      </li>
+    </ul>
 
-## Principles
-
-- **Headless core + hook.** Every component is a hook (`useCombobox`) plus compound components built on it.
-- **Controlled or uncontrolled.** Every value works with `value` + `onChange` or `defaultValue`.
-- **WAI-ARIA Authoring Practices.** Roles, `aria-*` attributes and keyboard behavior follow the official patterns.
-- **Style with anything.** State is exposed as data attributes (`data-state`, `data-highlighted`, `data-selected`).
-- **Optional theme.** `import 'react-datakit/styles.css'` and change `--dk-accent`; your CSS always wins.
+  </div>
+</Unstyled>
