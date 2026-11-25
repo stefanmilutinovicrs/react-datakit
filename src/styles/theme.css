@@ -299,6 +299,8 @@
     top: calc(100% + var(--dk-space-1));
     left: 0;
     z-index: 10;
+    width: max-content;
+    max-width: calc(100vw - 2 * var(--dk-space-2));
     display: grid;
     grid-template-columns: auto auto 1fr auto;
     grid-template-areas:
@@ -368,7 +370,66 @@
   :where([data-dk-part='daterangepicker-months']) {
     grid-area: months;
     display: flex;
+    flex-wrap: wrap;
     gap: calc(var(--dk-space-2) * 3);
+  }
+
+  /* Too narrow for presets beside a month: presets go on top. */
+  @media (width < 30rem) {
+    :where([data-dk-part='daterangepicker-popover']) {
+      grid-template-columns: auto 1fr auto;
+      grid-template-areas:
+        'presets presets presets'
+        'prev . next'
+        'months months months';
+    }
+
+    :where([data-dk-part='daterangepicker-presets']) {
+      flex-flow: row wrap;
+      padding-inline-end: 0;
+      padding-block-end: var(--dk-space-2);
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--dk-border);
+    }
+
+    :where([data-dk-part='daterangepicker-months']) {
+      justify-content: center;
+    }
+  }
+
+  /* Fixed and anchored to the trigger, so the viewport is the containing block and the
+     fallbacks can flip the popover, or pin it to the viewport, instead of overflowing the
+     right edge. Without anchor positioning it stays below the trigger, aligned left.
+     https://drafts.csswg.org/css-anchor-position-1/ */
+  @supports (anchor-name: --a) {
+    @position-try --dk-viewport-start {
+      left: var(--dk-space-2);
+    }
+
+    :where([data-dk-part='daterangepicker']) {
+      anchor-scope: --dk-daterangepicker;
+    }
+
+    :where([data-dk-part='daterangepicker-trigger']) {
+      anchor-name: --dk-daterangepicker;
+    }
+
+    :where([data-dk-part='daterangepicker-popover']) {
+      position: fixed;
+      position-anchor: --dk-daterangepicker;
+      top: calc(anchor(bottom) + var(--dk-space-1));
+      left: anchor(left);
+      position-try-fallbacks: flip-inline, --dk-viewport-start;
+    }
+
+    @media (width < 30rem) {
+      :where([data-dk-part='daterangepicker-popover']) {
+        left: var(--dk-space-2);
+        right: var(--dk-space-2);
+        width: auto;
+        position-try-fallbacks: none;
+      }
+    }
   }
 
   :where([data-dk-part='daterangepicker-month-heading']) {

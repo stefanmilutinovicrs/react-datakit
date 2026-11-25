@@ -620,6 +620,48 @@ describe('DateRangePicker', () => {
     });
   });
 
+  describe('layout (default theme)', () => {
+    const isInside = (inner: DOMRect, outer: Pick<DOMRect, 'left' | 'top' | 'right' | 'bottom'>) =>
+      inner.left >= outer.left - 0.5 &&
+      inner.top >= outer.top - 0.5 &&
+      inner.right <= outer.right + 0.5 &&
+      inner.bottom <= outer.bottom + 0.5;
+
+    it.each([
+      [1024, 'left'],
+      [1024, 'right'],
+      [375, 'left'],
+      [375, 'right'],
+    ] as const)(
+      'at %i px with the trigger at the %s edge, both months and the next-month button are inside the popover, and the popover is inside the viewport',
+      async (width, edge) => {
+        const initial = { width: window.innerWidth, height: window.innerHeight };
+        await page.viewport(width, 900);
+        try {
+          await render(
+            <div style={{ display: 'flex', justifyContent: edge === 'left' ? 'flex-start' : 'flex-end' }}>
+              <Picker defaultValue={march} />
+            </div>,
+          );
+          await userEvent.click(trigger());
+          await expect.element(dialog()).toBeVisible();
+
+          const popover = dialog().element().getBoundingClientRect();
+          const months = [...document.querySelectorAll('[data-dk-part="daterangepicker-month"]')];
+          const next = document.querySelector('[data-dk-part="daterangepicker-next-month"]');
+          const viewport = { left: 0, top: 0, right: document.documentElement.clientWidth, bottom: Infinity };
+
+          expect(months).toHaveLength(2);
+          expect(months.map((month) => isInside(month.getBoundingClientRect(), popover))).toEqual([true, true]);
+          expect(next && isInside(next.getBoundingClientRect(), popover)).toBe(true);
+          expect(isInside(popover, viewport)).toBe(true);
+        } finally {
+          await page.viewport(initial.width, initial.height);
+        }
+      },
+    );
+  });
+
   describe('parts', () => {
     it('takes every data-dk-part from daterangepickerParts; rows and blank cells have only a role', async () => {
       const screen = await openWith({ defaultValue: march });
