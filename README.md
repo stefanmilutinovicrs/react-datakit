@@ -54,12 +54,25 @@ const users: User[] = [
   { id: 3, name: 'Elena Kim' },
 ];
 
+// Stands in for your API: answers after 300 ms and stops when the search is superseded.
+function searchUsers(query: string, signal: AbortSignal): Promise<User[]> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      resolve(users.filter((user) => user.name.toLowerCase().includes(query.toLowerCase())));
+    }, 300);
+    signal.addEventListener('abort', () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    });
+  });
+}
+
 export function AssigneePicker() {
   const [assignee, setAssignee] = useState<User | null>(null);
 
   return (
     <Combobox
-      items={users}
+      loadOptions={(query, { signal }) => searchUsers(query, signal)}
       itemToString={(user) => user?.name ?? ''}
       itemToKey={(user) => user.id}
       value={assignee}
@@ -70,13 +83,21 @@ export function AssigneePicker() {
       <Combobox.Popup>
         <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
         <Combobox.Empty>No people found</Combobox.Empty>
+        <Combobox.Loading>Searching…</Combobox.Loading>
+        <Combobox.Error>
+          {({ retry }) => (
+            <button type="button" onClick={retry}>
+              Try again
+            </button>
+          )}
+        </Combobox.Error>
       </Combobox.Popup>
     </Combobox>
   );
 }
 ```
 
-For remote data, pass `loadOptions={(query, { signal }) => …}` instead of `items`: requests are debounced, aborted when a newer query starts and cached per query.
+`loadOptions` is debounced, aborted when a newer query starts and cached per query. For a short static list, pass `items` instead; it is filtered locally.
 
 ```css
 :root {
