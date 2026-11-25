@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { Combobox } from './index';
 
 interface User {
@@ -39,13 +39,16 @@ function searchUsers(query: string, { signal }: { signal: AbortSignal }, options
   });
 }
 
-function Parts({ placeholder = 'Search people…' }: { placeholder?: string }) {
+function Parts({ placeholder = 'Search people…', label = 'Assignee' }: { placeholder?: string; label?: string }) {
   return (
     <>
-      <Combobox.Label>Assignee</Combobox.Label>
-      <Combobox.Input placeholder={placeholder} />
+      <Combobox.Label>{label}</Combobox.Label>
+      <Combobox.Control>
+        <Combobox.Input placeholder={placeholder} />
+      </Combobox.Control>
       <Combobox.Popup>
         <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+        <Combobox.Count>{(count) => (count === 1 ? '1 result' : `${count} results`)}</Combobox.Count>
         <Combobox.Empty>No people found</Combobox.Empty>
         <Combobox.Loading>Searching…</Combobox.Loading>
         <Combobox.Error>
@@ -90,6 +93,72 @@ export const Basic: Story = {
   render: () => (
     <Combobox items={users} itemToString={itemToString} itemToKey={itemToKey}>
       <Parts />
+    </Combobox>
+  ),
+};
+
+const initials = (name: string) =>
+  name
+    .split(' ')
+    .map((part) => part[0])
+    .join('');
+
+const avatar: CSSProperties = {
+  display: 'grid',
+  placeItems: 'center',
+  flex: 'none',
+  width: 28,
+  height: 28,
+  borderRadius: '50%',
+  background: 'color-mix(in srgb, var(--dk-accent) 12%, var(--dk-surface))',
+  fontSize: 11,
+  fontWeight: 500,
+};
+
+export const TwoLineOptions: Story = {
+  name: 'Two-line options',
+  render: () => (
+    <Combobox items={users} itemToString={itemToString} itemToKey={itemToKey}>
+      <Combobox.Label>Assignee</Combobox.Label>
+      <Combobox.Control>
+        <Combobox.Input placeholder="Search people…" />
+      </Combobox.Control>
+      <Combobox.Popup>
+        <Combobox.List optionHeight={48}>
+          {(user: User) => (
+            <Combobox.Option item={user}>
+              <span aria-hidden="true" style={avatar}>
+                {initials(user.name)}
+              </span>
+              <span style={{ display: 'grid', minWidth: 0 }}>
+                <span>{user.name}</span>
+                <span style={{ color: 'var(--dk-text-muted)', fontSize: 12 }}>{user.email}</span>
+              </span>
+            </Combobox.Option>
+          )}
+        </Combobox.List>
+        <Combobox.Count>{(count) => `${count} results`}</Combobox.Count>
+        <Combobox.Empty>No people found</Combobox.Empty>
+      </Combobox.Popup>
+    </Combobox>
+  ),
+};
+
+export const WithoutControl: Story = {
+  name: 'Input without Control',
+  parameters: {
+    docs: {
+      description: { story: 'Without `Combobox.Control` the input is the field, with no icons.' },
+    },
+  },
+  render: () => (
+    <Combobox items={users} itemToString={itemToString} itemToKey={itemToKey}>
+      <Combobox.Label>Assignee</Combobox.Label>
+      <Combobox.Input placeholder="Search people…" />
+      <Combobox.Popup>
+        <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+        <Combobox.Empty>No people found</Combobox.Empty>
+      </Combobox.Popup>
     </Combobox>
   ),
 };
@@ -169,40 +238,27 @@ export const LongLabels: Story = {
   ),
 };
 
-const themedCss = `
-.brand-combobox {
-  --dk-accent: #be185d;
-  --dk-radius: 12px;
-  --dk-control-height: 44px;
-}
-.brand-combobox [data-dk-part='combobox-option'][data-highlighted] {
-  background: #be185d;
-  color: white;
-}
-`;
+const customTheme = { '--dk-accent': '#be185d', '--dk-radius': '16px' } as CSSProperties;
 
 export const Themed: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The default theme next to a subtree that sets only `--dk-accent` and `--dk-radius`; the focus ring, selected check and every derived color follow. Popups stay at 12px or less whatever the radius is.',
+      },
+    },
+  },
   render: () => (
-    <>
-      <style>{themedCss}</style>
-      <Combobox className="brand-combobox" items={users} itemToString={itemToString} itemToKey={itemToKey}>
-        <Combobox.Label>Assignee</Combobox.Label>
-        <Combobox.Input placeholder="Search people…" />
-        <Combobox.Popup>
-          <Combobox.List optionHeight={48}>
-            {(user: User) => (
-              <Combobox.Option item={user}>
-                <span>
-                  <strong>{user.name}</strong>
-                  <br />
-                  <small>{user.email}</small>
-                </span>
-              </Combobox.Option>
-            )}
-          </Combobox.List>
-          <Combobox.Empty>No people found</Combobox.Empty>
-        </Combobox.Popup>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+      <Combobox items={users} defaultValue={users[0]} itemToString={itemToString} itemToKey={itemToKey}>
+        <Parts label="Assignee (default)" />
       </Combobox>
-    </>
+      <div style={customTheme}>
+        <Combobox items={users} defaultValue={users[0]} itemToString={itemToString} itemToKey={itemToKey}>
+          <Parts label="Assignee (custom)" />
+        </Combobox>
+      </div>
+    </div>
   ),
 };

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { MultiSelect } from './index';
 
 interface Tag {
@@ -39,10 +39,10 @@ function searchTags(query: string, { signal }: { signal: AbortSignal }) {
   });
 }
 
-function Parts({ placeholder = 'Add labels…' }: { placeholder?: string }) {
+function Parts({ placeholder = 'Add labels…', label = 'Labels' }: { placeholder?: string; label?: string }) {
   return (
     <>
-      <MultiSelect.Label>Labels</MultiSelect.Label>
+      <MultiSelect.Label>{label}</MultiSelect.Label>
       <MultiSelect.Control>
         <MultiSelect.Chips>
           {(tag: Tag) => (
@@ -80,7 +80,7 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <div style={{ minHeight: 400, maxWidth: 420 }}>
+      <div style={{ minHeight: 400 }}>
         <Story />
       </div>
     ),
@@ -197,34 +197,32 @@ export const Overflow: Story = {
   ),
 };
 
-const themedCss = `
-.brand-multiselect {
-  --dk-accent: #0f766e;
-  --dk-radius: 999px;
-}
-.brand-multiselect [data-dk-part='multiselect-chip'] {
-  background: #0f766e;
-  color: white;
-}
-.brand-multiselect [data-dk-part='multiselect-chip-remove'] {
-  color: white;
-}
-`;
+const customTheme = { '--dk-accent': '#be185d', '--dk-radius': '999px' } as CSSProperties;
 
 export const Themed: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The default theme next to a subtree that sets only `--dk-accent` and `--dk-radius`. The field and chips become pills; the popup radius stays at 12px or less.',
+      },
+    },
+  },
   render: () => (
-    <>
-      <style>{themedCss}</style>
-      <MultiSelect
-        className="brand-multiselect"
-        items={tags}
-        defaultValue={tags.slice(1, 3)}
-        itemToString={itemToString}
-        itemToKey={itemToKey}
-        style={{ width: 360 }}
-      >
-        <Parts />
-      </MultiSelect>
-    </>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+      {[undefined, customTheme].map((style, i) => (
+        <div key={i} style={style}>
+          <MultiSelect
+            items={tags}
+            defaultValue={tags.slice(1, 3)}
+            itemToString={itemToString}
+            itemToKey={itemToKey}
+            style={{ width: 320 }}
+          >
+            <Parts label={style ? 'Labels (custom)' : 'Labels (default)'} />
+          </MultiSelect>
+        </div>
+      ))}
+    </div>
   ),
 };
