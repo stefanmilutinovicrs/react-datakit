@@ -223,6 +223,92 @@ describe('Combobox', () => {
       expect(onChange).not.toHaveBeenCalled();
     });
 
+    it('Control wraps the input: state, ref and focus on a click next to the input', async () => {
+      const ref = createRef<HTMLDivElement>();
+      await render(
+        <Combobox items={users} itemToString={(u) => u?.name ?? ''} itemToKey={(u) => u.id}>
+          <Combobox.Label>Assignee</Combobox.Label>
+          <Combobox.Control
+            ref={ref}
+            style={{ padding: 20 }}
+            className={(state) => (state.open ? 'is-open' : 'is-closed')}
+            data-testid="control"
+          >
+            <Combobox.Input />
+          </Combobox.Control>
+          <Combobox.Popup>
+            <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+          </Combobox.Popup>
+        </Combobox>,
+      );
+      const control = page.getByTestId('control');
+      expect(ref.current).toBe(control.element());
+      await expect.element(control).toHaveAttribute('data-dk-part', 'combobox-control');
+      await expect.element(control).toHaveAttribute('data-state', 'closed');
+      await expect.element(control).toHaveClass('is-closed');
+
+      await userEvent.click(control, { position: { x: 5, y: 5 } });
+      await expect.element(input()).toHaveFocus();
+
+      await userEvent.keyboard('{ArrowDown}');
+      await expect.element(control).toHaveAttribute('data-state', 'open');
+      await expect.element(control).toHaveClass('is-open');
+    });
+
+    it('Count shows the number of results, hidden from screen readers that already heard it', async () => {
+      const ref = createRef<HTMLDivElement>();
+      const screen = await render(
+        <Combobox items={users} itemToString={(u) => u?.name ?? ''} itemToKey={(u) => u.id}>
+          <Combobox.Label>Assignee</Combobox.Label>
+          <Combobox.Input />
+          <Combobox.Popup>
+            <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+            <Combobox.Count ref={ref} data-testid="count" className={(state) => `count-${state.count}`}>
+              {(count) => `${count} people`}
+            </Combobox.Count>
+          </Combobox.Popup>
+        </Combobox>,
+      );
+      const count = page.getByTestId('count');
+      await focusInput();
+      await userEvent.keyboard('{ArrowDown}');
+      await expect.element(count).toHaveTextContent('4 people');
+      await expect.element(count).toHaveAttribute('data-dk-part', 'combobox-count');
+      await expect.element(count).toHaveAttribute('aria-hidden', 'true');
+      await expect.element(count).toHaveClass('count-4');
+      expect(ref.current).toBe(count.element());
+      await expectNoA11yViolations(screen.container);
+
+      await userEvent.type(input(), 'an');
+      await expect.element(count).toHaveTextContent('3 people');
+      await userEvent.type(input(), 'zzz');
+      await expect.element(count).not.toBeInTheDocument();
+    });
+
+    it('Count is hidden while options load', async () => {
+      const request = deferred<User[]>();
+      await render(
+        <Combobox
+          loadOptions={() => request.promise}
+          debounceMs={0}
+          itemToString={(u) => u?.name ?? ''}
+          itemToKey={(u) => u.id}
+        >
+          <Combobox.Label>Assignee</Combobox.Label>
+          <Combobox.Input />
+          <Combobox.Popup>
+            <Combobox.Count data-testid="count">{(count) => `${count} people`}</Combobox.Count>
+            <Combobox.Loading>Searching…</Combobox.Loading>
+          </Combobox.Popup>
+        </Combobox>,
+      );
+      await userEvent.type(input(), 'a');
+      await expect.element(page.getByText('Searching…')).toBeVisible();
+      expect(page.getByTestId('count').query()).toBeNull();
+      request.resolve([ana]);
+      await expect.element(page.getByTestId('count')).toHaveTextContent('1 people');
+    });
+
     it('has no axe violations in the empty state', async () => {
       const screen = await render(<UserCombobox items={users} />);
       await userEvent.type(input(), 'zzz');

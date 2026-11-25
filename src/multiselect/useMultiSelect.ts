@@ -80,7 +80,6 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
   focusChip: (index: number) => void;
   focusInput: () => void;
 
-  getControlProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipsProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipsOverflowProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getChipProps: (item: TItem, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
@@ -324,17 +323,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
     focusChip,
     focusInput,
 
-    getControlProps: () => ({
-      'data-dk-part': multiselectParts.control,
-      'data-state': core.isOpen ? 'open' : 'closed',
-      'data-expanded': expanded ? '' : undefined,
-      // A click on the empty area of the field focuses the input.
-      onMouseDown: (event) => {
-        if (event.target !== event.currentTarget) return;
-        event.preventDefault();
-        focusInput();
-      },
-    }),
+    getControlProps: () => ({ ...core.getControlProps(), 'data-expanded': expanded ? '' : undefined }),
     getChipsProps: () => ({
       role: selectedItems.length > 0 ? 'list' : undefined,
       'aria-label': selectedItems.length > 0 ? labels.selected : undefined,

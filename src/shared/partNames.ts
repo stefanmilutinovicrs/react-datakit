@@ -2,6 +2,7 @@
 export const comboboxParts = {
   root: 'combobox',
   label: 'combobox-label',
+  control: 'combobox-control',
   input: 'combobox-input',
   popup: 'combobox-popup',
   list: 'combobox-list',
@@ -9,6 +10,7 @@ export const comboboxParts = {
   empty: 'combobox-empty',
   loading: 'combobox-loading',
   error: 'combobox-error',
+  count: 'combobox-count',
 } as const;
 
 export const multiselectParts = {

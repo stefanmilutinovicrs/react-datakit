@@ -133,6 +133,7 @@ export interface ComboboxCore<TItem> {
 
   getRootProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getLabelProps: () => LabelHTMLAttributes<HTMLLabelElement> & DataAttributes;
+  getControlProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getInputProps: () => InputHTMLAttributes<HTMLInputElement> & DataAttributes;
   getListProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getPopupProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
@@ -431,6 +432,16 @@ export function useComboboxCore<TItem>(
       id: ids.label,
       htmlFor: ids.input,
       'data-dk-part': names.label,
+    }),
+    getControlProps: () => ({
+      'data-dk-part': names.control,
+      'data-state': dataState,
+      // A click on the empty area of the field focuses the input.
+      onMouseDown: (event) => {
+        if (event.target !== event.currentTarget) return;
+        event.preventDefault();
+        inputRef.current?.focus();
+      },
     }),
     getInputProps: () => ({
       id: ids.input,
