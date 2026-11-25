@@ -13,6 +13,17 @@ export function toRgb(color: string): Rgb {
   return [r, g, b];
 }
 
+export function isTransparent(color: string): boolean {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) throw new Error('No 2D canvas context.');
+  context.fillStyle = color;
+  context.fillRect(0, 0, 1, 1);
+  return context.getImageData(0, 0, 1, 1).data[3] === 0;
+}
+
 export function toHex(color: string): string {
   return `#${toRgb(color)
     .map((channel) => channel.toString(16).padStart(2, '0'))
