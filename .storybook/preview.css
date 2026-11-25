@@ -1,4 +1,19 @@
-/* The theme sets no font so components inherit the app's; Storybook stands in for that app. */
+/* Storybook stands in for the app: it sets the font, size and page colors the components inherit. */
+:root {
+  color-scheme: light dark;
+  background: light-dark(#ffffff, #09090b);
+  color: light-dark(#18181b, #fafafa);
+}
+
+:root[data-dk-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-dk-theme='dark'] {
+  color-scheme: dark;
+}
+
 body {
   font-family: system-ui, sans-serif;
+  font-size: 14px;
 }
