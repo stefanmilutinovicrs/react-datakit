@@ -1,0 +1,4 @@
+/* The theme sets no font so components inherit the app's; Storybook stands in for that app. */
+body {
+  font-family: system-ui, sans-serif;
+}
