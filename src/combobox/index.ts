@@ -1,28 +1,37 @@
 export { Combobox } from './Combobox';
+export type { ComboboxProps } from './Combobox';
 export type {
-  ComboboxEmptyProps,
-  ComboboxErrorProps,
-  ComboboxErrorState,
   ComboboxInputProps,
   ComboboxInputState,
   ComboboxLabelProps,
   ComboboxLabelState,
+} from '../shared/combobox/Field';
+export type {
   ComboboxListProps,
   ComboboxListState,
-  ComboboxLoadingProps,
   ComboboxOptionProps,
   ComboboxOptionState,
   ComboboxPopupProps,
   ComboboxPopupState,
-  ComboboxProps,
-  ComboboxRootState,
-  ComboboxStatusPartState,
-} from './Combobox';
-export { useCombobox } from './useCombobox';
+} from '../shared/combobox/Popup';
+export type { ComboboxRootState } from '../shared/combobox/Root';
 export type {
+  ComboboxEmptyProps,
+  ComboboxErrorProps,
+  ComboboxErrorState,
+  ComboboxLoadingProps,
+  ComboboxStatusPartState,
+} from '../shared/combobox/Status';
+export { useCombobox } from './useCombobox';
+export { defaultComboboxLabels } from '../shared/combobox/useComboboxCore';
+export type { UseComboboxOptions, UseComboboxReturn } from './useCombobox';
+export type {
+  ComboboxBaseOptions,
+  ComboboxCore,
+  ComboboxLabels,
+  ComboboxPartPrefix,
+  ComboboxRow,
   ComboboxStatus,
   HighlightOrigin,
   LoadOptionsContext,
-  UseComboboxOptions,
-  UseComboboxReturn,
-} from './useCombobox';
+} from '../shared/combobox/useComboboxCore';

@@ -6,6 +6,8 @@ export default defineConfig({
   entry: {
     index: 'src/index.ts',
     'combobox/index': 'src/combobox/index.ts',
+    'multiselect/index': 'src/multiselect/index.ts',
+    'daterangepicker/index': 'src/daterangepicker/index.ts',
   },
   format: ['esm', 'cjs'],
   platform: 'neutral',

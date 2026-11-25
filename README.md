@@ -23,8 +23,8 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 | Component       | What it solves                                    | Status              |
 | --------------- | ------------------------------------------------- | ------------------- |
 | Combobox        | Pick one value from a long, searchable list       | experimental (v0.1) |
-| MultiSelect     | Pick several values, shown as removable chips     | planned             |
-| DateRangePicker | Pick a period for dashboards, with presets        | planned             |
+| MultiSelect     | Pick several values, shown as removable chips     | experimental (v0.2) |
+| DateRangePicker | Pick a period for dashboards, with presets        | experimental (v0.3) |
 | FilterBar       | Linear/Notion-style filters, serialized to a URL  | planned             |
 | Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned             |
 
@@ -60,6 +60,20 @@ import 'react-datakit/styles.css'; // optional default theme
   --dk-accent: #7c3aed; /* every other color derives from it */
 }
 ```
+
+## Theming
+
+`react-datakit/styles.css` is an optional default theme. Every rule lives in `@layer datakit` and uses `:where()` selectors, so any CSS you write wins regardless of specificity or load order.
+
+- Most apps only set `--dk-accent`; the other colors derive from it.
+- Parts are targeted by `[data-dk-part]` and state by data attributes such as `data-state`, `data-highlighted`, `data-selected`, `data-disabled` and `data-loading`.
+- MultiSelect chips: `data-expanded` is set on the Control and Chips while focus is in the component, `data-overflow` on chips that don't fit, and `--dk-chips-visible-width` on Chips holds the width up to the last chip that fits, for a `max-width` that cuts there.
+- DateRangePicker: every part has a `data-dk-part`, including each weekday header (`daterangepicker-weekday`). Calendar rows have only a role; select them with `[data-dk-part='daterangepicker-grid'] > [role='row']`. `data-custom` is set on Presets while the value matches no preset.
+- With Tailwind v4, declare the layer order first in your main CSS file:
+
+  ```css
+  @layer datakit, theme, base, components, utilities;
+  ```
 
 ## Get involved
 

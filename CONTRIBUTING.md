@@ -19,6 +19,8 @@ Every pull request must follow the [pull request template](.github/pull_request_
 - Search the [open and closed pull requests](https://github.com/stefanmilutinovicrs/react-datakit/pulls?q=is%3Apr) before starting work.
 - Keep each pull request focused on one change. Unrelated changes belong in separate pull requests.
 - Explain what changed and why.
+- Never deviate from the spec, raise a size limit, or skip a styling rule on your own. Stop and ask first, with the trade-off.
+- Never weaken accessibility to work around a test tool; skip the assertion for that browser with an issue link instead.
 - You may use AI tools, but you remain responsible for understanding, testing and verifying every line you submit.
 
 ## Development
@@ -36,6 +38,8 @@ Every pull request must follow the [pull request template](.github/pull_request_
   npm install
   npx playwright install chromium
   ```
+
+  `npm install` also turns on the pre-commit hook in `.githooks/`, which runs `npm run lint`.
 
 - Start Storybook while you work:
 
@@ -58,9 +62,44 @@ Checklist:
 - [ ] Follows the WAI-ARIA pattern, with full keyboard support
 - [ ] Controlled and uncontrolled via `useControllableState`
 - [ ] Every part has `data-dk-part`, state data attributes, `className`, `style`, a render prop and a forwarded ref
+- [ ] Text users can't reach through a part (ARIA names, list names, live region announcements) is in a `labels` option with English defaults, exported as `default<Name>Labels`; visible content is changed through parts, never `labels`
 - [ ] Theme rules live in `@layer datakit` and use `:where()` selectors only
 - [ ] axe passes in every state; tested in Chromium, Firefox and WebKit
 - [ ] No hydration warnings in the Next.js App Router
+
+## Code style
+
+### Comments
+
+- Comments explain why, never what. No section headers or dividers, no comments that restate the code, no commented-out code, no TODOs without an issue link.
+- Write a `//` comment only for a non-obvious decision: a browser or screen reader quirk, a race condition, a WAI-ARIA requirement (link the spec).
+- Write JSDoc only when it adds something the name and the type don't say: one sentence, no `@example` (examples live in Storybook). `@experimental` and `@deprecated` are allowed.
+- JSDoc only on exported code: components, props and types.
+- JSDoc on a prop only when it states a requirement or behavior that the name and the type don't show: a default, a unit, what `null` or `-1` means, when it is called. `itemToKey` says the key must be stable and unique; `items` or `open` need nothing.
+
+### Component folders
+
+A component folder is split by group of parts, not one file per part:
+
+```
+src/<name>/
+  context.ts           React context and its hook
+  use<Name>.ts         the headless hook
+  <Group>.tsx          one file per group of related parts, e.g. Chips.tsx, Calendar.tsx
+  <Name>.tsx           the root part and the compound export
+  index.ts             the public exports of the subpath
+  <Name>.test.tsx
+  <Name>.stories.tsx
+```
+
+- Files with components are PascalCase (`Chips.tsx`, `Trigger.tsx`); hooks and everything else are camelCase (`useMultiSelect.ts`, `context.ts`, `presets.ts`).
+- Logic used by more than one component lives in `src/shared/`, never copied.
+- Leave out a file that would only re-export something; don't add files just to match the layout.
+- `npm run new-component <name>` creates a folder that follows these rules.
+
+### What lint checks
+
+`npm run lint` fails on section-header and divider comments, TODOs without an issue link and `@example` in JSDoc. It runs in CI and in the pre-commit hook. Everything else in this section is checked in review: lint can't tell a "why" comment from a "what" comment.
 
 ## Changesets
 

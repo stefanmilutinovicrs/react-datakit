@@ -6,6 +6,7 @@
 
 - [ ] I have followed the steps in the [Contributing guide](https://github.com/stefanmilutinovicrs/react-datakit/blob/main/CONTRIBUTING.md).
 - [ ] I have tested code changes locally with `npm run test:all-browsers`, or these tests do not apply to this pull request.
+- [ ] The code follows the [Code style](https://github.com/stefanmilutinovicrs/react-datakit/blob/main/CONTRIBUTING.md#code-style): comments explain why, one file per group of parts.
 - [ ] I fully understand the code in this pull request, including any code generated with AI assistance.
 
 ## 🚀 Release Impact

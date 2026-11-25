@@ -1,0 +1,50 @@
+// Every data-dk-part value lives here; the names are public API, used by the theme and by user CSS.
+export const comboboxParts = {
+  root: 'combobox',
+  label: 'combobox-label',
+  input: 'combobox-input',
+  popup: 'combobox-popup',
+  list: 'combobox-list',
+  option: 'combobox-option',
+  empty: 'combobox-empty',
+  loading: 'combobox-loading',
+  error: 'combobox-error',
+} as const;
+
+export const multiselectParts = {
+  root: 'multiselect',
+  label: 'multiselect-label',
+  input: 'multiselect-input',
+  popup: 'multiselect-popup',
+  list: 'multiselect-list',
+  option: 'multiselect-option',
+  empty: 'multiselect-empty',
+  loading: 'multiselect-loading',
+  error: 'multiselect-error',
+  selectAll: 'multiselect-select-all',
+  create: 'multiselect-create',
+  control: 'multiselect-control',
+  chips: 'multiselect-chips',
+  chip: 'multiselect-chip',
+  chipRemove: 'multiselect-chip-remove',
+  chipsOverflow: 'multiselect-chips-overflow',
+} as const;
+
+export const daterangepickerParts = {
+  root: 'daterangepicker',
+  label: 'daterangepicker-label',
+  trigger: 'daterangepicker-trigger',
+  value: 'daterangepicker-value',
+  popover: 'daterangepicker-popover',
+  presets: 'daterangepicker-presets',
+  preset: 'daterangepicker-preset',
+  customPreset: 'daterangepicker-custom-preset',
+  prevMonth: 'daterangepicker-prev-month',
+  nextMonth: 'daterangepicker-next-month',
+  months: 'daterangepicker-months',
+  month: 'daterangepicker-month',
+  monthHeading: 'daterangepicker-month-heading',
+  grid: 'daterangepicker-grid',
+  weekday: 'daterangepicker-weekday',
+  day: 'daterangepicker-day',
+} as const;
