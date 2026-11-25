@@ -406,6 +406,11 @@
       left: var(--dk-space-2);
     }
 
+    @position-try --dk-viewport-top {
+      top: var(--dk-space-2);
+      left: var(--dk-space-2);
+    }
+
     :where([data-dk-part='daterangepicker']) {
       anchor-scope: --dk-daterangepicker;
     }
@@ -414,12 +419,23 @@
       anchor-name: --dk-daterangepicker;
     }
 
+    /* Capped at the viewport height, so one of the fallbacks always fits: below the trigger,
+       above it, or pinned to the top of the viewport. The days scroll inside the popover. */
     :where([data-dk-part='daterangepicker-popover']) {
       position: fixed;
       position-anchor: --dk-daterangepicker;
       top: calc(anchor(bottom) + var(--dk-space-1));
       left: anchor(left);
-      position-try-fallbacks: flip-inline, --dk-viewport-start;
+      max-height: calc(100dvh - 2 * var(--dk-space-2));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      position-try-fallbacks:
+        flip-inline,
+        --dk-viewport-start,
+        flip-block,
+        flip-block flip-inline,
+        flip-block --dk-viewport-start,
+        --dk-viewport-top;
     }
 
     @media (width < 30rem) {
@@ -427,7 +443,7 @@
         left: var(--dk-space-2);
         right: var(--dk-space-2);
         width: auto;
-        position-try-fallbacks: none;
+        position-try-fallbacks: flip-block, --dk-viewport-top;
       }
     }
   }
