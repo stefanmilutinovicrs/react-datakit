@@ -435,6 +435,30 @@ describe('MultiSelect', () => {
     });
   });
 
+  it('ChipRemove shows an icon hidden from screen readers, or its own children', async () => {
+    await render(
+      <MultiSelect items={users} defaultValue={[ana]} itemToString={(u) => u?.name ?? ''} itemToKey={(u) => u.id}>
+        <MultiSelect.Label>Reviewers</MultiSelect.Label>
+        <MultiSelect.Control>
+          <MultiSelect.Chips>
+            {(user: User) => (
+              <MultiSelect.Chip>
+                {user.name}
+                <MultiSelect.ChipRemove />
+                <MultiSelect.ChipRemove>Drop</MultiSelect.ChipRemove>
+              </MultiSelect.Chip>
+            )}
+          </MultiSelect.Chips>
+          <MultiSelect.Input />
+        </MultiSelect.Control>
+      </MultiSelect>,
+    );
+    const [icon, text] = page.getByRole('button', { name: 'Remove Ana' }).elements();
+    expect(icon?.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(icon?.textContent).toBe('');
+    expect(text?.textContent).toBe('Drop');
+  });
+
   describe('chips when focus is outside or inside', () => {
     const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
     const control = () => document.querySelector('[data-dk-part="multiselect-control"]');
