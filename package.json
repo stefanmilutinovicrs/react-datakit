@@ -100,8 +100,6 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "npm run build && changeset publish",
     "new-component": "node scripts/new-component.ts",
     "prepare": "git config core.hooksPath .githooks || exit 0"
   },
