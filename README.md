@@ -36,6 +36,8 @@ Experimental components may change their API in minor versions before 1.0. Check
 npm install react-datakit
 ```
 
+Works with React 18 and 19. The types need TypeScript 5.4 or later.
+
 ```tsx
 import { useState } from 'react';
 import { Combobox } from 'react-datakit/combobox';
