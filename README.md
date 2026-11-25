@@ -11,6 +11,8 @@
 
 Headless, accessible React components for data-heavy apps: admin panels, dashboards and ERP systems.
 
+<img src="https://raw.githubusercontent.com/stefanmilutinovicrs/react-datakit/main/.github/assets/demo.gif" width="740" alt="react-datakit filter row used with the keyboard only: an Assignee combobox searches people and selects Ana Petrović, a Labels multi-select adds frontend and accessibility as removable chips, and a Period date range picker selects a one-week range in its two-month calendar with the arrow keys." />
+
 - Searchable selects and date ranges built for thousands of records
 - Keyboard and screen reader support following the WAI-ARIA Authoring Practices
 - Headless hooks plus an optional theme that your CSS always overrides
