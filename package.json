@@ -86,7 +86,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch",
-    "typecheck": "node node_modules/typescript-7/bin/tsc --noEmit",
+    "typecheck": "node node_modules/typescript-7/bin/tsc --noEmit && node node_modules/typescript-7/bin/tsc -p tsconfig.test-d.json",
     "test": "vitest run --project node --project chromium",
     "test:watch": "vitest --project chromium",
     "test:all-browsers": "vitest run",

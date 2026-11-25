@@ -10,7 +10,7 @@ import {
 export interface UseComboboxOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: TItem | null | undefined;
   defaultValue?: TItem | null | undefined;
-  onChange?: ((value: TItem | null) => void) | undefined;
+  onChange?: ((value: NoInfer<TItem> | null) => void) | undefined;
   /** Tab selects the highlighted option before focus moves on. Default false. */
   selectOnTab?: boolean | undefined;
 }

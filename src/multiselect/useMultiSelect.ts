@@ -28,7 +28,7 @@ import {
 export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem> {
   value?: readonly TItem[] | undefined;
   defaultValue?: readonly TItem[] | undefined;
-  onChange?: ((value: readonly TItem[]) => void) | undefined;
+  onChange?: ((value: readonly NoInfer<TItem>[]) => void) | undefined;
   /** Most values that can be selected. Unselected options are disabled once it is reached. */
   max?: number | undefined;
   /** Adds a "Select all" row that selects (or deselects) every option matching the query. */
