@@ -112,7 +112,7 @@ export function AssigneePicker() {
 - Most apps only set `--dk-accent`; the other colors derive from it.
 - Parts are targeted by `[data-dk-part]` and state by data attributes such as `data-state`, `data-highlighted`, `data-selected`, `data-disabled` and `data-loading`.
 - MultiSelect chips: `data-expanded` is set on the Control and Chips while focus is in the component, `data-overflow` on chips that don't fit, and `--dk-chips-visible-width` on Chips holds the width up to the last chip that fits, for a `max-width` that cuts there.
-- DateRangePicker: every part has a `data-dk-part`, including each weekday header (`daterangepicker-weekday`). Calendar rows have only a role; select them with `[data-dk-part='daterangepicker-grid'] > [role='row']`. `data-custom` is set on Presets while the value matches no preset.
+- DateRangePicker: every part has a `data-dk-part`, including each weekday header (`daterangepicker-weekday`). Calendar rows have only a role; select them with `[data-dk-part='daterangepicker-grid'] > [role='row']`. `data-custom` is set on Presets while the value matches no preset. On narrow screens the months stack; pass `numberOfMonths={1}` to show one month instead.
 - With Tailwind v4, declare the layer order first in your main CSS file:
 
   ```css
