@@ -47,6 +47,9 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             instances: [{ browser: 'chromium' }],
+            // Stories are written for the Storybook canvas; at the default 414px some demo text
+            // runs past the viewport with Linux fonts, which axe reports as obscured.
+            viewport: { width: 1280, height: 800 },
           },
         },
       },
