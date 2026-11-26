@@ -1,6 +1,6 @@
 {
   "name": "react-datakit",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect and DateRangePicker.",
   "keywords": [
     "react",
