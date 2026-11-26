@@ -1,5 +1,11 @@
 # react-datakit
 
+## 0.2.1
+
+### Patch Changes
+
+- [#6](https://github.com/stefanmilutinovicrs/react-datakit/pull/6) [`e6dc390`](https://github.com/stefanmilutinovicrs/react-datakit/commit/e6dc390ae379c7178825ae52e052d4481e303377) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - `MultiSelect`: a rejected `onCreate` promise no longer causes an unhandled rejection. Nothing is added, the error is logged in development, and the user can create the value again.
+
 ## 0.2.0
 
 ### Minor Changes
