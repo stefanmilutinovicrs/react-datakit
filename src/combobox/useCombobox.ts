@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import { optionKeys, useControllableState } from '../shared';
+import { useCallback, type HTMLAttributes } from 'react';
+import { comboboxParts, optionKeys, useControllableState, type DataAttributes } from '../shared';
 import {
   comboboxBaseOptionKeys,
   useComboboxCore,
@@ -28,6 +28,8 @@ export interface UseComboboxReturn<TItem> extends ComboboxCore<TItem> {
   selectItem: (item: TItem) => void;
   /** Clears the value and the typed text. */
   clear: () => void;
+
+  getCountProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
 }
 
 const never = () => false;
@@ -88,5 +90,7 @@ export function useCombobox<TItem>(options: UseComboboxOptions<TItem>): UseCombo
       setSelectedItem(null);
       setQuery(null);
     },
+    // The live region already announces the count.
+    getCountProps: () => ({ 'aria-hidden': true, 'data-dk-part': comboboxParts.count }),
   };
 }

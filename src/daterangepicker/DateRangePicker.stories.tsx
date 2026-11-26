@@ -1,18 +1,18 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useState, type CSSProperties } from 'react';
 import { DateRangePicker, getDayOfWeek, type DateRange, type DateRangePickerProps } from './index';
 
 type PickerProps = Omit<DateRangePickerProps, 'children'>;
 
-function Picker(props: PickerProps) {
+function Picker({ label = 'Period', ...props }: PickerProps & { label?: string }) {
   return (
     <DateRangePicker {...props}>
-      <DateRangePicker.Label>Period</DateRangePicker.Label>
+      <DateRangePicker.Label>{label}</DateRangePicker.Label>
       <DateRangePicker.Trigger placeholder="Pick a period" />
       <DateRangePicker.Popover>
         <DateRangePicker.Presets aria-label="Presets" />
-        <DateRangePicker.PrevMonth>‹</DateRangePicker.PrevMonth>
-        <DateRangePicker.NextMonth>›</DateRangePicker.NextMonth>
+        <DateRangePicker.PrevMonth />
+        <DateRangePicker.NextMonth />
         <DateRangePicker.Months />
       </DateRangePicker.Popover>
     </DateRangePicker>
@@ -158,8 +158,8 @@ export const OneMonthLocalized: Story = {
             </DateRangePicker.Preset>
           )}
         </DateRangePicker.Presets>
-        <DateRangePicker.PrevMonth>‹</DateRangePicker.PrevMonth>
-        <DateRangePicker.NextMonth>›</DateRangePicker.NextMonth>
+        <DateRangePicker.PrevMonth />
+        <DateRangePicker.NextMonth />
         <DateRangePicker.Months />
       </DateRangePicker.Popover>
     </DateRangePicker>
@@ -182,25 +182,29 @@ export const CustomPresets: Story = {
   ),
 };
 
-const themedCss = `
-.brand-daterangepicker {
-  --dk-accent: #0f766e;
-  --dk-radius: 10px;
-}
-.brand-daterangepicker [data-dk-part='daterangepicker-day'][data-in-range] {
-  background: #ccfbf1;
-}
-.brand-daterangepicker [data-dk-part='daterangepicker-day'][data-range-start],
-.brand-daterangepicker [data-dk-part='daterangepicker-day'][data-range-end] {
-  border-radius: 999px;
-}
-`;
+const customTheme = { '--dk-accent': '#be185d', '--dk-radius': '16px' } as CSSProperties;
+// Fixed, so the calendar opens on March 2026 whatever today, the time zone or the locale is.
+const themedRange: DateRange = {
+  start: new Date('2026-03-09T00:00:00Z'),
+  end: new Date('2026-03-13T23:59:59.999Z'),
+};
+const themedProps = { timeZone: 'UTC', locale: 'en-US', defaultValue: themedRange };
 
 export const Themed: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The default theme next to a subtree that sets only `--dk-accent` and `--dk-radius`; every color derived from the accent follows, including the range. Popups stay at 12px or less whatever the radius is.',
+      },
+    },
+  },
   render: () => (
-    <>
-      <style>{themedCss}</style>
-      <Picker className="brand-daterangepicker" />
-    </>
+    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
+      <Picker label="Period (default)" {...themedProps} />
+      <div style={customTheme}>
+        <Picker label="Period (custom)" {...themedProps} />
+      </div>
+    </div>
   ),
 };

@@ -76,6 +76,26 @@ async function expectHighlighted(name: string) {
   await expect.poll(() => activeDescendant()).toBe(option(name).element().id);
 }
 
+// On mount the overflow is measured twice, since "+N more" takes room from the chips once it
+// appears; WebKit takes up to 7 frames for both. It settles once 8 frames in a row agree.
+async function waitForSettledOverflow() {
+  const overflowState = () =>
+    [...document.querySelectorAll('[data-dk-part="multiselect-chip"]')]
+      .map((el) => (el.hasAttribute('data-overflow') ? 'o' : '-'))
+      .join('') + (document.querySelector('[data-dk-part="multiselect-chips-overflow"]')?.textContent ?? '');
+  const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+  await expect
+    .poll(async () => {
+      const states = new Set([overflowState()]);
+      for (let i = 0; i < 8; i++) {
+        await frame();
+        states.add(overflowState());
+      }
+      return states.size;
+    })
+    .toBe(1);
+}
+
 async function focusInput() {
   await userEvent.click(input());
 }
@@ -435,6 +455,30 @@ describe('MultiSelect', () => {
     });
   });
 
+  it('ChipRemove shows an icon hidden from screen readers, or its own children', async () => {
+    await render(
+      <MultiSelect items={users} defaultValue={[ana]} itemToString={(u) => u?.name ?? ''} itemToKey={(u) => u.id}>
+        <MultiSelect.Label>Reviewers</MultiSelect.Label>
+        <MultiSelect.Control>
+          <MultiSelect.Chips>
+            {(user: User) => (
+              <MultiSelect.Chip>
+                {user.name}
+                <MultiSelect.ChipRemove />
+                <MultiSelect.ChipRemove>Drop</MultiSelect.ChipRemove>
+              </MultiSelect.Chip>
+            )}
+          </MultiSelect.Chips>
+          <MultiSelect.Input />
+        </MultiSelect.Control>
+      </MultiSelect>,
+    );
+    const [icon, text] = page.getByRole('button', { name: 'Remove Ana' }).elements();
+    expect(icon?.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    expect(icon?.textContent).toBe('');
+    expect(text?.textContent).toBe('Drop');
+  });
+
   describe('chips when focus is outside or inside', () => {
     const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
     const control = () => document.querySelector('[data-dk-part="multiselect-control"]');
@@ -449,7 +493,8 @@ describe('MultiSelect', () => {
           <button type="button">Outside</button>
         </>,
       );
-      await expect.poll(() => indicator()?.textContent).toMatch(/^\+\d+ more$/);
+      await waitForSettledOverflow();
+      expect(indicator()?.textContent).toMatch(/^\+\d+ more$/);
     }
 
     it('keeps every chip in the accessibility tree and hides "+N more" from it while collapsed', async () => {
@@ -497,12 +542,13 @@ describe('MultiSelect', () => {
     it('collapses when focus leaves, not on a click on the empty Control or popup', async () => {
       await renderMany();
       await userEvent.click(input());
-      await userEvent.click(page.elementLocator(control() as Element), { position: { x: 1, y: 1 } });
+      // Inside the padding, below the rounded corner, where no chip, input or option is.
+      await userEvent.click(page.elementLocator(control() as Element), { position: { x: 2, y: 20 } });
       expect(control()?.hasAttribute('data-expanded')).toBe(true);
 
       await userEvent.keyboard('{ArrowDown}');
       const popup = document.querySelector('[data-dk-part="multiselect-popup"]');
-      await userEvent.click(page.elementLocator(popup as Element), { position: { x: 1, y: 1 } });
+      await userEvent.click(page.elementLocator(popup as Element), { position: { x: 2, y: 20 } });
       expect(control()?.hasAttribute('data-expanded')).toBe(true);
 
       await userEvent.click(page.getByRole('button', { name: 'Outside' }));
@@ -610,6 +656,7 @@ describe('MultiSelect', () => {
       const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
       const screen = await render(<UserMultiSelect items={many} defaultValue={many} controlWidth={180} />);
       const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      await waitForSettledOverflow();
 
       for (let width = 180; width <= 700; width += 26) {
         await screen.rerender(<UserMultiSelect items={many} defaultValue={many} controlWidth={width} />);

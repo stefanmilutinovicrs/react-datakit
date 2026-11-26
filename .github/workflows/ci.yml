@@ -48,3 +48,22 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npx vitest run --project ${{ matrix.browser }}
+      - if: matrix.browser == 'chromium'
+        run: npx vitest run --project contrast
+
+  visual:
+    name: Visual (Chromium, Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      # The tests run in the Playwright Docker image, the same one `npm run test:visual` uses locally.
+      - run: node scripts/visual.ts
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: visual-diffs
+          path: .vitest/visual
+          if-no-files-found: ignore

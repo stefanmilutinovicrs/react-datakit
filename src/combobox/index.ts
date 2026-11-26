@@ -1,5 +1,6 @@
 export { Combobox } from './Combobox';
 export type { ComboboxProps } from './Combobox';
+export type { ComboboxControlProps, ComboboxControlState, ComboboxCountProps, ComboboxCountState } from './Control';
 export type {
   ComboboxInputProps,
   ComboboxInputState,

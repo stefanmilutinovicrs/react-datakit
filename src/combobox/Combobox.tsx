@@ -5,6 +5,7 @@ import { List, Option, Popup, type ComboboxListProps, type ComboboxOptionProps }
 import { RootPart, type ComboboxRootState } from '../shared/combobox/Root';
 import { Empty, ErrorPart, Loading } from '../shared/combobox/Status';
 import type { ComboboxCore } from '../shared/combobox/useComboboxCore';
+import { Control, Count } from './Control';
 import { comboboxOptionKeys, useCombobox, type UseComboboxOptions } from './useCombobox';
 
 export type ComboboxProps<TItem> = UseComboboxOptions<TItem> &
@@ -34,6 +35,7 @@ export const Combobox = Object.assign(
   ComboboxRoot as <TItem>(props: WithRef<ComboboxProps<TItem>, HTMLDivElement>) => ReactElement,
   {
     Label,
+    Control,
     Input,
     Popup,
     List: List as <TItem>(props: WithRef<ComboboxListProps<TItem>, HTMLDivElement>) => ReactElement | null,
@@ -41,5 +43,6 @@ export const Combobox = Object.assign(
     Empty,
     Loading,
     Error: ErrorPart,
+    Count,
   },
 );

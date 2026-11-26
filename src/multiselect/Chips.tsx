@@ -120,7 +120,20 @@ export const ChipRemove = forwardRef<HTMLButtonElement, MultiSelectChipRemovePro
     const { item, index } = useChipContext('ChipRemove');
     const ours = {
       ...multiSelect.getChipRemoveProps(item, index),
-      children: <span aria-hidden="true">×</span>,
+      children: (
+        <svg
+          aria-hidden="true"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+        >
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      ),
     };
     return <Part tag="button" state={{ index }} ours={ours} theirs={props} forwardedRef={ref} />;
   },

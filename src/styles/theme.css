@@ -1,83 +1,213 @@
 /* Optional default theme; see https://github.com/stefanmilutinovicrs/react-datakit#theming */
 @layer datakit {
-  :where(:root) {
-    color-scheme: light dark;
-
-    --dk-accent: #2563eb;
-    --dk-radius: 6px;
-    --dk-font-size: inherit;
-
+  /* Colors stay unresolved light-dark() pairs until a part uses them, so each part picks the
+     pair for its own color-scheme; nothing here sets color-scheme on the app. */
+  :where(:root, :host) {
+    --dk-accent: light-dark(#4f46e5, #6061ef);
+    --dk-on-accent: #ffffff;
     --dk-surface: light-dark(#ffffff, #18181b);
-    --dk-text: light-dark(#18181b, #f4f4f5);
-    --dk-text-muted: light-dark(#52525b, #a1a1aa);
-    --dk-border: light-dark(#d4d4d8, #3f3f46);
-
-    --dk-accent-soft: color-mix(in oklab, var(--dk-accent) 12%, var(--dk-surface));
-    --dk-accent-strong: color-mix(in oklab, var(--dk-accent) 85%, var(--dk-text));
-    --dk-focus-ring: 0 0 0 2px var(--dk-surface), 0 0 0 4px var(--dk-accent);
-
-    --dk-space-1: 4px;
-    --dk-space-2: 8px;
+    --dk-muted: light-dark(#f4f4f5, #27272a);
+    --dk-border: light-dark(#e4e4e7, #2e2e33);
+    --dk-text: light-dark(#18181b, #fafafa);
+    --dk-text-muted: light-dark(#6f6f78, #a1a1aa);
+    --dk-radius: 8px;
+    --dk-font-size: inherit;
     --dk-control-height: 36px;
+
+    --_dk-shadow: light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.5));
+    --_dk-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+    --_dk-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M20 20l-4.5-4.5'/%3E%3C/svg%3E");
+    --_dk-icon-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    --_dk-icon-chevron-start: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M15 6l-6 6 6 6'/%3E%3C/svg%3E");
+    --_dk-icon-chevron-end: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6-6 6'/%3E%3C/svg%3E");
+    --_dk-icon-calendar: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2.5'/%3E%3Cpath d='M16 3v4M8 3v4M3.5 10.5h17'/%3E%3C/svg%3E");
+    --_dk-icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
   }
 
+  /* Dark shades are lighter, so the ring and checks stay at 3:1 on dark surfaces while white
+     text on the accent keeps 4.5:1. */
+  :where([data-dk-accent='indigo']) {
+    --dk-accent: light-dark(#4f46e5, #6061ef);
+  }
+
+  :where([data-dk-accent='teal']) {
+    --dk-accent: light-dark(#0f766e, #0e8177);
+  }
+
+  :where([data-dk-accent='violet']) {
+    --dk-accent: light-dark(#7c3aed, #8650f3);
+  }
+
+  :where([data-dk-accent='blue']) {
+    --dk-accent: light-dark(#2563eb, #2b6bee);
+  }
+
+  /* An inherited variable, so the nearest data-dk-theme wins and color-scheme is only set on parts. */
+  :where([data-dk-theme='light']) {
+    --_dk-color-scheme: light;
+  }
+
+  :where([data-dk-theme='dark']) {
+    --_dk-color-scheme: dark;
+  }
+
+  /* Derived colors are declared on every part, not on :root, so they follow a --dk-accent
+     or --dk-surface set on any subtree. */
   :where([data-dk-part]) {
+    color-scheme: var(--_dk-color-scheme, light dark);
+    --_dk-accent-subtle: var(--dk-accent-subtle, color-mix(in srgb, var(--dk-accent) 12%, var(--dk-surface)));
+    --_dk-accent-text: var(
+      --dk-accent-text,
+      light-dark(
+        color-mix(in srgb, var(--dk-accent) 80%, var(--dk-text)),
+        color-mix(in srgb, var(--dk-accent) 55%, #fff)
+      )
+    );
+    --_dk-option-radius: min(calc(var(--dk-radius) - 2px), 8px);
     font: inherit;
     font-size: var(--dk-font-size);
     box-sizing: border-box;
   }
 
   :where([data-dk-part]:focus-visible) {
-    outline: none;
-    box-shadow: var(--dk-focus-ring);
+    outline: 2px solid var(--dk-accent);
+    outline-offset: 2px;
   }
 
-  :where([data-dk-part][data-disabled]) {
-    opacity: 0.55;
+  :where([data-dk-part][data-disabled], [data-dk-part]:disabled) {
+    color: var(--dk-text-muted);
     cursor: not-allowed;
   }
 
-  :where([data-dk-part='combobox'], [data-dk-part='multiselect']) {
+  :where([data-dk-part='combobox-control'])::before,
+  :where([data-dk-part='combobox-control'])::after,
+  :where([data-dk-part='multiselect-option'])::after,
+  :where([data-dk-part='multiselect-select-all'])::after,
+  :where([data-dk-part='multiselect-create'])::before,
+  :where([data-dk-part='combobox-option'][data-selected])::after,
+  :where([data-dk-part='daterangepicker-trigger'])::before,
+  :where([data-dk-part='daterangepicker-prev-month']:empty)::before,
+  :where([data-dk-part='daterangepicker-next-month']:empty)::before {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 16px;
+    background: currentColor;
+    mask: var(--_dk-icon) center / contain no-repeat;
+  }
+
+  :where([data-dk-part='combobox'], [data-dk-part='multiselect'], [data-dk-part='daterangepicker']) {
     position: relative;
     display: inline-flex;
     flex-direction: column;
-    gap: var(--dk-space-1);
+    gap: 6px;
     min-width: 16rem;
-    color: var(--dk-text);
   }
 
-  :where([data-dk-part='combobox-label'], [data-dk-part='multiselect-label']) {
+  /* Labels sit on the app's background, so they keep the app's text color. */
+  :where([data-dk-part$='-label']) {
+    font-size: 13px;
     font-weight: 500;
   }
 
-  :where([data-dk-part='combobox-input']) {
-    height: var(--dk-control-height);
-    padding: 0 var(--dk-space-2);
+  :where(
+    [data-dk-part='combobox-input'],
+    [data-dk-part='combobox-control'],
+    [data-dk-part='multiselect-control'],
+    [data-dk-part='daterangepicker-trigger']
+  ) {
+    min-height: var(--dk-control-height);
+    padding: 0 10px;
     border: 1px solid var(--dk-border);
     border-radius: var(--dk-radius);
     background: var(--dk-surface);
     color: var(--dk-text);
   }
 
-  :where([data-dk-part='combobox-input'][data-state='open']) {
+  :where(
+    [data-dk-part='combobox-input']:focus-visible,
+    [data-dk-part='daterangepicker-trigger']:focus-visible,
+    [data-dk-part='combobox-control']:has([data-dk-part='combobox-input']:focus-visible),
+    [data-dk-part='multiselect-control']:has([data-dk-part='multiselect-input']:focus-visible)
+  ) {
+    outline: none;
     border-color: var(--dk-accent);
+    box-shadow: 0 0 0 3px var(--_dk-accent-subtle);
+  }
+
+  :where([data-dk-part='daterangepicker-trigger'][data-state='open']) {
+    border-color: var(--dk-accent);
+  }
+
+  /* The field around these inputs shows their focus. */
+  :where([data-dk-part='combobox-control'] [data-dk-part='combobox-input'], [data-dk-part='multiselect-input']) {
+    flex: 1 1 3rem;
+    min-width: 3rem;
+    min-height: 0;
+    height: calc(var(--dk-control-height) - 10px);
+    padding: 0 2px;
+    border: 0;
+    border-radius: 0;
+    outline: none;
+    background: transparent;
+    box-shadow: none;
+    color: inherit;
+  }
+
+  :where([data-dk-part='combobox-input'], [data-dk-part='multiselect-input'])::placeholder {
+    color: var(--dk-text-muted);
+    opacity: 1;
+  }
+
+  :where([data-dk-part='combobox-control'], [data-dk-part='multiselect-control']) {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: text;
+  }
+
+  :where([data-dk-part='combobox-control'])::before {
+    --_dk-icon: var(--_dk-icon-search);
+    color: var(--dk-text-muted);
+  }
+
+  :where([data-dk-part='combobox-control'])::after {
+    --_dk-icon: var(--_dk-icon-chevron-down);
+    color: var(--dk-text-muted);
+  }
+
+  :where(
+    [data-dk-part='combobox-popup'],
+    [data-dk-part='multiselect-popup'],
+    [data-dk-part='daterangepicker-popover']
+  ) {
+    padding: 4px;
+    border: 1px solid var(--dk-border);
+    border-radius: min(calc(var(--dk-radius) + 2px), 12px);
+    background: var(--dk-surface);
+    color: var(--dk-text);
+    box-shadow:
+      0 1px 2px var(--_dk-shadow),
+      0 10px 24px -6px var(--_dk-shadow);
   }
 
   :where([data-dk-part='combobox-popup'], [data-dk-part='multiselect-popup']) {
     position: absolute;
-    top: calc(100% + var(--dk-space-1));
+    top: calc(100% + 6px);
     left: 0;
     right: 0;
     z-index: 10;
-    padding: var(--dk-space-1);
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
+  }
+
+  :where([data-dk-part='combobox-list'], [data-dk-part='multiselect-list'], [data-dk-part='daterangepicker-popover']) {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--dk-text-muted) 45%, transparent) transparent;
   }
 
   :where([data-dk-part='combobox-list'], [data-dk-part='multiselect-list']) {
     max-height: 18rem;
+    border-radius: var(--_dk-option-radius);
+    outline: none;
   }
 
   :where(
@@ -88,9 +218,9 @@
   ) {
     display: flex;
     align-items: center;
-    gap: var(--dk-space-2);
-    padding: 0 var(--dk-space-2);
-    border-radius: calc(var(--dk-radius) - 2px);
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--_dk-option-radius);
     cursor: default;
     white-space: nowrap;
     overflow: hidden;
@@ -98,16 +228,63 @@
   }
 
   :where(
-    [data-dk-part$='-option'][data-highlighted],
+    [data-dk-part='combobox-option'][data-highlighted],
+    [data-dk-part='multiselect-option'][data-highlighted],
     [data-dk-part='multiselect-select-all'][data-highlighted],
     [data-dk-part='multiselect-create'][data-highlighted]
   ) {
-    background: var(--dk-accent-soft);
+    background: var(--dk-muted);
   }
 
-  :where([data-dk-part$='-option'][data-selected]) {
-    color: var(--dk-accent-strong);
-    font-weight: 600;
+  :where([data-dk-part='combobox-option'][data-selected])::after {
+    --_dk-icon: var(--_dk-icon-check);
+    margin-inline-start: auto;
+    color: var(--dk-accent);
+  }
+
+  :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::before {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid var(--dk-text-muted);
+    border-radius: min(4px, var(--dk-radius));
+    background: var(--dk-surface);
+  }
+
+  :where(
+    [data-dk-part='multiselect-option'][data-selected],
+    [data-dk-part='multiselect-select-all'][data-selected]
+  )::before {
+    border-color: var(--dk-accent);
+    background: var(--dk-accent);
+  }
+
+  :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::after {
+    --_dk-icon: var(--_dk-icon-check);
+    position: absolute;
+    inset-inline-start: 10px;
+    top: calc(50% - 6px);
+    width: 12px;
+    height: 12px;
+    color: var(--dk-on-accent);
+    visibility: hidden;
+  }
+
+  :where(
+    [data-dk-part='multiselect-option'][data-selected],
+    [data-dk-part='multiselect-select-all'][data-selected]
+  )::after {
+    visibility: visible;
+  }
+
+  :where([data-dk-part='multiselect-select-all']) {
+    font-weight: 500;
+  }
+
+  :where([data-dk-part='multiselect-create'])::before {
+    --_dk-icon: var(--_dk-icon-plus);
+    color: var(--dk-text-muted);
   }
 
   :where(
@@ -118,42 +295,36 @@
     [data-dk-part='multiselect-loading'],
     [data-dk-part='multiselect-error']
   ) {
-    padding: var(--dk-space-2);
+    padding: 7px 8px;
     color: var(--dk-text-muted);
   }
 
   :where([data-dk-part$='-error'] button) {
-    margin-inline-start: var(--dk-space-2);
-    color: var(--dk-accent-strong);
-    background: none;
-    border: 0;
+    margin-inline-start: 8px;
     padding: 0;
+    border: 0;
+    background: none;
+    color: var(--_dk-accent-text);
     font: inherit;
     text-decoration: underline;
     cursor: pointer;
   }
 
-  :where([data-dk-part='multiselect-control']) {
-    display: flex;
-    align-items: center;
-    gap: var(--dk-space-1);
-    min-height: var(--dk-control-height);
-    padding: 2px var(--dk-space-1);
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    cursor: text;
+  :where([data-dk-part='combobox-count']) {
+    padding: 6px 8px 4px;
+    color: var(--dk-text-muted);
+    font-size: 12px;
   }
 
-  :where([data-dk-part='multiselect-control']:focus-within) {
-    border-color: var(--dk-accent);
+  :where([data-dk-part='multiselect-control']) {
+    padding: 4px 6px 4px 4px;
   }
 
   /* One line of chips cut at the last one that fits; they wrap while focus is in the component. */
   :where([data-dk-part='multiselect-chips']) {
     display: flex;
     flex: 0 1 auto;
-    gap: var(--dk-space-1);
+    gap: 6px;
     min-width: 0;
     max-width: var(--dk-chips-visible-width, none);
     overflow: hidden;
@@ -161,10 +332,6 @@
 
   :where([data-dk-part='multiselect-control'][data-expanded], [data-dk-part='multiselect-chips'][data-expanded]) {
     flex-wrap: wrap;
-  }
-
-  :where([data-dk-part='multiselect-control'][data-expanded]) {
-    padding-block: var(--dk-space-1);
   }
 
   :where([data-dk-part='multiselect-chips'][data-expanded]) {
@@ -178,10 +345,11 @@
     align-items: center;
     gap: 2px;
     height: calc(var(--dk-control-height) - 12px);
-    padding: 0 2px 0 var(--dk-space-2);
-    border-radius: calc(var(--dk-radius) - 2px);
-    background: var(--dk-accent-soft);
-    color: var(--dk-text);
+    padding: 0 2px 0 8px;
+    border-radius: max(0px, calc(var(--dk-radius) - 2px));
+    background: var(--_dk-accent-subtle);
+    color: var(--_dk-accent-text);
+    font-size: 13px;
     white-space: nowrap;
     cursor: default;
   }
@@ -189,129 +357,60 @@
   :where([data-dk-part='multiselect-chip-remove']) {
     display: inline-grid;
     place-items: center;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     padding: 0;
     border: 0;
-    border-radius: 50%;
+    border-radius: min(4px, var(--dk-radius));
     background: none;
-    color: var(--dk-text-muted);
-    font: inherit;
-    line-height: 1;
+    color: inherit;
     cursor: pointer;
   }
 
   :where([data-dk-part='multiselect-chip-remove']:hover) {
-    background: color-mix(in oklab, var(--dk-text) 12%, transparent);
-    color: var(--dk-text);
+    background: color-mix(in srgb, var(--dk-accent) 16%, transparent);
   }
 
   :where([data-dk-part='multiselect-chips-overflow']) {
     flex: none;
-    padding: 0 var(--dk-space-1);
+    padding: 0 4px;
     color: var(--dk-text-muted);
+    font-size: 13px;
     white-space: nowrap;
-  }
-
-  :where([data-dk-part='multiselect-input']) {
-    flex: 1 1 3rem;
-    min-width: 3rem;
-    height: calc(var(--dk-control-height) - 6px);
-    padding: 0 var(--dk-space-1);
-    border: 0;
-    outline: none;
-    background: transparent;
-    color: var(--dk-text);
-  }
-
-  :where([data-dk-part='multiselect-input']:focus-visible) {
-    box-shadow: none;
-  }
-
-  :where([data-dk-part='multiselect-control']:has([data-dk-part='multiselect-input']:focus-visible)) {
-    box-shadow: var(--dk-focus-ring);
-  }
-
-  :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::before {
-    content: '';
-    flex: none;
-    width: 14px;
-    height: 14px;
-    border: 1px solid var(--dk-border);
-    border-radius: 3px;
-    background: var(--dk-surface);
-  }
-
-  :where(
-    [data-dk-part='multiselect-option'][data-selected],
-    [data-dk-part='multiselect-select-all'][data-selected]
-  )::before {
-    border-color: var(--dk-accent);
-    background: var(--dk-accent)
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='white' stroke-width='2'/%3E%3C/svg%3E")
-      center / 12px no-repeat;
-  }
-
-  :where([data-dk-part='multiselect-select-all']) {
-    font-weight: 500;
-  }
-
-  :where([data-dk-part='multiselect-create']) {
-    color: var(--dk-accent-strong);
-  }
-
-  :where([data-dk-part='daterangepicker']) {
-    position: relative;
-    display: inline-flex;
-    flex-direction: column;
-    gap: var(--dk-space-1);
-    color: var(--dk-text);
-  }
-
-  :where([data-dk-part='daterangepicker-label']) {
-    font-weight: 500;
   }
 
   :where([data-dk-part='daterangepicker-trigger']) {
     display: inline-flex;
     align-items: center;
+    gap: 8px;
     min-width: 16rem;
-    height: var(--dk-control-height);
-    padding: 0 var(--dk-space-2);
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    color: var(--dk-text);
     text-align: start;
     cursor: pointer;
   }
 
-  :where([data-dk-part='daterangepicker-trigger'][data-state='open']) {
-    border-color: var(--dk-accent);
+  :where([data-dk-part='daterangepicker-trigger'])::before {
+    --_dk-icon: var(--_dk-icon-calendar);
+    color: var(--dk-text-muted);
   }
 
   :where([data-dk-part='daterangepicker-trigger'][data-placeholder]) {
     color: var(--dk-text-muted);
   }
 
+  /* The month buttons sit in the heading row of the months, which span both rows. */
   :where([data-dk-part='daterangepicker-popover']) {
     position: absolute;
-    top: calc(100% + var(--dk-space-1));
+    top: calc(100% + 6px);
     left: 0;
     z-index: 10;
     width: max-content;
-    max-width: calc(100vw - 2 * var(--dk-space-2));
+    max-width: calc(100vw - 16px);
     display: grid;
     grid-template-columns: auto auto 1fr auto;
+    grid-template-rows: auto 1fr;
     grid-template-areas:
       'presets prev . next'
-      'presets months months months';
-    gap: var(--dk-space-2);
-    padding: var(--dk-space-2);
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    box-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
+      'presets . . .';
   }
 
   :where([data-dk-part='daterangepicker-presets']) {
@@ -319,44 +418,59 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding-inline-end: var(--dk-space-2);
+    margin-inline-end: 6px;
+    padding: 6px 10px 6px 6px;
     border-inline-end: 1px solid var(--dk-border);
   }
 
   :where([data-dk-part='daterangepicker-preset'], [data-dk-part='daterangepicker-custom-preset']) {
-    padding: 6px var(--dk-space-2);
+    padding: 6px 8px;
     border: 0;
-    border-radius: calc(var(--dk-radius) - 2px);
+    border-radius: var(--_dk-option-radius);
     background: none;
-    color: inherit;
+    color: var(--dk-text);
     text-align: start;
     white-space: nowrap;
     cursor: pointer;
   }
 
   :where(
-    [data-dk-part='daterangepicker-preset']:hover:not(:disabled),
-    [data-dk-part='daterangepicker-custom-preset']:hover
+    [data-dk-part='daterangepicker-preset']:hover:not(:disabled, [data-selected]),
+    [data-dk-part='daterangepicker-custom-preset']:hover:not([data-selected])
   ) {
-    background: var(--dk-accent-soft);
+    background: var(--dk-muted);
   }
 
   :where(
     [data-dk-part='daterangepicker-preset'][data-selected],
     [data-dk-part='daterangepicker-custom-preset'][data-selected]
   ) {
-    color: var(--dk-accent-strong);
-    font-weight: 600;
+    background: var(--_dk-accent-subtle);
+    color: var(--_dk-accent-text);
+    font-weight: 500;
   }
 
   :where([data-dk-part='daterangepicker-prev-month'], [data-dk-part='daterangepicker-next-month']) {
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--dk-border);
-    border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    color: inherit;
+    position: relative;
+    z-index: 1;
+    display: inline-grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    margin: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--_dk-option-radius);
+    background: transparent;
+    color: var(--dk-text);
     cursor: pointer;
+  }
+
+  :where(
+    [data-dk-part='daterangepicker-prev-month']:hover:not(:disabled),
+    [data-dk-part='daterangepicker-next-month']:hover:not(:disabled)
+  ) {
+    background: var(--dk-muted);
   }
 
   :where([data-dk-part='daterangepicker-prev-month']) {
@@ -367,32 +481,50 @@
     grid-area: next;
   }
 
+  :where([data-dk-part='daterangepicker-prev-month']:empty)::before {
+    --_dk-icon: var(--_dk-icon-chevron-start);
+  }
+
+  :where([data-dk-part='daterangepicker-next-month']:empty)::before {
+    --_dk-icon: var(--_dk-icon-chevron-end);
+  }
+
+  :where(
+    [data-dk-part='daterangepicker-prev-month']:dir(rtl),
+    [data-dk-part='daterangepicker-next-month']:dir(rtl)
+  )::before {
+    scale: -1 1;
+  }
+
   :where([data-dk-part='daterangepicker-months']) {
-    grid-area: months;
+    grid-area: 1 / 2 / 3 / 5;
     display: flex;
     flex-wrap: wrap;
-    gap: calc(var(--dk-space-2) * 3);
+    gap: 24px;
+    padding: 6px;
   }
 
   /* Too narrow for presets beside a month: presets go on top. */
   @media (width < 30rem) {
     :where([data-dk-part='daterangepicker-popover']) {
       grid-template-columns: auto 1fr auto;
+      grid-template-rows: auto auto 1fr;
       grid-template-areas:
         'presets presets presets'
         'prev . next'
-        'months months months';
+        '. . .';
     }
 
     :where([data-dk-part='daterangepicker-presets']) {
       flex-flow: row wrap;
-      padding-inline-end: 0;
-      padding-block-end: var(--dk-space-2);
+      margin-inline-end: 0;
+      padding: 6px 6px 10px;
       border-inline-end: 0;
       border-block-end: 1px solid var(--dk-border);
     }
 
     :where([data-dk-part='daterangepicker-months']) {
+      grid-area: 2 / 1 / 4 / 4;
       justify-content: center;
     }
   }
@@ -403,12 +535,12 @@
      https://drafts.csswg.org/css-anchor-position-1/ */
   @supports (anchor-name: --a) {
     @position-try --dk-viewport-start {
-      left: var(--dk-space-2);
+      left: 8px;
     }
 
     @position-try --dk-viewport-top {
-      top: var(--dk-space-2);
-      left: var(--dk-space-2);
+      top: 8px;
+      left: 8px;
     }
 
     :where([data-dk-part='daterangepicker']) {
@@ -424,9 +556,9 @@
     :where([data-dk-part='daterangepicker-popover']) {
       position: fixed;
       position-anchor: --dk-daterangepicker;
-      top: calc(anchor(bottom) + var(--dk-space-1));
+      top: calc(anchor(bottom) + 6px);
       left: anchor(left);
-      max-height: calc(100dvh - 2 * var(--dk-space-2));
+      max-height: calc(100dvh - 16px);
       overflow-y: auto;
       overscroll-behavior: contain;
       position-try-fallbacks:
@@ -440,8 +572,8 @@
 
     @media (width < 30rem) {
       :where([data-dk-part='daterangepicker-popover']) {
-        left: var(--dk-space-2);
-        right: var(--dk-space-2);
+        left: 8px;
+        right: 8px;
         width: auto;
         position-try-fallbacks: flip-block, --dk-viewport-top;
       }
@@ -449,68 +581,100 @@
   }
 
   :where([data-dk-part='daterangepicker-month-heading']) {
-    margin: 0 0 var(--dk-space-2);
+    margin: 0 0 6px;
     font-size: 1em;
-    font-weight: 600;
+    font-weight: 500;
+    line-height: 28px;
     text-align: center;
   }
 
+  :where([data-dk-part='daterangepicker-grid']) {
+    display: grid;
+    gap: 2px;
+  }
+
+  /* Each row is a stacking context, so the band behind a range end (z-index: -1) stays above
+     the popover background and below the day. */
   :where([data-dk-part='daterangepicker-grid'] > [role='row']) {
     display: grid;
     grid-template-columns: repeat(7, 2.25rem);
+    isolation: isolate;
   }
 
   :where([data-dk-part='daterangepicker-weekday']) {
-    padding-block: var(--dk-space-1);
+    padding-block: 4px;
     color: var(--dk-text-muted);
-    font-size: 0.85em;
+    font-size: 12px;
     text-align: center;
   }
 
   :where([data-dk-part='daterangepicker-day']) {
+    position: relative;
     display: grid;
     place-items: center;
-    height: 2.25rem;
-    border-radius: calc(var(--dk-radius) - 2px);
-    cursor: pointer;
+    height: 2rem;
+    border-radius: min(var(--dk-radius), 8px);
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
+    cursor: pointer;
     user-select: none;
   }
 
-  :where([data-dk-part='daterangepicker-day']:hover:not([data-disabled])) {
-    background: var(--dk-accent-soft);
-  }
-
-  :where([data-dk-part='daterangepicker-day'][data-today]) {
-    font-weight: 700;
-    text-decoration: underline;
-    text-underline-offset: 3px;
+  :where([data-dk-part='daterangepicker-day']:hover:not([data-disabled], [data-selected])) {
+    background: var(--dk-muted);
   }
 
   :where([data-dk-part='daterangepicker-day'][data-in-range]) {
     border-radius: 0;
-    background: var(--dk-accent-soft);
+    background: var(--_dk-accent-subtle);
+    color: var(--_dk-accent-text);
   }
 
   :where([data-dk-part='daterangepicker-day'][data-range-start], [data-dk-part='daterangepicker-day'][data-range-end]) {
     background: var(--dk-accent);
-    color: white;
+    color: var(--dk-on-accent);
+    font-weight: 500;
   }
 
-  :where([data-dk-part='daterangepicker-day'][data-range-start]:not([data-range-end])) {
-    border-start-end-radius: 0;
-    border-end-end-radius: 0;
+  :where(
+    [data-dk-part='daterangepicker-day'][data-range-start]:not([data-range-end]),
+    [data-dk-part='daterangepicker-day'][data-range-end]:not([data-range-start])
+  )::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    z-index: -1;
+    background: var(--_dk-accent-subtle);
   }
 
-  :where([data-dk-part='daterangepicker-day'][data-range-end]:not([data-range-start])) {
-    border-start-start-radius: 0;
-    border-end-start-radius: 0;
+  :where([data-dk-part='daterangepicker-day'][data-range-start]:not([data-range-end]))::before {
+    inset-inline: 50% 0;
   }
 
-  :where([data-dk-part='daterangepicker-day'][data-preview][data-in-range]) {
-    background: color-mix(in oklab, var(--dk-accent) 6%, var(--dk-surface));
-    outline: 1px dashed var(--dk-accent);
-    outline-offset: -1px;
+  :where([data-dk-part='daterangepicker-day'][data-range-end]:not([data-range-start]))::before {
+    inset-inline: 0 50%;
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-today])::after {
+    content: '';
+    position: absolute;
+    bottom: 3px;
+    left: calc(50% - 2px);
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--dk-accent);
+  }
+
+  :where(
+    [data-dk-part='daterangepicker-day'][data-today][data-range-start],
+    [data-dk-part='daterangepicker-day'][data-today][data-range-end]
+  )::after {
+    background: var(--dk-on-accent);
+  }
+
+  :where([data-dk-part='daterangepicker-day'][data-disabled]) {
+    color: var(--dk-text-muted);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -523,11 +687,57 @@
   @media (forced-colors: active) {
     :where([data-dk-part]:focus-visible) {
       outline: 2px solid CanvasText;
-      box-shadow: none;
     }
 
     :where(
-      [data-dk-part$='-option'][data-highlighted],
+      [data-dk-part='combobox-input']:focus-visible,
+      [data-dk-part='daterangepicker-trigger']:focus-visible,
+      [data-dk-part='combobox-control']:has([data-dk-part='combobox-input']:focus-visible),
+      [data-dk-part='multiselect-control']:has([data-dk-part='multiselect-input']:focus-visible)
+    ) {
+      outline: 2px solid Highlight;
+      outline-offset: 1px;
+    }
+
+    :where(
+      [data-dk-part='combobox-control'] [data-dk-part='combobox-input'],
+      [data-dk-part='multiselect-input']
+    ):focus-visible {
+      outline: none;
+    }
+
+    :where([data-dk-part='combobox-control'])::before,
+    :where([data-dk-part='combobox-control'])::after,
+    :where([data-dk-part='multiselect-create'])::before,
+    :where([data-dk-part='combobox-option'][data-selected])::after,
+    :where([data-dk-part='daterangepicker-trigger'])::before,
+    :where([data-dk-part='daterangepicker-prev-month']:empty)::before,
+    :where([data-dk-part='daterangepicker-next-month']:empty)::before {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+
+    :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::before {
+      border-color: CanvasText;
+    }
+
+    :where(
+      [data-dk-part='multiselect-option'][data-selected],
+      [data-dk-part='multiselect-select-all'][data-selected]
+    )::before {
+      forced-color-adjust: none;
+      border-color: Highlight;
+      background: Highlight;
+    }
+
+    :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::after {
+      forced-color-adjust: none;
+      background: HighlightText;
+    }
+
+    :where(
+      [data-dk-part='combobox-option'][data-highlighted],
+      [data-dk-part='multiselect-option'][data-highlighted],
       [data-dk-part='multiselect-select-all'][data-highlighted],
       [data-dk-part='multiselect-create'][data-highlighted]
     ) {
@@ -537,8 +747,11 @@
 
     :where(
       [data-dk-part='daterangepicker-day'][data-range-start],
-      [data-dk-part='daterangepicker-day'][data-range-end]
+      [data-dk-part='daterangepicker-day'][data-range-end],
+      [data-dk-part='daterangepicker-preset'][data-selected],
+      [data-dk-part='daterangepicker-custom-preset'][data-selected]
     ) {
+      forced-color-adjust: none;
       background: Highlight;
       color: HighlightText;
     }
@@ -546,6 +759,16 @@
     :where([data-dk-part='daterangepicker-day'][data-in-range]) {
       outline: 1px solid Highlight;
       outline-offset: -1px;
+    }
+
+    :where([data-dk-part='daterangepicker-day'])::before,
+    :where([data-dk-part='daterangepicker-day'][data-today])::after {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+
+    :where([data-dk-part='daterangepicker-day'])::before {
+      content: none;
     }
   }
 }
