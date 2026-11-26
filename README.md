@@ -151,7 +151,9 @@ Any other color works with `--dk-accent` on any element; it wins over a preset o
 | `--dk-control-height` | `36px`                                | minimum field height                                              |
 | `--dk-font-size`      | `inherit`                             | font size of every part                                           |
 
-Color defaults are `light-dark()` pairs. To change a color in both schemes, give a pair too, e.g. `--dk-surface: light-dark(#fff, #0b0b0f)`. `--dk-accent-subtle` and `--dk-accent-text` are computed on every part, so they follow a `--dk-accent` set on any subtree; setting them replaces the computed value.
+Each part resolves the color defaults itself, so they follow the nearest `data-dk-theme` and any token set on a subtree. The theme doesn't use `light-dark()`, so it also works when your build transpiles that function for older browsers (Next.js and Vite do by default). Inside a component, for example in an option's content, `var(--dk-surface)` and the other color tokens give the resolved color. Outside components they are only set if you set them.
+
+To change a color in both schemes, give a pair, e.g. `--dk-surface: light-dark(#fff, #0b0b0f)`. If your build transpiles `light-dark()`, set the dark value in a `[data-dk-theme='dark']` or `prefers-color-scheme: dark` rule instead. `--dk-accent-subtle` and `--dk-accent-text` are computed on every part, so they follow a `--dk-accent` set on any subtree; setting them replaces the computed value.
 
 ### Parts and state
 

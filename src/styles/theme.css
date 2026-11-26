@@ -1,20 +1,18 @@
 /* Optional default theme; see https://github.com/stefanmilutinovicrs/react-datakit#theming */
 @layer datakit {
-  /* Colors stay unresolved light-dark() pairs until a part uses them, so each part picks the
-     pair for its own color-scheme; nothing here sets color-scheme on the app. */
+  /* No light-dark(): Lightning CSS (in Next.js and Vite builds) rewrites it for older browsers
+     into variables that resolve where a token is declared, so pairs on :root would ignore
+     data-dk-theme on a subtree. Each color is resolved on the part instead, with an inherited
+     switch: the variable set to `initial` falls back to its value, the empty one adds nothing.
+     Nothing here sets color-scheme on the app. */
   :where(:root, :host) {
-    --dk-accent: light-dark(#4f46e5, #6061ef);
+    --_dk-light: initial;
+    --_dk-dark: ;
     --dk-on-accent: #ffffff;
-    --dk-surface: light-dark(#ffffff, #18181b);
-    --dk-muted: light-dark(#f4f4f5, #27272a);
-    --dk-border: light-dark(#e4e4e7, #2e2e33);
-    --dk-text: light-dark(#18181b, #fafafa);
-    --dk-text-muted: light-dark(#6f6f78, #a1a1aa);
     --dk-radius: 8px;
     --dk-font-size: inherit;
     --dk-control-height: 36px;
 
-    --_dk-shadow: light-dark(rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.5));
     --_dk-icon-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E");
     --_dk-icon-search: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='10.5' cy='10.5' r='6.5'/%3E%3Cpath d='M20 20l-4.5-4.5'/%3E%3C/svg%3E");
     --_dk-icon-chevron-down: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
@@ -24,44 +22,72 @@
     --_dk-icon-plus: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M12 5v14M5 12h14'/%3E%3C/svg%3E");
   }
 
-  /* Dark shades are lighter, so the ring and checks stay at 3:1 on dark surfaces while white
-     text on the accent keeps 4.5:1. */
-  :where([data-dk-accent='indigo']) {
-    --dk-accent: light-dark(#4f46e5, #6061ef);
+  @media (prefers-color-scheme: dark) {
+    :where(:root, :host) {
+      --_dk-light: ;
+      --_dk-dark: initial;
+    }
   }
 
-  :where([data-dk-accent='teal']) {
-    --dk-accent: light-dark(#0f766e, #0e8177);
-  }
-
-  :where([data-dk-accent='violet']) {
-    --dk-accent: light-dark(#7c3aed, #8650f3);
-  }
-
-  :where([data-dk-accent='blue']) {
-    --dk-accent: light-dark(#2563eb, #2b6bee);
-  }
-
-  /* An inherited variable, so the nearest data-dk-theme wins and color-scheme is only set on parts. */
+  /* Inherited, so the nearest data-dk-theme wins; color-scheme is only set on parts. */
   :where([data-dk-theme='light']) {
+    --_dk-light: initial;
+    --_dk-dark: ;
     --_dk-color-scheme: light;
   }
 
   :where([data-dk-theme='dark']) {
+    --_dk-light: ;
+    --_dk-dark: initial;
     --_dk-color-scheme: dark;
   }
 
-  /* Derived colors are declared on every part, not on :root, so they follow a --dk-accent
-     or --dk-surface set on any subtree. */
+  /* A preset clears a --dk-accent set further out, so the nearest one wins; a --dk-accent on
+     the preset's own element still wins over it. Dark shades are lighter, so the ring and
+     checks stay at 3:1 on dark surfaces while white text on the accent keeps 4.5:1. */
+  :where([data-dk-accent]) {
+    --dk-accent: initial;
+  }
+
+  :where([data-dk-accent='indigo']) {
+    --_dk-accent-light: #4f46e5;
+    --_dk-accent-dark: #6061ef;
+  }
+
+  :where([data-dk-accent='teal']) {
+    --_dk-accent-light: #0f766e;
+    --_dk-accent-dark: #0e8177;
+  }
+
+  :where([data-dk-accent='violet']) {
+    --_dk-accent-light: #7c3aed;
+    --_dk-accent-dark: #8650f3;
+  }
+
+  :where([data-dk-accent='blue']) {
+    --_dk-accent-light: #2563eb;
+    --_dk-accent-dark: #2b6bee;
+  }
+
+  /* Resolved on every part, not on :root, so they follow tokens set on any subtree and the
+     nearest data-dk-theme. */
   :where([data-dk-part]) {
     color-scheme: var(--_dk-color-scheme, light dark);
-    --_dk-accent-subtle: var(--dk-accent-subtle, color-mix(in srgb, var(--dk-accent) 12%, var(--dk-surface)));
+    --_dk-accent: var(
+      --dk-accent,
+      var(--_dk-light, var(--_dk-accent-light, #4f46e5)) var(--_dk-dark, var(--_dk-accent-dark, #6061ef))
+    );
+    --_dk-surface: var(--dk-surface, var(--_dk-light, #ffffff) var(--_dk-dark, #18181b));
+    --_dk-muted: var(--dk-muted, var(--_dk-light, #f4f4f5) var(--_dk-dark, #27272a));
+    --_dk-border: var(--dk-border, var(--_dk-light, #e4e4e7) var(--_dk-dark, #2e2e33));
+    --_dk-text: var(--dk-text, var(--_dk-light, #18181b) var(--_dk-dark, #fafafa));
+    --_dk-text-muted: var(--dk-text-muted, var(--_dk-light, #6f6f78) var(--_dk-dark, #a1a1aa));
+    --_dk-shadow: var(--_dk-light, rgb(0 0 0 / 0.08)) var(--_dk-dark, rgb(0 0 0 / 0.5));
+    --_dk-accent-subtle: var(--dk-accent-subtle, color-mix(in srgb, var(--_dk-accent) 12%, var(--_dk-surface)));
     --_dk-accent-text: var(
       --dk-accent-text,
-      light-dark(
-        color-mix(in srgb, var(--dk-accent) 80%, var(--dk-text)),
-        color-mix(in srgb, var(--dk-accent) 55%, #fff)
-      )
+      var(--_dk-light, color-mix(in srgb, var(--_dk-accent) 80%, var(--_dk-text)))
+        var(--_dk-dark, color-mix(in srgb, var(--_dk-accent) 55%, #fff))
     );
     --_dk-option-radius: min(calc(var(--dk-radius) - 2px), 8px);
     font: inherit;
@@ -69,13 +95,23 @@
     box-sizing: border-box;
   }
 
+  /* Your content inside a part, such as an avatar in an option, reads the resolved tokens. */
+  :where([data-dk-part]) > :where(:not([data-dk-part])) {
+    --dk-accent: var(--_dk-accent);
+    --dk-surface: var(--_dk-surface);
+    --dk-muted: var(--_dk-muted);
+    --dk-border: var(--_dk-border);
+    --dk-text: var(--_dk-text);
+    --dk-text-muted: var(--_dk-text-muted);
+  }
+
   :where([data-dk-part]:focus-visible) {
-    outline: 2px solid var(--dk-accent);
+    outline: 2px solid var(--_dk-accent);
     outline-offset: 2px;
   }
 
   :where([data-dk-part][data-disabled], [data-dk-part]:disabled) {
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
     cursor: not-allowed;
   }
 
@@ -118,10 +154,10 @@
   ) {
     min-height: var(--dk-control-height);
     padding: 0 10px;
-    border: 1px solid var(--dk-border);
+    border: 1px solid var(--_dk-border);
     border-radius: var(--dk-radius);
-    background: var(--dk-surface);
-    color: var(--dk-text);
+    background: var(--_dk-surface);
+    color: var(--_dk-text);
   }
 
   :where(
@@ -131,12 +167,12 @@
     [data-dk-part='multiselect-control']:has([data-dk-part='multiselect-input']:focus-visible)
   ) {
     outline: none;
-    border-color: var(--dk-accent);
+    border-color: var(--_dk-accent);
     box-shadow: 0 0 0 3px var(--_dk-accent-subtle);
   }
 
   :where([data-dk-part='daterangepicker-trigger'][data-state='open']) {
-    border-color: var(--dk-accent);
+    border-color: var(--_dk-accent);
   }
 
   /* The field around these inputs shows their focus. */
@@ -155,7 +191,7 @@
   }
 
   :where([data-dk-part='combobox-input'], [data-dk-part='multiselect-input'])::placeholder {
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
     opacity: 1;
   }
 
@@ -168,12 +204,12 @@
 
   :where([data-dk-part='combobox-control'])::before {
     --_dk-icon: var(--_dk-icon-search);
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   :where([data-dk-part='combobox-control'])::after {
     --_dk-icon: var(--_dk-icon-chevron-down);
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   :where(
@@ -182,10 +218,10 @@
     [data-dk-part='daterangepicker-popover']
   ) {
     padding: 4px;
-    border: 1px solid var(--dk-border);
+    border: 1px solid var(--_dk-border);
     border-radius: min(calc(var(--dk-radius) + 2px), 12px);
-    background: var(--dk-surface);
-    color: var(--dk-text);
+    background: var(--_dk-surface);
+    color: var(--_dk-text);
     box-shadow:
       0 1px 2px var(--_dk-shadow),
       0 10px 24px -6px var(--_dk-shadow);
@@ -201,7 +237,7 @@
 
   :where([data-dk-part='combobox-list'], [data-dk-part='multiselect-list'], [data-dk-part='daterangepicker-popover']) {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--dk-text-muted) 45%, transparent) transparent;
+    scrollbar-color: color-mix(in srgb, var(--_dk-text-muted) 45%, transparent) transparent;
   }
 
   :where([data-dk-part='combobox-list'], [data-dk-part='multiselect-list']) {
@@ -233,13 +269,13 @@
     [data-dk-part='multiselect-select-all'][data-highlighted],
     [data-dk-part='multiselect-create'][data-highlighted]
   ) {
-    background: var(--dk-muted);
+    background: var(--_dk-muted);
   }
 
   :where([data-dk-part='combobox-option'][data-selected])::after {
     --_dk-icon: var(--_dk-icon-check);
     margin-inline-start: auto;
-    color: var(--dk-accent);
+    color: var(--_dk-accent);
   }
 
   :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::before {
@@ -247,17 +283,17 @@
     flex: none;
     width: 16px;
     height: 16px;
-    border: 1px solid var(--dk-text-muted);
+    border: 1px solid var(--_dk-text-muted);
     border-radius: min(4px, var(--dk-radius));
-    background: var(--dk-surface);
+    background: var(--_dk-surface);
   }
 
   :where(
     [data-dk-part='multiselect-option'][data-selected],
     [data-dk-part='multiselect-select-all'][data-selected]
   )::before {
-    border-color: var(--dk-accent);
-    background: var(--dk-accent);
+    border-color: var(--_dk-accent);
+    background: var(--_dk-accent);
   }
 
   :where([data-dk-part='multiselect-option'], [data-dk-part='multiselect-select-all'])::after {
@@ -284,7 +320,7 @@
 
   :where([data-dk-part='multiselect-create'])::before {
     --_dk-icon: var(--_dk-icon-plus);
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   :where(
@@ -296,7 +332,7 @@
     [data-dk-part='multiselect-error']
   ) {
     padding: 7px 8px;
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   :where([data-dk-part$='-error'] button) {
@@ -312,7 +348,7 @@
 
   :where([data-dk-part='combobox-count']) {
     padding: 6px 8px 4px;
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
     font-size: 12px;
   }
 
@@ -368,13 +404,13 @@
   }
 
   :where([data-dk-part='multiselect-chip-remove']:hover) {
-    background: color-mix(in srgb, var(--dk-accent) 16%, transparent);
+    background: color-mix(in srgb, var(--_dk-accent) 16%, transparent);
   }
 
   :where([data-dk-part='multiselect-chips-overflow']) {
     flex: none;
     padding: 0 4px;
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
     font-size: 13px;
     white-space: nowrap;
   }
@@ -390,11 +426,11 @@
 
   :where([data-dk-part='daterangepicker-trigger'])::before {
     --_dk-icon: var(--_dk-icon-calendar);
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   :where([data-dk-part='daterangepicker-trigger'][data-placeholder]) {
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   /* The month buttons sit in the heading row of the months, which span both rows. */
@@ -420,7 +456,7 @@
     gap: 2px;
     margin-inline-end: 6px;
     padding: 6px 10px 6px 6px;
-    border-inline-end: 1px solid var(--dk-border);
+    border-inline-end: 1px solid var(--_dk-border);
   }
 
   :where([data-dk-part='daterangepicker-preset'], [data-dk-part='daterangepicker-custom-preset']) {
@@ -428,7 +464,7 @@
     border: 0;
     border-radius: var(--_dk-option-radius);
     background: none;
-    color: var(--dk-text);
+    color: var(--_dk-text);
     text-align: start;
     white-space: nowrap;
     cursor: pointer;
@@ -438,7 +474,7 @@
     [data-dk-part='daterangepicker-preset']:hover:not(:disabled, [data-selected]),
     [data-dk-part='daterangepicker-custom-preset']:hover:not([data-selected])
   ) {
-    background: var(--dk-muted);
+    background: var(--_dk-muted);
   }
 
   :where(
@@ -462,7 +498,7 @@
     border: 0;
     border-radius: var(--_dk-option-radius);
     background: transparent;
-    color: var(--dk-text);
+    color: var(--_dk-text);
     cursor: pointer;
   }
 
@@ -470,7 +506,7 @@
     [data-dk-part='daterangepicker-prev-month']:hover:not(:disabled),
     [data-dk-part='daterangepicker-next-month']:hover:not(:disabled)
   ) {
-    background: var(--dk-muted);
+    background: var(--_dk-muted);
   }
 
   :where([data-dk-part='daterangepicker-prev-month']) {
@@ -520,7 +556,7 @@
       margin-inline-end: 0;
       padding: 6px 6px 10px;
       border-inline-end: 0;
-      border-block-end: 1px solid var(--dk-border);
+      border-block-end: 1px solid var(--_dk-border);
     }
 
     :where([data-dk-part='daterangepicker-months']) {
@@ -603,7 +639,7 @@
 
   :where([data-dk-part='daterangepicker-weekday']) {
     padding-block: 4px;
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
     font-size: 12px;
     text-align: center;
   }
@@ -621,7 +657,7 @@
   }
 
   :where([data-dk-part='daterangepicker-day']:hover:not([data-disabled], [data-selected])) {
-    background: var(--dk-muted);
+    background: var(--_dk-muted);
   }
 
   :where([data-dk-part='daterangepicker-day'][data-in-range]) {
@@ -631,7 +667,7 @@
   }
 
   :where([data-dk-part='daterangepicker-day'][data-range-start], [data-dk-part='daterangepicker-day'][data-range-end]) {
-    background: var(--dk-accent);
+    background: var(--_dk-accent);
     color: var(--dk-on-accent);
     font-weight: 500;
   }
@@ -663,7 +699,7 @@
     width: 4px;
     height: 4px;
     border-radius: 50%;
-    background: var(--dk-accent);
+    background: var(--_dk-accent);
   }
 
   :where(
@@ -674,7 +710,7 @@
   }
 
   :where([data-dk-part='daterangepicker-day'][data-disabled]) {
-    color: var(--dk-text-muted);
+    color: var(--_dk-text-muted);
   }
 
   @media (prefers-reduced-motion: reduce) {
