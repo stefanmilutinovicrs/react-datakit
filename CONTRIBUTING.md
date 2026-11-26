@@ -124,6 +124,9 @@ npm run build
 npm run check:package
 npm run size
 npm run build-storybook
+npm run test:visual
 ```
 
 `npm test` runs the tests in Chromium only, which is enough while you work.
+
+`npm run test:visual` compares screenshots of the default theme with the ones in `src/styles/screenshots/`. Screenshots depend on the OS, so they are always taken on Linux, in the Playwright Docker image that matches the installed Playwright; you need [Docker](https://docs.docker.com/get-started/get-docker/) running. After a change to the theme, run `npm run test:visual:update` and commit the new screenshots. Without Docker, push your change: when the CI job fails, its `visual-diffs` artifact holds the new screenshots (`<name>-actual.png`, or `<name>-reference.png` for a new one) to commit as `src/styles/screenshots/<name>.png`.

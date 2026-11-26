@@ -93,6 +93,8 @@
     "test": "vitest run --project node --project chromium",
     "test:watch": "vitest --project chromium",
     "test:all-browsers": "vitest run",
+    "test:visual": "node scripts/visual.ts",
+    "test:visual:update": "node scripts/visual.ts --update",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
