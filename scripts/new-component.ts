@@ -27,7 +27,7 @@ export function ${hook}Context(part: string): Use${name}Return {
   return context;
 }
 `,
-  [`${hook}.ts`]: `import { optionKeys, useId, type DataAttributes } from '../shared';
+  [`${hook}.ts`]: `import { ${folder}Parts, optionKeys, useId, type DataAttributes } from '../shared';
 
 export interface Use${name}Options {
   id?: string | undefined;
@@ -43,7 +43,7 @@ export interface Use${name}Return {
 export function ${hook}(options: Use${name}Options = {}): Use${name}Return {
   const id = useId(options.id);
   return {
-    getRootProps: () => ({ id, 'data-dk-part': '${folder}' }),
+    getRootProps: () => ({ id, 'data-dk-part': ${folder}Parts.root }),
   };
 }
 `,
@@ -158,6 +158,17 @@ insert(
     "limit": "2 kB"`,
   'before',
 );
+insert(
+  'src/shared/partNames.ts',
+  /$(?![\s\S])/,
+  `
+export const ${folder}Parts = {
+  root: '${folder}',
+} as const;
+`,
+  'after',
+);
+insert('src/shared/index.ts', / \} from '\.\/partNames';/, `, ${folder}Parts`, 'before');
 insert('src/index.ts', /$(?![\s\S])/, `export * from './${folder}';\n`, 'after');
 
 console.log(`Created ${dir} and registered react-datakit/${folder}.`);
