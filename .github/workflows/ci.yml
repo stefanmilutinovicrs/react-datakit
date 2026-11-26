@@ -66,6 +66,35 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npx vitest run --project chromium
 
+  next:
+    name: Next.js (App Router)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            test/next-app/package-lock.json
+      - run: npm ci
+      - run: npm ci
+        working-directory: test/next-app
+      - run: npx playwright install --with-deps chromium
+        working-directory: test/next-app
+      # Builds the package, installs the npm pack tarball into the fixture, then runs
+      # next build and the Playwright tests against next start and next dev.
+      - run: npm run test:next
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: next-app-report
+          path: |
+            test/next-app/playwright-report
+            test/next-app/test-results
+          if-no-files-found: ignore
+
   visual:
     name: Visual (Chromium, Linux)
     runs-on: ubuntu-latest
