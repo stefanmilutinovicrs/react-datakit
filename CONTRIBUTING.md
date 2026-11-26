@@ -10,7 +10,7 @@ If you have found what you think is a bug, first search the [open and closed iss
 
 ## Suggesting new features
 
-Open an issue first, so we can agree on the use case before any code is written. A proposal for a new component should describe the problem, the [WAI-ARIA pattern](https://www.w3.org/WAI/ARIA/apg/patterns/) it follows, an API sketch and the list of tests.
+Open a [feature request](https://github.com/stefanmilutinovicrs/react-datakit/issues/new?template=feature_request.yml) first, so we can agree on the use case before any code is written. A proposal for a new component should describe the problem, the [WAI-ARIA pattern](https://www.w3.org/WAI/ARIA/apg/patterns/) it follows, an API sketch and the list of tests.
 
 ## Pull request guidelines
 
