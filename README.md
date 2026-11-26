@@ -101,6 +101,36 @@ export function AssigneePicker() {
 
 `loadOptions` is debounced, aborted when a newer query starts and cached per query. For a short static list, pass `items` instead; it is filtered locally.
 
+### Next.js and server components
+
+Every entry starts with `"use client"`, so you can import the components anywhere, including a server component. The parts need a file of their own with `'use client'`, though. A server component can't use dotted names such as `Combobox.Input` from a client module, and it can't pass functions such as `itemToString` or the render prop of `Combobox.List` to one. Put the component and its parts in a client file, and pass it the data from the server:
+
+```tsx
+// app/AssigneePicker.tsx
+'use client';
+
+import { Combobox } from 'react-datakit/combobox';
+
+interface User {
+  id: number;
+  name: string;
+}
+
+export function AssigneePicker({ users }: { users: User[] }) {
+  return (
+    <Combobox items={users} itemToString={(user) => user?.name ?? ''} itemToKey={(user) => user.id}>
+      <Combobox.Label>Assignee</Combobox.Label>
+      <Combobox.Input placeholder="Search people…" />
+      <Combobox.Popup>
+        <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+      </Combobox.Popup>
+    </Combobox>
+  );
+}
+```
+
+`app/page.tsx` can then stay a server component that loads `users` and renders `<AssigneePicker users={users} />`. Import `react-datakit/styles.css` in `app/layout.tsx`.
+
 ## Theming
 
 `react-datakit/styles.css` is an optional default theme. Every rule lives in `@layer datakit` and uses `:where()` selectors, so any CSS you write wins regardless of specificity or load order. It sets no font: components use your app's font, in weights 400 and 500.

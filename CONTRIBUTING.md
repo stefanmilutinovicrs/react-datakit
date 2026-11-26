@@ -135,8 +135,17 @@ npm run check:package
 npm run size
 npm run build-storybook
 npm run test:visual
+npm run test:next
 ```
 
 `npm test` runs the tests in Chromium only, which is enough while you work.
 
 `npm run test:visual` compares screenshots of the default theme with the ones in `src/styles/screenshots/`. Screenshots depend on the OS, so they are always taken on Linux, in the Playwright Docker image that matches the installed Playwright; you need [Docker](https://docs.docker.com/get-started/get-docker/) running. After a change to the theme, run `npm run test:visual:update` and commit the new screenshots. Without Docker, push your change: when the CI job fails, its `visual-diffs` artifact holds the new screenshots (`<name>-actual.png`, or `<name>-reference.png` for a new one) to commit as `src/styles/screenshots/<name>.png`.
+
+`npm run test:next` checks the package the way users get it, in a Next.js App Router app (`test/next-app`). It builds the package, installs the `npm pack` tarball into the fixture, runs `next build`, and then runs Playwright against `next start` and `next dev`. Those tests check server rendering, hydration without console errors, each component, and `data-dk-theme`. The fixture has its own dependencies, so Next.js never becomes a dependency of the package. Install them once, and again when its lockfile changes:
+
+```bash
+npm ci --prefix test/next-app
+npx --prefix test/next-app playwright install chromium
+npm run test:next
+```
