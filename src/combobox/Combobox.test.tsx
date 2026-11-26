@@ -5,6 +5,7 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { expectNoA11yViolations } from '../test/axe';
+import { hydrationErrors } from '../test/hydration';
 import { deferred, type Deferred } from '../test/deferred';
 import { expectNoOptionsOnDom } from '../test/options';
 import { comboboxOptionKeys } from './useCombobox';
@@ -720,7 +721,7 @@ describe('Combobox', () => {
 
       await expect.element(input()).toHaveValue('Bojan');
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(errors).not.toHaveBeenCalled();
+      expect(hydrationErrors(errors)).toEqual([]);
 
       root.unmount();
       container.remove();

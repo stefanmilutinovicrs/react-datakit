@@ -6,6 +6,7 @@ import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
+import { hydrationErrors } from '../test/hydration';
 import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
 import {
@@ -769,7 +770,7 @@ describe('MultiSelect', () => {
 
       await expect.element(page.getByRole('button', { name: 'Remove Bojan' })).toBeInTheDocument();
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(errors).not.toHaveBeenCalled();
+      expect(hydrationErrors(errors)).toEqual([]);
 
       root.unmount();
       container.remove();

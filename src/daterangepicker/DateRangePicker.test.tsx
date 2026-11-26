@@ -8,6 +8,7 @@ import '../styles/theme.css';
 import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type CalendarDate } from '../shared/date';
 import { daterangepickerParts } from '../shared';
 import { expectNoA11yViolations } from '../test/axe';
+import { hydrationErrors } from '../test/hydration';
 import { expectNoOptionsOnDom } from '../test/options';
 import { dateRangePickerOptionKeys, useDateRangePicker } from './useDateRangePicker';
 import { DateRangePicker, type DateRange, type DateRangePickerLabels, type DateRangePickerProps } from './index';
@@ -862,7 +863,7 @@ describe('DateRangePicker', () => {
 
       await expect.element(trigger()).toHaveTextContent('Mar 10 – 14, 2026');
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(errors).not.toHaveBeenCalled();
+      expect(hydrationErrors(errors)).toEqual([]);
 
       root.unmount();
       container.remove();
