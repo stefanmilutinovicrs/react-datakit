@@ -76,6 +76,26 @@ async function expectHighlighted(name: string) {
   await expect.poll(() => activeDescendant()).toBe(option(name).element().id);
 }
 
+// On mount the overflow is measured twice, since "+N more" takes room from the chips once it
+// appears; WebKit takes up to 7 frames for both. It settles once 8 frames in a row agree.
+async function waitForSettledOverflow() {
+  const overflowState = () =>
+    [...document.querySelectorAll('[data-dk-part="multiselect-chip"]')]
+      .map((el) => (el.hasAttribute('data-overflow') ? 'o' : '-'))
+      .join('') + (document.querySelector('[data-dk-part="multiselect-chips-overflow"]')?.textContent ?? '');
+  const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+  await expect
+    .poll(async () => {
+      const states = new Set([overflowState()]);
+      for (let i = 0; i < 8; i++) {
+        await frame();
+        states.add(overflowState());
+      }
+      return states.size;
+    })
+    .toBe(1);
+}
+
 async function focusInput() {
   await userEvent.click(input());
 }
@@ -474,21 +494,7 @@ describe('MultiSelect', () => {
         </>,
       );
       await waitForSettledOverflow();
-    }
-
-    // The overflow is measured twice: "+N more" takes room from the chips once it appears.
-    async function waitForSettledOverflow() {
-      const frames = () =>
-        new Promise((resolve) =>
-          requestAnimationFrame(() => requestAnimationFrame(() => requestAnimationFrame(resolve))),
-        );
-      await expect
-        .poll(async () => {
-          const before = indicator()?.textContent;
-          await frames();
-          return before !== undefined && /^\+\d+ more$/.test(before) && before === indicator()?.textContent;
-        })
-        .toBe(true);
+      expect(indicator()?.textContent).toMatch(/^\+\d+ more$/);
     }
 
     it('keeps every chip in the accessibility tree and hides "+N more" from it while collapsed', async () => {
@@ -650,6 +656,7 @@ describe('MultiSelect', () => {
       const many = Array.from({ length: 8 }, (_, i): User => ({ id: i, name: `Person ${i}` }));
       const screen = await render(<UserMultiSelect items={many} defaultValue={many} controlWidth={180} />);
       const frame = () => new Promise((resolve) => requestAnimationFrame(resolve));
+      await waitForSettledOverflow();
 
       for (let width = 180; width <= 700; width += 26) {
         await screen.rerender(<UserMultiSelect items={many} defaultValue={many} controlWidth={width} />);

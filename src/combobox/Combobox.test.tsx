@@ -510,10 +510,18 @@ describe('Combobox', () => {
       await expect.element(page.getByRole('alert')).toHaveAttribute('data-dk-part', 'combobox-error');
     });
 
+    // The keys go in within one task, so the typing is fast however busy the browser is;
+    // userEvent.type sends one key per round trip, which can take longer than the debounce.
     it('debounces fast typing into a single request', async () => {
       const loadOptions = instantLoader();
       await render(<UserCombobox loadOptions={loadOptions} debounceMs={100} />);
-      await userEvent.type(input(), 'dra');
+      const field = input().element() as HTMLInputElement;
+      field.focus();
+      for (const text of ['d', 'dr', 'dra']) {
+        // The prototype's setter, so React sees the change as typing.
+        Reflect.set(HTMLInputElement.prototype, 'value', text, field);
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      }
 
       await expect.poll(() => loadOptions.mock.calls.length).toBe(1);
       expect(loadOptions.mock.calls[0]?.[0]).toBe('dra');
