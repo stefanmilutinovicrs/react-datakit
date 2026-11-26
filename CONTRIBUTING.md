@@ -1,5 +1,7 @@
 # Contributing
 
+Everyone taking part in this project follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Questions
 
 If you have questions about usage, help or support, please use [GitHub Discussions](https://github.com/stefanmilutinovicrs/react-datakit/discussions). Issues that are questions will be closed and redirected there.
