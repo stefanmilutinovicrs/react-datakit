@@ -17,13 +17,7 @@
 
 ### Minor Changes
 
-- [`dab48d2`](https://github.com/stefanmilutinovicrs/react-datakit/commit/dab48d24be080b1cb015bdbad5de6c2918fb4f31) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - Add `Combobox` (experimental) and `useCombobox`: pick one value from a long or remote list by typing to search.
-  
-  - WAI-ARIA combobox pattern with a listbox popup and full keyboard support
-  - Static `items` with local filtering, or async `loadOptions`: debounced, aborted when superseded, cached per query, with loading, empty and error states
-  - Built-in virtualization for 10,000+ options
-  - Controlled or uncontrolled, with every part styled through `data-dk-part` and state data attributes
-  - Available from `react-datakit` and `react-datakit/combobox`
+- [`dab48d2`](https://github.com/stefanmilutinovicrs/react-datakit/commit/dab48d24be080b1cb015bdbad5de6c2918fb4f31) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - Add `Combobox` (experimental) and `useCombobox`: pick one value from a long or remote list by typing to search, with async loading and virtualization. Available from `react-datakit` and `react-datakit/combobox`.
 
 - [#1](https://github.com/stefanmilutinovicrs/react-datakit/pull/1) [`9c73e57`](https://github.com/stefanmilutinovicrs/react-datakit/commit/9c73e574d359b681093cba92e7ab3f6d57591950) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - Add `DateRangePicker` (experimental) and `useDateRangePicker`: pick a range of whole days in a time zone, with presets, in a WAI-ARIA date picker dialog. Available from `react-datakit` and `react-datakit/daterangepicker`.
 

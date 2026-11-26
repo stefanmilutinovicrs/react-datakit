@@ -6,6 +6,7 @@ import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import '../styles/theme.css';
 import { expectNoA11yViolations } from '../test/axe';
+import { hydrationErrors } from '../test/hydration';
 import { expectNoOptionsOnDom } from '../test/options';
 import { multiSelectOptionKeys } from './useMultiSelect';
 import {
@@ -446,6 +447,52 @@ describe('MultiSelect', () => {
       await expect.poll(() => chipNames()).toEqual(['Mila']);
     });
 
+    it('adds nothing and reports in development when onCreate rejects', async () => {
+      const error = new Error('Name taken');
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const unhandled: unknown[] = [];
+      const onUnhandled = (event: PromiseRejectionEvent) => unhandled.push(event.reason);
+      window.addEventListener('unhandledrejection', onUnhandled);
+      try {
+        const onChange = vi.fn();
+        await render(<UserMultiSelect items={users} onCreate={() => Promise.reject(error)} onChange={onChange} />);
+        await userEvent.type(input(), 'Mila');
+        await userEvent.keyboard('{ArrowDown}{Enter}');
+
+        await expect.poll(() => errors.mock.calls).toEqual([['react-datakit: onCreate rejected', error]]);
+        expect(onChange).not.toHaveBeenCalled();
+        expect(chipNames()).toEqual([]);
+        await new Promise((resolve) => setTimeout(resolve, 50));
+        expect(unhandled).toEqual([]);
+      } finally {
+        window.removeEventListener('unhandledrejection', onUnhandled);
+        errors.mockRestore();
+      }
+    });
+
+    it('lets the user create again after onCreate rejects', async () => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const onCreate = vi
+        .fn<(name: string) => Promise<User>>()
+        .mockRejectedValueOnce(new Error('Offline'))
+        .mockImplementation((name) => Promise.resolve({ id: 101, name }));
+      try {
+        await render(<UserMultiSelect items={users} onCreate={onCreate} />);
+        await userEvent.type(input(), 'Mila');
+        await userEvent.keyboard('{ArrowDown}{Enter}');
+        await expect.poll(() => errors).toHaveBeenCalledOnce();
+
+        await userEvent.type(input(), 'Mila');
+        await expect.element(option('Create “Mila”')).toBeEnabled();
+        await userEvent.keyboard('{ArrowDown}{Enter}');
+
+        expect(onCreate).toHaveBeenCalledTimes(2);
+        await expect.poll(() => chipNames()).toEqual(['Mila']);
+      } finally {
+        errors.mockRestore();
+      }
+    });
+
     it('does not offer to create a value that already exists', async () => {
       await render(<UserMultiSelect items={users} onCreate={(name) => ({ id: 0, name })} />);
       await userEvent.type(input(), 'ana');
@@ -723,7 +770,7 @@ describe('MultiSelect', () => {
 
       await expect.element(page.getByRole('button', { name: 'Remove Bojan' })).toBeInTheDocument();
       await new Promise((resolve) => setTimeout(resolve, 50));
-      expect(errors).not.toHaveBeenCalled();
+      expect(hydrationErrors(errors)).toEqual([]);
 
       root.unmount();
       container.remove();

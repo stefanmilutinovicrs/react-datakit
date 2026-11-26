@@ -1,5 +1,7 @@
 # Contributing
 
+Everyone taking part in this project follows the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## Questions
 
 If you have questions about usage, help or support, please use [GitHub Discussions](https://github.com/stefanmilutinovicrs/react-datakit/discussions). Issues that are questions will be closed and redirected there.
@@ -10,7 +12,7 @@ If you have found what you think is a bug, first search the [open and closed iss
 
 ## Suggesting new features
 
-Open an issue first, so we can agree on the use case before any code is written. A proposal for a new component should describe the problem, the [WAI-ARIA pattern](https://www.w3.org/WAI/ARIA/apg/patterns/) it follows, an API sketch and the list of tests.
+Open a [feature request](https://github.com/stefanmilutinovicrs/react-datakit/issues/new?template=feature_request.yml) first, so we can agree on the use case before any code is written. A proposal for a new component should describe the problem, the [WAI-ARIA pattern](https://www.w3.org/WAI/ARIA/apg/patterns/) it follows, an API sketch and the list of tests.
 
 ## Pull request guidelines
 
@@ -68,6 +70,14 @@ Checklist:
 - [ ] No hydration warnings in the Next.js App Router
 
 ## Code style
+
+### Rules
+
+- TypeScript runs in strict mode; never use `any`. Public APIs are generic over the item type instead of taking `unknown` or `any`.
+- No new runtime dependencies without asking first. React (`react` and `react-dom`) is the only peer dependency.
+- Tests never rely on jsdom for focus, scrolling or layout; they run in real browsers.
+- Inline styles only for computed positions (e.g. virtualized rows); everything else goes through `data-dk-part`, data attributes and the theme.
+- `typescript` is pinned to 6.0 for the tools that need its API, while `npm run typecheck` runs TypeScript 7 (the `typescript-7` alias).
 
 ### Comments
 

@@ -1,0 +1,47 @@
+name: '✨ Feature request'
+description: Propose a new component, option or behavior
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the proposal. We agree on the use case here before any code is written,
+        as described in [CONTRIBUTING.md](https://github.com/stefanmilutinovicrs/react-datakit/blob/main/CONTRIBUTING.md#suggesting-new-features).
+        Please search [existing issues](https://github.com/stefanmilutinovicrs/react-datakit/issues?q=is%3Aissue) first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and why don't the current components cover it?
+    validations:
+      required: true
+  - type: input
+    id: pattern
+    attributes:
+      label: WAI-ARIA pattern
+      description: The [APG pattern](https://www.w3.org/WAI/ARIA/apg/patterns/) it follows, or "none" for an option on an existing component.
+      placeholder: e.g. https://www.w3.org/WAI/ARIA/apg/patterns/listbox/
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: API sketch
+      description: The props, parts or hook options you have in mind.
+      render: tsx
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests
+      description: The keyboard, ARIA and edge-case behavior the tests should cover.
+      placeholder: |
+        - ArrowDown on a group header moves to its first option
+        - The group has role="group" and is labelled by its header
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Workarounds you have tried, or other libraries that solve it.

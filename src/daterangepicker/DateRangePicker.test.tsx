@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import { renderToString } from 'react-dom/server';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { page, server, userEvent } from 'vitest/browser';
 import { render, renderHook } from 'vitest-browser-react';
@@ -6,6 +8,7 @@ import '../styles/theme.css';
 import { addDays, endOfDayInZone, startOfDayInZone, toCalendarDate, type CalendarDate } from '../shared/date';
 import { daterangepickerParts } from '../shared';
 import { expectNoA11yViolations } from '../test/axe';
+import { hydrationErrors } from '../test/hydration';
 import { expectNoOptionsOnDom } from '../test/options';
 import { dateRangePickerOptionKeys, useDateRangePicker } from './useDateRangePicker';
 import { DateRangePicker, type DateRange, type DateRangePickerLabels, type DateRangePickerProps } from './index';
@@ -842,6 +845,29 @@ describe('DateRangePicker', () => {
       await expect.element(page.getByRole('heading', { level: 3, name: 'March 2026' })).toBeVisible();
       await expect.element(day('Tuesday, March 10, 2026')).toHaveClass('start');
       await expect.element(day('Tuesday, March 10, 2026')).toHaveTextContent('[10]');
+    });
+  });
+
+  describe('SSR', () => {
+    it.each([
+      ['closed', {}],
+      ['open', { defaultOpen: true }],
+    ])('hydrates server-rendered markup without warnings (%s)', async (_, props: TestProps) => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const tree = <Picker defaultValue={march} {...props} />;
+
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(tree);
+      document.body.append(container);
+      const root = hydrateRoot(container, tree, { onRecoverableError: (error) => console.error(error) });
+
+      await expect.element(trigger()).toHaveTextContent('Mar 10 – 14, 2026');
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(hydrationErrors(errors)).toEqual([]);
+
+      root.unmount();
+      container.remove();
+      errors.mockRestore();
     });
   });
 });

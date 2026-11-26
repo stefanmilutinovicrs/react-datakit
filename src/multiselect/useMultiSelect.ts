@@ -18,6 +18,7 @@ import {
   type ComboboxLabels,
 } from '../shared/combobox/useComboboxCore';
 import {
+  isDev,
   multiselectParts,
   optionKeys,
   useControllableState,
@@ -33,7 +34,7 @@ export interface UseMultiSelectOptions<TItem> extends ComboboxBaseOptions<TItem>
   max?: number | undefined;
   /** Adds a "Select all" row that selects (or deselects) every option matching the query. */
   selectAll?: boolean | undefined;
-  /** Adds a "Create" row when no option matches the typed text exactly; return the new item or a promise of it. */
+  /** Adds a "Create" row when no option matches the typed text exactly; return the new item or a promise of it. A rejected promise adds nothing. */
   onCreate?: ((query: string) => TItem | Promise<TItem>) | undefined;
   /** Texts for screen readers; English by default. */
   labels?: Partial<MultiSelectLabels> | undefined;
@@ -162,9 +163,14 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
       } else if (onCreate) {
         const created = onCreate(row.query);
         if (created instanceof Promise)
-          void created.then((item) => {
-            add([item]);
-          });
+          void created.then(
+            (item) => {
+              add([item]);
+            },
+            (error: unknown) => {
+              if (isDev()) console.error('react-datakit: onCreate rejected', error);
+            },
+          );
         else add([created]);
       }
     },

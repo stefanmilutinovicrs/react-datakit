@@ -7,6 +7,7 @@ import { render } from 'vitest-browser-react';
 import { Combobox } from '../combobox';
 import { DateRangePicker } from '../daterangepicker';
 import { MultiSelect } from '../multiselect';
+import { fragmentRules } from '../test/axe';
 import { contrast, isTransparent, toHex } from '../test/color';
 import './theme.css';
 
@@ -46,22 +47,27 @@ interface CheckData {
   messageKey?: string;
 }
 
-/** Contrast violations, plus every result axe could not decide except those `allowed` explains. */
-async function contrastIssues(element: Element, allowed: readonly string[]): Promise<string[]> {
-  const results = await axe.run({ include: [element] }, { runOnly: ['color-contrast'] });
+/**
+ * Violations of every axe rule, plus each contrast result axe could not decide except those
+ * `allowed` explains.
+ */
+async function axeIssues(element: Element, allowed: readonly string[]): Promise<string[]> {
+  const results = await axe.run({ include: [element] }, { rules: fragmentRules });
   const violations = results.violations.flatMap((v) =>
-    v.nodes.map((n) => `violation ${n.target.join(' ')}: ${n.failureSummary ?? ''}`),
+    v.nodes.map((n) => `${v.id} ${n.target.join(' ')}: ${n.failureSummary ?? ''}`),
   );
-  const undecided = results.incomplete.flatMap((v) =>
-    v.nodes.flatMap((n) =>
-      n.any
-        .filter((check) => !allowed.includes((check.data as CheckData | null)?.messageKey ?? ''))
-        .map(
-          (check) =>
-            `incomplete ${n.target.join(' ')} [${(check.data as CheckData | null)?.messageKey ?? '?'}]: ${check.message}`,
-        ),
-    ),
-  );
+  const undecided = results.incomplete
+    .filter((v) => v.id === 'color-contrast')
+    .flatMap((v) =>
+      v.nodes.flatMap((n) =>
+        n.any
+          .filter((check) => !allowed.includes((check.data as CheckData | null)?.messageKey ?? ''))
+          .map(
+            (check) =>
+              `incomplete ${n.target.join(' ')} [${(check.data as CheckData | null)?.messageKey ?? '?'}]: ${check.message}`,
+          ),
+      ),
+    );
   return [...violations, ...undecided];
 }
 
@@ -87,7 +93,7 @@ const openAllowed = [
   'pseudoContent',
 ];
 
-describe('contrast', () => {
+describe('axe', () => {
   describe.each(themes)('%s', (theme) => {
     describe.each(accents)('%s', (accent) => {
       it.each(stories)('$id', async ({ Story }) => {
@@ -96,12 +102,12 @@ describe('contrast', () => {
             <Story />
           </Page>,
         );
-        const issues = await contrastIssues(screen.container, closedAllowed);
+        const issues = await axeIssues(screen.container, closedAllowed);
         for (const trigger of screen.container.querySelectorAll(triggerSelector)) {
           await userEvent.click(page.elementLocator(trigger));
           if (trigger.tagName === 'INPUT') await userEvent.keyboard('{ArrowDown}');
           await expect.poll(() => screen.container.querySelector(popupSelector)).not.toBeNull();
-          issues.push(...(await contrastIssues(screen.container, openAllowed)));
+          issues.push(...(await axeIssues(screen.container, openAllowed)));
           await userEvent.keyboard('{Escape}');
         }
         expect(issues).toEqual([]);

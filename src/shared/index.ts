@@ -2,6 +2,7 @@ export { useControllableState } from './useControllableState';
 export type { SetControllableState, UseControllableStateParams } from './useControllableState';
 export { useDebounce } from './useDebounce';
 export { useId } from './useId';
+export { isDev } from './isDev';
 export { useIsomorphicLayoutEffect } from './useIsomorphicLayoutEffect';
 export { mergeProps } from './mergeProps';
 export { Part } from './Part';
