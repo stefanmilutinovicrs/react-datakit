@@ -101,6 +101,36 @@ export function AssigneePicker() {
 
 `loadOptions` is debounced, aborted when a newer query starts and cached per query. For a short static list, pass `items` instead; it is filtered locally.
 
+### Next.js and server components
+
+Every entry starts with `"use client"`, so you can import the components anywhere, including a server component. The parts need a file of their own with `'use client'`, though. A server component can't use dotted names such as `Combobox.Input` from a client module, and it can't pass functions such as `itemToString` or the render prop of `Combobox.List` to one. Put the component and its parts in a client file, and pass it the data from the server:
+
+```tsx
+// app/AssigneePicker.tsx
+'use client';
+
+import { Combobox } from 'react-datakit/combobox';
+
+interface User {
+  id: number;
+  name: string;
+}
+
+export function AssigneePicker({ users }: { users: User[] }) {
+  return (
+    <Combobox items={users} itemToString={(user) => user?.name ?? ''} itemToKey={(user) => user.id}>
+      <Combobox.Label>Assignee</Combobox.Label>
+      <Combobox.Input placeholder="Search people…" />
+      <Combobox.Popup>
+        <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+      </Combobox.Popup>
+    </Combobox>
+  );
+}
+```
+
+`app/page.tsx` can then stay a server component that loads `users` and renders `<AssigneePicker users={users} />`. Import `react-datakit/styles.css` in `app/layout.tsx`.
+
 ## Theming
 
 `react-datakit/styles.css` is an optional default theme. Every rule lives in `@layer datakit` and uses `:where()` selectors, so any CSS you write wins regardless of specificity or load order. It sets no font: components use your app's font, in weights 400 and 500.
@@ -151,7 +181,9 @@ Any other color works with `--dk-accent` on any element; it wins over a preset o
 | `--dk-control-height` | `36px`                                | minimum field height                                              |
 | `--dk-font-size`      | `inherit`                             | font size of every part                                           |
 
-Color defaults are `light-dark()` pairs. To change a color in both schemes, give a pair too, e.g. `--dk-surface: light-dark(#fff, #0b0b0f)`. `--dk-accent-subtle` and `--dk-accent-text` are computed on every part, so they follow a `--dk-accent` set on any subtree; setting them replaces the computed value.
+Each part resolves the color defaults itself, so they follow the nearest `data-dk-theme` and any token set on a subtree. The theme doesn't use `light-dark()`, so it also works when your build transpiles that function for older browsers (Next.js and Vite do by default). Inside a component, for example in an option's content, `var(--dk-surface)` and the other color tokens give the resolved color. Outside components they are only set if you set them.
+
+To change a color in both schemes, give a pair, e.g. `--dk-surface: light-dark(#fff, #0b0b0f)`. If your build transpiles `light-dark()`, set the dark value in a `[data-dk-theme='dark']` or `prefers-color-scheme: dark` rule instead. `--dk-accent-subtle` and `--dk-accent-text` are computed on every part, so they follow a `--dk-accent` set on any subtree; setting them replaces the computed value.
 
 ### Parts and state
 

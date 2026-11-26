@@ -11,10 +11,17 @@ coverage/
 # tests
 .vitest/
 __screenshots__/
+test-results/
+playwright-report/
+
+# Next.js fixture (test/next-app)
+.next/
+next-env.d.ts
 
 # local AI tooling (not part of the project)
 CLAUDE.md
 .claude/
+test/next-app/AGENTS.md
 
 # misc
 .DS_Store

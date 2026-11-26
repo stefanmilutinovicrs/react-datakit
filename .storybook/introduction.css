@@ -1,9 +1,17 @@
-/* The Introduction docs page; colors come from the same tokens as the components. */
+/* The Introduction docs page, in the theme's colors. The theme resolves its tokens on the
+   components only, so the page takes the values, and the accent preset from the toolbar,
+   from Storybook's color-scheme on :root. */
 .dk-intro {
+  --_intro-accent: light-dark(var(--_dk-accent-light, #4f46e5), var(--_dk-accent-dark, #6061ef));
+  --_intro-surface: light-dark(#ffffff, #18181b);
+  --_intro-muted: light-dark(#f4f4f5, #27272a);
+  --_intro-border: light-dark(#e4e4e7, #2e2e33);
+  --_intro-text: light-dark(#18181b, #fafafa);
+  --_intro-text-muted: light-dark(#6f6f78, #a1a1aa);
   max-width: 760px;
   margin: 0 auto;
   padding: 48px 24px 64px;
-  color: var(--dk-text);
+  color: var(--_intro-text);
 }
 
 .dk-intro-hero h1 {
@@ -16,7 +24,7 @@
 .dk-intro-hero p {
   margin: 0 0 20px;
   max-width: 34rem;
-  color: var(--dk-text-muted);
+  color: var(--_intro-text-muted);
   font-size: 16px;
   line-height: 1.5;
 }
@@ -24,9 +32,9 @@
 .dk-intro-install {
   display: inline-block;
   padding: 8px 12px;
-  border: 1px solid var(--dk-border);
+  border: 1px solid var(--_intro-border);
   border-radius: 8px;
-  background: var(--dk-muted);
+  background: var(--_intro-muted);
   font:
     14px / 1.4 ui-monospace,
     SFMono-Regular,
@@ -42,7 +50,7 @@
 }
 
 .dk-intro a {
-  color: var(--dk-text);
+  color: var(--_intro-text);
 }
 
 .dk-intro-links a {
@@ -54,7 +62,7 @@
   max-width: 100%;
   height: auto;
   margin: 32px 0 40px;
-  border: 1px solid var(--dk-border);
+  border: 1px solid var(--_intro-border);
   border-radius: 10px;
 }
 
@@ -78,19 +86,19 @@
   gap: 6px;
   height: 100%;
   padding: 16px;
-  border: 1px solid var(--dk-border);
+  border: 1px solid var(--_intro-border);
   border-radius: 10px;
-  background: var(--dk-surface);
+  background: var(--_intro-surface);
   text-decoration: none;
   box-sizing: border-box;
 }
 
 .dk-intro-cards a:hover {
-  border-color: var(--dk-accent);
+  border-color: var(--_intro-accent);
 }
 
 .dk-intro-cards a:focus-visible {
-  outline: 2px solid var(--dk-accent);
+  outline: 2px solid var(--_intro-accent);
   outline-offset: 2px;
 }
 
@@ -99,7 +107,7 @@
 }
 
 .dk-intro-cards span {
-  color: var(--dk-text-muted);
+  color: var(--_intro-text-muted);
   font-size: 13px;
   line-height: 1.45;
 }

@@ -95,6 +95,7 @@
     "test:all-browsers": "vitest run",
     "test:visual": "node scripts/visual.ts",
     "test:visual:update": "node scripts/visual.ts --update",
+    "test:next": "npm --prefix test/next-app test",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
