@@ -48,3 +48,5 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npx vitest run --project ${{ matrix.browser }}
+      - if: matrix.browser == 'chromium'
+        run: npx vitest run --project contrast
