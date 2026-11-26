@@ -51,6 +51,21 @@ jobs:
       - if: matrix.browser == 'chromium'
         run: npx vitest run --project contrast
 
+  test-react-18:
+    name: Test (chromium, React 18)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # peerDependencies allow React 18; the rest of CI runs on the React 19 from the lockfile.
+      - run: npm install --no-save react@18 react-dom@18 @types/react@18 @types/react-dom@18
+      - run: npx playwright install --with-deps chromium
+      - run: npx vitest run --project chromium
+
   visual:
     name: Visual (Chromium, Linux)
     runs-on: ubuntu-latest
