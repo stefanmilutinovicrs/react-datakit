@@ -10,6 +10,8 @@ const browsers = ['chromium', 'firefox', 'webkit'] as const;
 
 const emulateMedia = defineBrowserCommand<[EmulatedMedia]>(({ page }, media) => page.emulateMedia(media));
 
+const contrastTests = 'src/styles/contrast.test.tsx';
+
 export default defineConfig({
   plugins: [react()],
   test: {
@@ -22,6 +24,7 @@ export default defineConfig({
         test: {
           name: browser,
           include: ['src/**/*.test.{ts,tsx}'],
+          exclude: [contrastTests],
           browser: {
             enabled: true,
             headless: true,
@@ -31,6 +34,22 @@ export default defineConfig({
           },
         },
       })),
+      {
+        extends: true,
+        test: {
+          name: 'contrast',
+          include: [contrastTests],
+          // A minute of axe runs on every story; alongside the browser projects it starved
+          // their pages, so it runs on its own once they are done.
+          sequence: { groupOrder: 1 },
+          browser: {
+            enabled: true,
+            headless: true,
+            provider: playwright(),
+            instances: [{ browser: 'chromium' }],
+          },
+        },
+      },
     ],
   },
 });

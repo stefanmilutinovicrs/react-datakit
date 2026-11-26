@@ -2,7 +2,7 @@ import { composeStories } from '@storybook/react-vite';
 import axe from 'axe-core';
 import type { ComponentType, ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
-import { page, server, userEvent } from 'vitest/browser';
+import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { Combobox } from '../combobox';
 import { DateRangePicker } from '../daterangepicker';
@@ -85,7 +85,7 @@ const openAllowed = [
   'partiallyObscuredNonTabbable',
 ];
 
-describe.runIf(server.browser === 'chromium')('contrast', () => {
+describe('contrast', () => {
   describe.each(themes)('%s', (theme) => {
     describe.each(accents)('%s', (accent) => {
       it.each(stories)('$id', async ({ Story }) => {
@@ -188,7 +188,7 @@ function one(selector: string): Element {
 const pseudo = (element: Element, which: string) => getComputedStyle(element, which);
 
 // axe skips placeholders and non-text parts, and can't see backgrounds drawn by pseudo-elements.
-describe.runIf(server.browser === 'chromium')('contrast of what axe skips', () => {
+describe('contrast of what axe skips', () => {
   describe.each(themes)('%s', (theme) => {
     it.each(accents)('%s', async (accent) => {
       await render(
