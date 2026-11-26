@@ -71,6 +71,14 @@ Checklist:
 
 ## Code style
 
+### Rules
+
+- TypeScript runs in strict mode; never use `any`. Public APIs are generic over the item type instead of taking `unknown` or `any`.
+- No new runtime dependencies without asking first. React (`react` and `react-dom`) is the only peer dependency.
+- Tests never rely on jsdom for focus, scrolling or layout; they run in real browsers.
+- Inline styles only for computed positions (e.g. virtualized rows); everything else goes through `data-dk-part`, data attributes and the theme.
+- `typescript` is pinned to 6.0 for the tools that need its API, while `npm run typecheck` runs TypeScript 7 (the `typescript-7` alias).
+
 ### Comments
 
 - Comments explain why, never what. No section headers or dividers, no comments that restate the code, no commented-out code, no TODOs without an issue link.
