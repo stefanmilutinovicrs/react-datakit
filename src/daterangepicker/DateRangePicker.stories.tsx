@@ -183,21 +183,27 @@ export const CustomPresets: Story = {
 };
 
 const customTheme = { '--dk-accent': '#be185d', '--dk-radius': '16px' } as CSSProperties;
+// Fixed, so the calendar opens on March 2026 whatever today, the time zone or the locale is.
+const themedRange: DateRange = {
+  start: new Date('2026-03-09T00:00:00Z'),
+  end: new Date('2026-03-13T23:59:59.999Z'),
+};
+const themedProps = { timeZone: 'UTC', locale: 'en-US', defaultValue: themedRange };
 
 export const Themed: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          'The default theme next to a subtree that sets only `--dk-accent` and `--dk-radius`; every color derived from the accent follows. Popups stay at 12px or less whatever the radius is.',
+          'The default theme next to a subtree that sets only `--dk-accent` and `--dk-radius`; every color derived from the accent follows, including the range. Popups stay at 12px or less whatever the radius is.',
       },
     },
   },
   render: () => (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 24 }}>
-      <Picker label="Period (default)" />
+      <Picker label="Period (default)" {...themedProps} />
       <div style={customTheme}>
-        <Picker label="Period (custom)" />
+        <Picker label="Period (custom)" {...themedProps} />
       </div>
     </div>
   ),

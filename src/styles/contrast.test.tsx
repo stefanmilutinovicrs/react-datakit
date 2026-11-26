@@ -76,13 +76,15 @@ const popupSelector =
 // Empty inputs: axe skips placeholders, which the computed-color checks below cover.
 const closedAllowed = ['emptyValue'];
 // While a popup is open it covers the parts below it, and the virtualized list keeps a few
-// options rendered outside its scroll area.
+// options rendered outside its scroll area. The band behind a range end is a pseudo-element;
+// the range ends are measured against their own background in the test below.
 const openAllowed = [
   ...closedAllowed,
   'bgOverlap',
   'elmPartiallyObscured',
   'partiallyObscured',
   'partiallyObscuredNonTabbable',
+  'pseudoContent',
 ];
 
 describe('contrast', () => {
