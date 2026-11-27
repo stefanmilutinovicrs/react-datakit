@@ -1,7 +1,6 @@
 import { forwardRef, type ReactNode, type Ref } from 'react';
 import { useCoreContext } from '../shared/combobox/context';
-import { List, useRowLayout, type ComboboxListProps } from '../shared/combobox/Popup';
-import type { ComboboxRow } from '../shared/combobox/useComboboxCore';
+import { List, useRowLayout, type ComboboxActionRow, type ComboboxListProps } from '../shared/combobox/Popup';
 import { Part, type PartProps } from '../shared';
 
 export interface MultiSelectActionState {
@@ -52,7 +51,7 @@ export const MultiSelectList = forwardRef(function MultiSelectList<TItem>(
   { selectAll, create, ...props }: MultiSelectListProps<TItem>,
   ref: Ref<HTMLDivElement>,
 ) {
-  const renderAction = (row: Exclude<ComboboxRow<TItem>, { type: 'option' }>) => {
+  const renderAction = (row: ComboboxActionRow<TItem>) => {
     if (row.type === 'select-all') return selectAll ?? <SelectAll>Select all</SelectAll>;
     return create ? create(row.query) : <Create>{`Create “${row.query}”`}</Create>;
   };

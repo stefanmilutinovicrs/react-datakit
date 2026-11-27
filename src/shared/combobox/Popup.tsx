@@ -14,7 +14,13 @@ import { Part, type PartProps } from '../Part';
 import { useIsomorphicLayoutEffect } from '../useIsomorphicLayoutEffect';
 import { useMergedRefs } from '../useMergedRefs';
 import { useCoreContext } from './context';
-import { rowKey, type ComboboxCore, type ComboboxRow, type ComboboxStatus } from './useComboboxCore';
+import {
+  rowKey,
+  type ComboboxCore,
+  type ComboboxGroup,
+  type ComboboxRow,
+  type ComboboxStatus,
+} from './useComboboxCore';
 
 const RowIndexContext = createContext<number>(-1);
 const OptionHeightContext = createContext(36);
@@ -65,11 +71,16 @@ export type ComboboxListProps<TItem> = Omit<PartProps<'div', ComboboxListState>,
   optionHeight?: number | undefined;
   /** Options rendered above and below the visible area. Default 5. */
   overscan?: number | undefined;
+  /** Renders the heading of a group (see `groupBy` on the root). Defaults to a `GroupLabel` with the group key. */
+  groupLabel?: ((group: ComboboxGroup<TItem>) => ReactNode) | undefined;
 };
+
+/** A MultiSelect action row: select all or create. */
+export type ComboboxActionRow<TItem> = Extract<ComboboxRow<TItem>, { type: 'select-all' | 'create' }>;
 
 type ListBaseProps<TItem> = ComboboxListProps<TItem> & {
   /** Renders the action rows (select all, create). */
-  renderAction?: ((row: Exclude<ComboboxRow<TItem>, { type: 'option' }>) => ReactNode) | undefined;
+  renderAction?: ((row: ComboboxActionRow<TItem>) => ReactNode) | undefined;
 };
 
 const ListBase = forwardRef(function List<TItem>(props: ListBaseProps<TItem>, ref: Ref<HTMLDivElement>) {
@@ -87,6 +98,7 @@ function VirtualList<TItem>({
   forwardedRef,
   children,
   renderAction,
+  groupLabel,
   optionHeight = 36,
   overscan = 5,
   ...partProps
@@ -95,7 +107,7 @@ function VirtualList<TItem>({
   const mergedRef = useMergedRefs<HTMLDivElement>(listRef, forwardedRef);
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(optionHeight * 10);
-  const { rows, highlightedIndex, highlightOrigin } = core;
+  const { rows, rowGroups, highlightedIndex, highlightOrigin } = core;
   const count = rows.length;
 
   useEffect(() => {
@@ -122,11 +134,45 @@ function VirtualList<TItem>({
 
   const start = Math.max(0, Math.floor(scrollTop / optionHeight) - overscan);
   const end = Math.min(count, Math.ceil((scrollTop + viewportHeight) / optionHeight) + overscan);
-  const indices: number[] = [];
-  // The highlighted row is always rendered, so aria-activedescendant never points to a missing element.
-  if (highlightedIndex >= 0 && highlightedIndex < start) indices.push(highlightedIndex);
-  for (let i = start; i < end; i++) indices.push(i);
-  if (highlightedIndex >= end) indices.push(highlightedIndex);
+  const pinned: number[] = [];
+  for (let i = start; i < end; i++) pinned.push(i);
+  // The highlighted row is always rendered, so aria-activedescendant never points to a missing
+  // element, and so is the heading of every rendered group, which names it through aria-labelledby.
+  pinned.push(highlightedIndex);
+  for (const i of [...pinned]) pinned.push(rowGroups[i] ?? -1);
+  const indices = [...new Set(pinned)].filter((i) => i >= 0).sort((a, b) => a - b);
+
+  const renderRow = (index: number) => {
+    const row = rows[index] as ComboboxRow<TItem>;
+    return (
+      <RowIndexContext.Provider key={rowKey(row, core.itemToKey)} value={index}>
+        {row.type === 'option'
+          ? children(row.item, index)
+          : row.type === 'group-label'
+            ? (groupLabel?.(row.group) ?? <GroupLabel>{row.group.key}</GroupLabel>)
+            : renderAction?.(row)}
+      </RowIndexContext.Provider>
+    );
+  };
+  // Rows of a group are wrapped in its role="group" element. The wrapper is not positioned, so the
+  // rows stay absolutely positioned in the spacer below.
+  const content: ReactNode[] = [];
+  let groupRows: ReactNode[] = [];
+  indices.forEach((index, k) => {
+    const heading = rowGroups[index] ?? -1;
+    if (heading < 0) content.push(renderRow(index));
+    else {
+      groupRows.push(renderRow(index));
+      if (rowGroups[indices[k + 1] ?? -1] !== heading) {
+        content.push(
+          <div key={heading} {...core.getGroupProps(heading)}>
+            {groupRows}
+          </div>,
+        );
+        groupRows = [];
+      }
+    }
+  });
 
   const ours = {
     ...core.getListProps(),
@@ -137,16 +183,7 @@ function VirtualList<TItem>({
     },
     children: (
       <div role="presentation" style={{ position: 'relative', height: count * optionHeight }}>
-        <OptionHeightContext.Provider value={optionHeight}>
-          {indices.map((index) => {
-            const row = rows[index] as ComboboxRow<TItem>;
-            return (
-              <RowIndexContext.Provider key={rowKey(row, core.itemToKey)} value={index}>
-                {row.type === 'option' ? children(row.item, index) : renderAction?.(row)}
-              </RowIndexContext.Provider>
-            );
-          })}
-        </OptionHeightContext.Provider>
+        <OptionHeightContext.Provider value={optionHeight}>{content}</OptionHeightContext.Provider>
       </div>
     ),
   };
@@ -178,5 +215,25 @@ export const Option = forwardRef(function Option<TItem>(
     index,
   };
   const ours = { ...core.getOptionProps(item, index), style };
+  return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
+});
+
+export interface ComboboxGroupLabelState {
+  key: string;
+  /** Number of options in the group. */
+  count: number;
+}
+
+export type ComboboxGroupLabelProps = PartProps<'div', ComboboxGroupLabelState>;
+
+/** Heading of a group of options. Pass it to `<List groupLabel={(group) => …}>` to change its content. */
+export const GroupLabel = forwardRef<HTMLDivElement, ComboboxGroupLabelProps>(function GroupLabel(props, ref) {
+  const core = useCoreContext('GroupLabel');
+  const { index, style } = useRowLayout('GroupLabel');
+  const row = core.rows[index];
+  if (row?.type !== 'group-label')
+    throw new Error('react-datakit: <GroupLabel> is rendered by the groupLabel prop of List.');
+  const state: ComboboxGroupLabelState = { key: row.group.key, count: row.group.items.length };
+  const ours = { ...core.getGroupLabelProps(index), style };
   return <Part tag="div" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });
