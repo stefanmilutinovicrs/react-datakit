@@ -64,6 +64,15 @@ export function toDateKey(date: CalendarDate): string {
   return `${pad(date.year, 4)}-${pad(date.month, 2)}-${pad(date.day, 2)}`;
 }
 
+/** Reads a `YYYY-MM-DD` key; `undefined` for anything that isn't a real day (`2026-02-30`). */
+export function fromDateKey(text: string): CalendarDate | undefined {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(text);
+  if (!match) return undefined;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return undefined;
+  return { year, month, day };
+}
+
 /** Weeks of 7 days starting on `weekStart` (0 = Sunday), with `null` for days of other months. */
 export function getMonthWeeks(year: number, month: number, weekStart: number): (CalendarDate | null)[][] {
   const first: CalendarDate = { year, month, day: 1 };

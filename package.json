@@ -1,7 +1,7 @@
 {
   "name": "react-datakit",
   "version": "0.3.0",
-  "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect and DateRangePicker.",
+  "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect, DateRangePicker and FilterBar.",
   "keywords": [
     "react",
     "headless",
@@ -11,6 +11,8 @@
     "combobox",
     "multiselect",
     "date-range-picker",
+    "filterbar",
+    "filters",
     "typescript"
   ],
   "license": "MIT",

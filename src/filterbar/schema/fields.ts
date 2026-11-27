@@ -1,4 +1,4 @@
-import { daysInMonth, endOfDayInZone, getLocalTimeZone, startOfDayInZone } from '../../shared/date';
+import { endOfDayInZone, fromDateKey, getLocalTimeZone, startOfDayInZone } from '../../shared/date';
 import { isDev } from '../../shared/isDev';
 import {
   dateOperators,
@@ -178,6 +178,11 @@ export function textField<
   };
 }
 
+// ICU versions differ in the spaces they put in formatted dates and numbers (Node 24 puts thin
+// spaces around a range dash where Chromium puts plain ones), so a server-rendered chip would not
+// match the client's text when it hydrates. Plain spaces are the same everywhere.
+const plainSpaces = (text: string) => text.replace(/\s/g, ' ');
+
 const NUMBER = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;
 const numberFormats = new Map<string, Intl.NumberFormat>();
 
@@ -229,7 +234,7 @@ export function numberField<
         format = new Intl.NumberFormat(locale);
         numberFormats.set(cacheKey, format);
       }
-      return format.format(value);
+      return plainSpaces(format.format(value));
     },
     serializeValue: String,
     parseValue: (text) => {
@@ -241,19 +246,10 @@ export function numberField<
   };
 }
 
-const DAY = /^(\d{4})-(\d{2})-(\d{2})$/;
 const DATE_RANGE = /^(\d{4}-\d{2}-\d{2})\.\.(\d{4}-\d{2}-\d{2})$/;
 
-function parseDay(text: string): { year: number; month: number; day: number } | undefined {
-  const match = DAY.exec(text);
-  if (!match) return undefined;
-  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
-  if (month < 1 || month > 12 || day < 1 || day > daysInMonth(year, month)) return undefined;
-  return { year, month, day };
-}
-
 function utcDay(text: string): number {
-  const { year = 1970, month = 1, day = 1 } = parseDay(text) ?? {};
+  const { year = 1970, month = 1, day = 1 } = fromDateKey(text) ?? {};
   return Date.UTC(year, month - 1, day);
 }
 
@@ -279,7 +275,7 @@ export function dateField<
 >(options: FieldOptions<TKey, TOps, FilterDateRange> & { timeZone?: string | undefined }): DateFilterField<TKey, TOps> {
   return {
     ...baseField('date', options, dateOperators as unknown as TOps, ({ start, end }) =>
-      !parseDay(start) || !parseDay(end)
+      !fromDateKey(start) || !fromDateKey(end)
         ? issue('invalid-date', 'Enter a valid date')
         : start > end
           ? issue('range-order', 'The start must not be after the end')
@@ -288,7 +284,7 @@ export function dateField<
     // The days are formatted as UTC dates, so the time zone of the runtime can't shift them.
     format: ({ start, end }, { locale }) => {
       const format = new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeZone: 'UTC' });
-      return start === end ? format.format(utcDay(start)) : format.formatRange(utcDay(start), utcDay(end));
+      return plainSpaces(start === end ? format.format(utcDay(start)) : format.formatRange(utcDay(start), utcDay(end)));
     },
     serializeValue: ({ start, end }) => `${start}..${end}`,
     parseValue: (text) => {
@@ -305,8 +301,8 @@ export function dateField<
  * @experimental
  */
 export function toDateRange(value: FilterDateRange, timeZone: string = getLocalTimeZone()): { start: Date; end: Date } {
-  const start = parseDay(value.start);
-  const end = parseDay(value.end);
+  const start = fromDateKey(value.start);
+  const end = fromDateKey(value.end);
   if (!start || !end) throw new RangeError(`react-datakit: invalid date range ${value.start}..${value.end}`);
   return { start: startOfDayInZone(start, timeZone), end: endOfDayInZone(end, timeZone) };
 }

@@ -2,10 +2,12 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useMemo, useState, type CSSProperties } from 'react';
 import {
   FilterBar,
+  dateField,
   enumField,
   enumOperators,
   filtersFromSearchParams,
   filtersToSearchParams,
+  multiEnumField,
   numberField,
   textField,
   textOperators,
@@ -33,6 +35,13 @@ const people = [
   { id: 'cvijeta', name: 'Cvijeta Marić', team: 'Platform' },
   { id: 'dragan', name: 'Dragan Jovanović', team: 'Growth' },
 ];
+const labels = [
+  { id: 'bug', name: 'bug', area: 'Fixes' },
+  { id: 'regression', name: 'regression', area: 'Fixes' },
+  { id: 'frontend', name: 'frontend', area: 'Area' },
+  { id: 'backend', name: 'backend', area: 'Area' },
+  { id: 'design', name: 'design', area: 'Area' },
+];
 const byName = { itemToString: (item: { name: string } | null) => item?.name ?? '' };
 
 const fields = [
@@ -56,6 +65,18 @@ const fields = [
     ...byName,
   }),
   textField({ key: 'reporter', label: 'Reporter', group: 'People' }),
+  numberField({ key: 'estimate', label: 'Estimate', group: 'Issue', integer: true, min: 0 }),
+  dateField({ key: 'created', label: 'Created', group: 'Dates' }),
+  dateField({ key: 'due', label: 'Due', group: 'Dates' }),
+  multiEnumField({
+    key: 'labels',
+    label: 'Labels',
+    group: 'Issue',
+    items: labels,
+    itemToKey: (l) => l.id,
+    groupBy: (l) => l.area,
+    ...byName,
+  }),
 ];
 type IssueFilter = Filter<typeof fields>;
 
@@ -200,19 +221,15 @@ function BooleanEditor(props: FilterEditorProps<boolean>) {
   );
 }
 
-const withCustomType = [
-  ...fields,
-  booleanField('blocked', 'Blocked'),
-  numberField({ key: 'estimate', label: 'Estimate' }),
-];
+const withCustomType = [...fields, booleanField('blocked', 'Blocked')];
 
 export const CustomType: Story = {
-  name: 'Edge case: a custom field type, and a type without an editor',
+  name: 'Edge case: a custom field type',
   parameters: {
     docs: {
       description: {
         story:
-          '`blocked` is a custom `boolean` type with its own editor, passed in `editors`. `estimate` is a number field: its editor comes in a later release, so its chip is read-only and it is not offered in the picker (a development warning says so).',
+          '`blocked` is a custom `boolean` type with its own editor, passed in `editors`. A custom type without an editor would be read-only and left out of the picker.',
       },
     },
   },
@@ -220,11 +237,56 @@ export const CustomType: Story = {
     <FilterBar
       fields={withCustomType}
       editors={{ boolean: BooleanEditor }}
+      defaultValue={[{ field: 'blocked', op: 'is', value: true }]}
+    />
+  ),
+};
+
+export const NumberRange: Story = {
+  name: 'Edge case: number range and decimals',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Estimate takes whole numbers of 0 or more; `is between` edits both ends in one dialog. A comma or a dot is the decimal separator, so `1,5` and `1.5` are the same value.',
+      },
+    },
+  },
+  render: () => (
+    <FilterBar
+      fields={[...fields, numberField({ key: 'budget', label: 'Budget', group: 'Issue' })]}
+      locale="de-DE"
       defaultValue={[
-        { field: 'blocked', op: 'is', value: true },
-        { field: 'estimate', op: 'gt', value: 3 },
+        { field: 'estimate', op: 'between', value: [2, 8] },
+        { field: 'budget', op: 'gte', value: 1500.5 },
       ]}
     />
+  ),
+};
+
+const auckland = dateField({ key: 'created', label: 'Created', timeZone: 'Pacific/Auckland' });
+const utc = dateField({ key: 'created', label: 'Created', timeZone: 'UTC' });
+const march = 'filter=created.between.2026-03-01..2026-03-14';
+
+export const TimeZones: Story = {
+  name: 'Edge case: time zones',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The same URL in a UTC field and a `Pacific/Auckland` field. The value is calendar days, so both show March 1–14; `toDateRange` gives each zone its own instants for a query. Picking "Today" writes today in the field’s zone.',
+      },
+    },
+  },
+  render: () => (
+    <div style={{ display: 'grid', gap: 24 }}>
+      {[utc, auckland].map((field) => (
+        <div key={field.timeZone}>
+          <p style={{ margin: '0 0 6px', fontSize: 13 }}>{field.timeZone}</p>
+          <FilterBar fields={[field]} defaultValue={filtersFromSearchParams(march, [field]).filters} />
+        </div>
+      ))}
+    </div>
   ),
 };
 

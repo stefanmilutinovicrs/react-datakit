@@ -37,7 +37,7 @@
     "path": "dist/filterbar/index.js",
     "import": "{ FilterBar }",
     "ignore": ["react", "react-dom"],
-    "limit": "11.2 kB"
+    "limit": "16 kB"
   },
   {
     "name": "Combobox + MultiSelect + DateRangePicker (ESM, reported only, baseline for the next entry)",
@@ -57,6 +57,6 @@
       "dist/filterbar/index.js": "{ FilterBar }"
     },
     "ignore": ["react", "react-dom"],
-    "limit": "16.8 kB"
+    "limit": "17.8 kB"
   }
 ]

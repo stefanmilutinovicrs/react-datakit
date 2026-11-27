@@ -126,9 +126,11 @@ describe('formatFilterValue', () => {
 
   it('formats a date range with the same days in every time zone', () => {
     const value = { start: '2026-03-01', end: '2026-03-14' };
-    // ICU puts thin or no-break spaces around the dash, differently per engine.
+    // Plain spaces only: ICU versions put thin or no-break spaces here differently, and the text
+    // must be the same on the server and in the browser for hydration.
     const text = formatFilterValue({ field: 'created', op: 'between', value }, fields, { locale: 'en-US' });
-    expect(text.replace(/\s/g, ' ')).toBe('Mar 1 – 14, 2026');
+    expect(text).toBe('Mar 1 – 14, 2026');
+    expect(formatFilterValue({ field: 'price', op: 'gt', value: 1234.5 }, fields, { locale: 'fr-FR' })).toBe('1 234,5');
     expect(
       formatFilterValue(
         { field: 'created', op: 'between', value: { start: '2026-03-01', end: '2026-03-01' } },

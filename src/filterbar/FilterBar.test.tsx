@@ -15,7 +15,10 @@ import {
   numberField,
   textField,
   textOperators,
+  dateField,
+  multiEnumField,
   type Filter,
+  type FilterField,
   type FilterBarProps,
   type FilterEditorProps,
 } from './index';
@@ -27,6 +30,11 @@ import {
 const statuses = [
   { id: 'open', name: 'Open' },
   { id: 'closed', name: 'Closed' },
+];
+const tags = [
+  { id: 'bug', area: 'Fixes' },
+  { id: 'feature', area: 'Work' },
+  { id: 'docs', area: 'Work' },
 ];
 const users = [
   { id: 1, name: 'Ana', team: 'Design' },
@@ -56,8 +64,30 @@ const fields = [
     itemToString: (u) => u?.name ?? '',
     groupBy: (u) => u.team,
   }),
-  numberField({ key: 'estimate', label: 'Estimate', group: 'Issue' }),
+  numberField({ key: 'estimate', label: 'Estimate', group: 'Issue', integer: true, min: 0 }),
+  numberField({ key: 'price', label: 'Price', group: 'Issue' }),
+  dateField({ key: 'created', label: 'Created', group: 'Dates', timeZone: 'UTC' }),
+  multiEnumField({
+    key: 'labels',
+    label: 'Labels',
+    group: 'Issue',
+    items: tags,
+    itemToKey: (t) => t.id,
+    itemToString: (t) => t?.id ?? '',
+    groupBy: (t) => t.area,
+  }),
 ];
+
+// A custom type the bar has no editor for.
+const rating = {
+  key: 'rating',
+  label: 'Rating',
+  type: 'rating',
+  operators: [{ key: 'is', label: 'is', arity: 'single' }] as const,
+  format: (value: number) => `${value} stars`,
+  serializeValue: String,
+  parseValue: (text: string) => Number(text),
+} satisfies FilterField<'rating', 'rating', number, readonly [{ key: 'is'; label: string; arity: 'single' }]>;
 type IssueFilter = Filter<typeof fields>;
 
 const status = (value: string): IssueFilter => ({ field: 'status', op: 'is', value });
@@ -206,11 +236,14 @@ describe('adding a filter', () => {
     await expect.element(chip('Title is empty')).toBeVisible();
   });
 
-  it('leaves fields without an editor out of the picker', async () => {
-    await renderBar();
+  it('offers every built-in field and leaves custom types without an editor out', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {});
+    await render(<FilterBar fields={[...fields, rating]} />);
     await userEvent.click(picker());
-    await expect.element(option('Status')).toBeVisible();
-    await expect.element(option('Estimate')).not.toBeInTheDocument();
+    for (const name of ['Title', 'Status', 'Owner', 'Estimate', 'Price', 'Created', 'Labels'])
+      await expect.element(option(name)).toBeInTheDocument();
+    await expect.element(option('Rating')).not.toBeInTheDocument();
+    error.mockRestore();
   });
 
   it('announces a repeated text again', async () => {
@@ -323,6 +356,26 @@ describe('editing a chip', () => {
     expect(onChange).toHaveBeenLastCalledWith([status('closed')]);
     await expectFocus(button('Status is Closed'));
     await expect.poll(announcement).toBe('Filter changed: Status is Closed');
+  });
+
+  // The options are the editor: they must be in the first render of the dialog, not a task later,
+  // or a reader (the first paint, a screen reader, a test) finds a dialog with nothing to pick.
+  it.each([
+    ['enum', [status('open')], 'Status is Open'],
+    ['multi-enum', [{ field: 'labels', op: 'isAnyOf', value: ['bug'] } as const], 'Labels is any of bug'],
+  ] as const)('renders the %s options together with the dialog', async (_, defaultValue, name) => {
+    await renderBar({ defaultValue });
+    const listboxWithFirstDialog = new Promise<boolean>((resolve) => {
+      const observer = new MutationObserver(() => {
+        const dialog = document.querySelector('[role="dialog"]');
+        if (!dialog) return;
+        observer.disconnect();
+        resolve(dialog.querySelector('[role="listbox"]') !== null);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+    await userEvent.click(button(name));
+    expect(await listboxWithFirstDialog).toBe(true);
   });
 
   it('closes the enum editor with one Escape and keeps the value', async () => {
@@ -502,7 +555,15 @@ describe('accessibility', () => {
   // https://github.com/microsoft/playwright/issues/43967
   // https://bugzilla.mozilla.org/show_bug.cgi?id=2090055
   it.skipIf(server.browser === 'firefox')('passes axe with the menu and each editor open', async () => {
-    await renderBar({ defaultValue: [status('open'), title('bug')] });
+    await renderBar({
+      defaultValue: [
+        status('open'),
+        title('bug'),
+        { field: 'estimate', op: 'between', value: [1, 5] },
+        labels(['bug']),
+        created(),
+      ],
+    });
     const root = () => toolbar().element();
     await userEvent.click(button('Status is'));
     await expect.element(menu()).toBeVisible();
@@ -517,6 +578,17 @@ describe('accessibility', () => {
     await userEvent.keyboard('{Enter}');
     await expect.element(page.getByText('Enter a value')).toBeVisible();
     await expectNoA11yViolations(root());
+    await userEvent.keyboard('{Escape}');
+    for (const [value, popup] of [
+      [() => button('Estimate is between 1 – 5'), () => textbox('Estimate is between, from')],
+      [() => button('Labels is any of bug'), () => option('docs')],
+      [marchValue, dialog],
+    ] as const) {
+      await userEvent.click(value());
+      await expect.element(popup()).toBeVisible();
+      await expectNoA11yViolations(root());
+      await userEvent.keyboard('{Escape}');
+    }
   });
 
   it('passes axe while empty', async () => {
@@ -572,16 +644,16 @@ describe('value', () => {
     await expect.element(chip('Status is Open')).toBeVisible();
   });
 
-  it('shows a chip without an editor read-only and reports it once in development', async () => {
+  it('shows a chip of a custom type without an editor read-only and reports it once in development', async () => {
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
-    await renderBar({ defaultValue: [{ field: 'estimate', op: 'gt', value: 3 }] });
-    const value = button('Estimate is greater than 3');
+    await render(<FilterBar fields={[...fields, rating]} defaultValue={[{ field: 'rating', op: 'is', value: 4 }]} />);
+    const value = button('Rating is 4 stars');
     await expect.element(value).toHaveAttribute('aria-disabled', 'true');
     // Playwright won't click an aria-disabled button, so the click is dispatched directly.
     (value.element() as HTMLElement).click();
     await expect.element(dialog()).not.toBeInTheDocument();
-    await expect.element(button('Remove filter Estimate is greater than 3')).toBeVisible();
-    expect(error.mock.calls.filter(([message]) => String(message).includes('"number"'))).toHaveLength(1);
+    await expect.element(button('Remove filter Rating is 4 stars')).toBeVisible();
+    expect(error.mock.calls.filter(([message]) => String(message).includes('"rating"'))).toHaveLength(1);
     error.mockRestore();
   });
 
@@ -600,6 +672,218 @@ describe('value', () => {
     await userEvent.click(button('Estimate is greater than 3'));
     await userEvent.click(button('Add one'));
     expect(onChange).toHaveBeenLastCalledWith([{ field: 'estimate', op: 'gt', value: 4 }]);
+  });
+});
+
+const textbox = (name: string) => page.getByRole('textbox', { name, exact: true });
+
+describe('number editor', () => {
+  it('adds a number with the keyboard; focus returns to the picker', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.keyboard('Estim{ArrowDown}{Enter}');
+    await expect.element(dialog()).toHaveAccessibleName('Estimate is');
+    const input = textbox('Estimate is');
+    await expectFocus(input);
+    await expect.element(input).toHaveAttribute('inputmode', 'decimal');
+    await userEvent.keyboard('3{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith([{ field: 'estimate', op: 'eq', value: 3 }]);
+    await expect.element(chip('Estimate is 3')).toBeVisible();
+    await expectFocus(picker());
+  });
+
+  it('accepts a comma or a dot as the decimal separator', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Price'));
+    await userEvent.keyboard('1,5{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith([{ field: 'price', op: 'eq', value: 1.5 }]);
+    await userEvent.click(button('Price is 1.5'));
+    await userEvent.fill(textbox('Price is'), '2.25');
+    await userEvent.click(button('Apply'));
+    expect(onChange).toHaveBeenLastCalledWith([{ field: 'price', op: 'eq', value: 2.25 }]);
+  });
+
+  it.each([
+    ['abc', 'Enter a number'],
+    ['1.5', 'Enter a whole number'],
+    ['-1', 'Enter 0 or more'],
+  ])('keeps the editor open for %j: %s', async (text, message) => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Estimate'));
+    await userEvent.keyboard(`${text}{Enter}`);
+    await expect.element(textbox('Estimate is')).toHaveAttribute('aria-invalid', 'true');
+    await expect.element(textbox('Estimate is')).toHaveAccessibleDescription(message);
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('edits a range in two named inputs; focus returns to the operator', async () => {
+    const { onChange } = await renderBar({ defaultValue: [{ field: 'estimate', op: 'gt', value: 3 }] });
+    await userEvent.click(button('Estimate is greater than'));
+    await userEvent.click(menuItem('is between'));
+    await expect.element(dialog()).toHaveAccessibleName('Estimate is between');
+    const from = textbox('Estimate is between, from');
+    const to = textbox('Estimate is between, to');
+    await expectFocus(from);
+    await userEvent.keyboard('5');
+    await userEvent.fill(to, '2');
+    await userEvent.keyboard('{Enter}');
+    await expect.element(from).toHaveAccessibleDescription('The start must not be after the end');
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.fill(from, '2');
+    await userEvent.fill(to, '5');
+    await userEvent.keyboard('{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith([{ field: 'estimate', op: 'between', value: [2, 5] }]);
+    await expectFocus(button('Estimate is between'));
+  });
+
+  it('applies a valid number on a click outside', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Price'));
+    await userEvent.keyboard('7');
+    await userEvent.click(button('Before'));
+    expect(onChange).toHaveBeenLastCalledWith([{ field: 'price', op: 'eq', value: 7 }]);
+  });
+});
+
+const march = { start: '2026-03-01', end: '2026-03-14' };
+const created = (value = march): IssueFilter => ({ field: 'created', op: 'between', value });
+const marchValue = () => page.getByRole('button', { name: /^Created is between Mar 1\s*–\s*14, 2026$/ });
+const dayIn = (timeZone: string) => new Intl.DateTimeFormat('en-CA', { timeZone }).format(new Date());
+
+describe('date editor', () => {
+  it('is the DateRangePicker trigger, named after the filter', async () => {
+    await renderBar({ defaultValue: [created()] });
+    const value = marchValue();
+    await expect.element(value).toHaveAttribute('aria-haspopup', 'dialog');
+    expect(value.element().getAttribute('data-dk-part')).toBe('filterbar-value');
+    await userEvent.click(value);
+    await expect.element(dialog()).toHaveAccessibleName('Created is between');
+    await expect.element(value).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  it('opens the calendar at once for a new filter; a preset adds it and focus returns to the picker', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Created'));
+    await expect.element(dialog()).toBeVisible();
+    await expect.poll(() => focused()?.hasAttribute('data-date')).toBe(true);
+    await userEvent.click(button('Today'));
+    const today = dayIn('UTC');
+    expect(onChange).toHaveBeenLastCalledWith([created({ start: today, end: today })]);
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expectFocus(picker());
+  });
+
+  it('removes a new chip on Escape; focus returns to the picker', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Created'));
+    await expect.element(dialog()).toBeVisible();
+    await userEvent.keyboard('{Escape}');
+    await expect.element(dialog()).not.toBeInTheDocument();
+    await expect.element(chip('Created is between')).not.toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+    await expectFocus(picker());
+  });
+
+  it('edits the range; focus returns to the value', async () => {
+    const { onChange } = await renderBar({ defaultValue: [created()] });
+    await userEvent.click(marchValue());
+    await userEvent.click(button('Today'));
+    const today = dayIn('UTC');
+    expect(onChange).toHaveBeenLastCalledWith([created({ start: today, end: today })]);
+    await expect.poll(() => focused()?.getAttribute('data-dk-part')).toBe('filterbar-value');
+  });
+
+  it('keeps the value on Escape while editing', async () => {
+    const { onChange } = await renderBar({ defaultValue: [created()] });
+    await userEvent.click(marchValue());
+    await userEvent.keyboard('{Escape}');
+    expect(onChange).not.toHaveBeenCalled();
+    await expectFocus(marchValue());
+  });
+
+  it('writes the calendar days of the field time zone', async () => {
+    const onChange = vi.fn();
+    const belgrade = [dateField({ key: 'created', label: 'Created', timeZone: 'Europe/Belgrade' })];
+    await render(<FilterBar fields={belgrade} onChange={onChange} />);
+    await userEvent.click(picker());
+    await userEvent.click(option('Created'));
+    await userEvent.click(button('Today'));
+    const today = dayIn('Europe/Belgrade');
+    expect(onChange).toHaveBeenLastCalledWith([
+      { field: 'created', op: 'between', value: { start: today, end: today } },
+    ]);
+  });
+
+  it('stays in the toolbar: arrows move past it and Delete removes the chip', async () => {
+    const { onChange } = await renderBar({ defaultValue: [created(), status('open')] });
+    await userEvent.click(button('Before'));
+    await userEvent.tab();
+    await userEvent.keyboard('{ArrowRight}');
+    await expectFocus(marchValue());
+    await userEvent.keyboard('{ArrowRight}');
+    await expectFocus(button('Remove filter Created is between Mar 1 – 14, 2026'));
+    await userEvent.keyboard('{ArrowLeft}{Delete}');
+    expect(onChange).toHaveBeenLastCalledWith([status('open')]);
+  });
+});
+
+const labels = (value: readonly string[]): IssueFilter => ({ field: 'labels', op: 'isAnyOf', value });
+
+describe('multi-enum editor', () => {
+  it('toggles several options and applies them; focus returns to the picker', async () => {
+    const { onChange } = await renderBar();
+    await userEvent.click(picker());
+    await userEvent.click(option('Labels'));
+    await expect.element(dialog()).toHaveAccessibleName('Labels is any of');
+    await expectFocus(page.getByRole('combobox', { name: 'Labels is any of' }));
+    await userEvent.keyboard('{ArrowDown}{Enter}{ArrowDown}{Enter}');
+    await expect.element(option('bug')).toHaveAttribute('aria-selected', 'true');
+    await expect.element(option('feature')).toHaveAttribute('aria-selected', 'true');
+    expect(onChange).not.toHaveBeenCalled();
+    await userEvent.tab();
+    await expectFocus(button('Apply'));
+    await userEvent.keyboard('{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith([labels(['bug', 'feature'])]);
+    await expect.element(chip('Labels is any of bug, feature')).toBeVisible();
+    await expectFocus(picker());
+  });
+
+  it('commits with Enter when no option is highlighted', async () => {
+    const { onChange } = await renderBar({ defaultValue: [labels(['bug'])] });
+    await userEvent.click(button('Labels is any of bug'));
+    await userEvent.keyboard('doc{ArrowDown}{Enter}{Backspace}{Backspace}{Backspace}{Enter}');
+    expect(onChange).toHaveBeenLastCalledWith([labels(['bug', 'docs'])]);
+    await expectFocus(button('Labels is any of bug, docs'));
+  });
+
+  it('cancels on Escape', async () => {
+    const { onChange } = await renderBar({ defaultValue: [labels(['bug'])] });
+    await userEvent.click(button('Labels is any of bug'));
+    await userEvent.click(option('docs'));
+    await userEvent.keyboard('{Escape}');
+    expect(onChange).not.toHaveBeenCalled();
+    await expect.element(chip('Labels is any of bug')).toBeVisible();
+  });
+
+  it('needs at least one option', async () => {
+    const { onChange } = await renderBar({ defaultValue: [labels(['bug'])] });
+    await userEvent.click(button('Labels is any of bug'));
+    await userEvent.click(option('bug'));
+    await userEvent.click(button('Apply'));
+    await expect.element(page.getByText('Pick at least one value')).toBeVisible();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('groups options by the field groupBy', async () => {
+    await renderBar({ defaultValue: [labels(['bug'])] });
+    await userEvent.click(button('Labels is any of bug'));
+    await expect.element(dialog().getByRole('group', { name: 'Fixes' })).toBeInTheDocument();
+    await expect.element(dialog().getByRole('group', { name: 'Work' })).toBeInTheDocument();
   });
 });
 
@@ -659,7 +943,10 @@ describe('parts', () => {
 describe('server rendering', () => {
   it('hydrates a value read from the URL without warnings', async () => {
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const { filters } = filtersFromSearchParams('filter=status.is.open&filter=title.contains.bug', fields);
+    const { filters } = filtersFromSearchParams(
+      'filter=status.is.open&filter=title.contains.bug&filter=created.between.2026-03-01..2026-03-14&filter=labels.isAnyOf.bug,docs',
+      fields,
+    );
     const tree = <FilterBar fields={fields} defaultValue={filters} />;
     const container = document.createElement('div');
     container.innerHTML = renderToString(tree);

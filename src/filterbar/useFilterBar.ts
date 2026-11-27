@@ -25,7 +25,7 @@ import {
   type DataAttributes,
 } from '../shared';
 import { defaultComboboxLabels, type ComboboxLabels } from '../shared/combobox/useComboboxCore';
-import { EnumEditor, TextEditor } from './Editor';
+import { DateEditor, EnumEditor, MultiEnumEditor, NumberEditor, TextEditor } from './Editor';
 import {
   formatFilterValue,
   validateFilter,
@@ -53,6 +53,12 @@ export interface FilterBarLabels extends ComboboxLabels {
   removed: (summary: string) => string;
   /** Announced when all filters are cleared. */
   cleared: string;
+  /** Name of the first input of a range, from the editor's name. */
+  from: (name: string) => string;
+  /** Name of the second input of a range. */
+  to: (name: string) => string;
+  /** Name of the group of date presets. */
+  presets: string;
 }
 
 export const defaultFilterBarLabels: FilterBarLabels = {
@@ -65,6 +71,9 @@ export const defaultFilterBarLabels: FilterBarLabels = {
   updated: (summary) => `Filter changed: ${summary}`,
   removed: (summary) => `Filter removed: ${summary}`,
   cleared: 'All filters cleared',
+  from: (name) => `${name}, from`,
+  to: (name) => `${name}, to`,
+  presets: 'Presets',
 };
 
 /**
@@ -93,7 +102,13 @@ export type FilterEditor = ComponentType<FilterEditorProps<never>>;
 /** Value editors by field `type`, used before the built-in ones. */
 export type FilterEditors = Readonly<Partial<Record<string, FilterEditor>>>;
 
-const builtInEditors: FilterEditors = { text: TextEditor, enum: EnumEditor };
+const builtInEditors: FilterEditors = {
+  text: TextEditor,
+  number: NumberEditor,
+  date: DateEditor,
+  enum: EnumEditor,
+  multiEnum: MultiEnumEditor,
+};
 
 export interface UseFilterBarOptions<TFields extends readonly AnyFilterField[]> {
   /** Base id for the parts. Generated when omitted. */
@@ -192,7 +207,8 @@ export interface UseFilterBarReturn<TFields extends readonly AnyFilterField[]> {
   getOperatorMenuProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getOperatorOptionProps: (operator: FilterOperator) => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getEditorProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
-  getEditorInputProps: () => InputHTMLAttributes<HTMLInputElement> & DataAttributes;
+  /** Props of an editor input; `index` 1 is the second input of a range. */
+  getEditorInputProps: (index?: 0 | 1) => InputHTMLAttributes<HTMLInputElement> & DataAttributes;
   getEditorErrorProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getEditorApplyProps: () => ButtonHTMLAttributes<HTMLButtonElement> & DataAttributes;
   getAddProps: () => Props;
@@ -721,6 +737,16 @@ export function useFilterBar<const TFields extends readonly AnyFilterField[]>(
     getValueProps: (chip) => {
       const id = chipIds(chip.index);
       const isOpen = chip.open === 'value';
+      // A date chip's value is the DateRangePicker trigger, which opens its own dialog.
+      if (editorFor(chip.field) === DateEditor)
+        return {
+          id: id.value,
+          tabIndex: tabIndexFor(id.value),
+          'aria-labelledby': `${id.field} ${id.operator} ${id.value}`,
+          onKeyDown: onItemKeyDown(chip.index),
+          'data-dk-part': filterbarParts.value,
+          'data-placeholder': flag(chip.valueText === ''),
+        };
       return {
         id: id.value,
         type: 'button',
@@ -800,20 +826,32 @@ export function useFilterBar<const TFields extends readonly AnyFilterField[]>(
       },
       'data-dk-part': filterbarParts.editor,
       'data-type': openChip?.field.type,
+      'data-arity': openChip ? arity(openChip.operator) : undefined,
       'data-invalid': flag(issue !== null),
     }),
-    getEditorInputProps: () => ({
-      id: `${ids.editor}-input`,
+    getEditorInputProps: (index = 0) => ({
+      id: index === 0 ? `${ids.editor}-input` : `${ids.editor}-input-${index}`,
       type: 'text',
       autoComplete: 'off',
-      'aria-labelledby': editorLabelledBy,
+      // Each end of a range has its own name; a single input takes the dialog's name.
+      ...(openChip && arity(openChip.operator) === 'range'
+        ? { 'aria-label': (index === 0 ? labels.from : labels.to)(summaryOf(openChip.field, openChip.operator, '')) }
+        : { 'aria-labelledby': editorLabelledBy }),
       'aria-invalid': issue ? true : undefined,
       'aria-describedby': issue ? errorId : undefined,
       'data-dk-part': filterbarParts.editorInput,
       'data-invalid': flag(issue !== null),
     }),
     getEditorErrorProps: () => ({ id: errorId, role: 'alert', 'data-dk-part': filterbarParts.editorError }),
-    getEditorApplyProps: () => ({ type: 'button', 'data-dk-part': filterbarParts.editorApply }),
+    getEditorApplyProps: () => ({
+      type: 'button',
+      // Safari doesn't focus a clicked button, so the press would blur the input to the body: the
+      // options would close and move Apply away before mouseup, and the click would be lost.
+      onMouseDown: (event) => {
+        event.preventDefault();
+      },
+      'data-dk-part': filterbarParts.editorApply,
+    }),
     getAddProps: () => ({ 'data-dk-part': filterbarParts.add }),
   };
 }
