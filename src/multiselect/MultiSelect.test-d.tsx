@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { expectTypeOf } from 'vitest';
-import { MultiSelect, useMultiSelect } from './index';
+import { MultiSelect, useMultiSelect, type MultiSelectProps } from './index';
 
 interface Tag {
   id: string;
@@ -27,8 +27,24 @@ export function Picker() {
       itemToKey={(tag) => tag.id}
       value={value}
       onChange={setValue}
+      groupBy={(tag) => {
+        expectTypeOf(tag).toEqualTypeOf<Tag>();
+        return null;
+      }}
     >
       <MultiSelect.Input />
+      <MultiSelect.Popup>
+        <MultiSelect.List
+          groupLabel={(group) => {
+            expectTypeOf(group.items).toEqualTypeOf<readonly Tag[]>();
+            return <MultiSelect.GroupLabel>{group.key}</MultiSelect.GroupLabel>;
+          }}
+        >
+          {(tag: Tag) => <MultiSelect.Option item={tag}>{tag.name}</MultiSelect.Option>}
+        </MultiSelect.List>
+      </MultiSelect.Popup>
     </MultiSelect>
   );
 }
+
+expectTypeOf<() => number>().not.toExtend<NonNullable<MultiSelectProps<Tag>['groupBy']>>();

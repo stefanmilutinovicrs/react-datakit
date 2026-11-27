@@ -111,6 +111,7 @@ describe('MultiSelect', () => {
           items={users}
           loadOptions={() => Promise.resolve(users)}
           filter={() => true}
+          groupBy={() => null}
           itemToString={(u) => u?.name ?? ''}
           itemToKey={(u) => u.id}
           defaultValue={[]}
@@ -788,6 +789,108 @@ describe('MultiSelect', () => {
       await userEvent.keyboard('{ArrowDown}{Enter}');
       expect(chipNames()).toEqual(['Dragan']);
       await expect.element(listbox()).toBeVisible();
+    });
+  });
+
+  describe('groups', () => {
+    interface Member {
+      id: number;
+      name: string;
+      team: string;
+    }
+    const members: Member[] = [
+      { id: 1, name: 'Ana', team: 'Design' },
+      { id: 2, name: 'Bojan', team: 'Platform' },
+      { id: 3, name: 'Dana', team: 'Design' },
+      { id: 4, name: 'Elena', team: 'Platform' },
+    ];
+
+    function GroupedMultiSelect(props: Omit<MultiSelectProps<Member>, 'children' | 'itemToString' | 'itemToKey'>) {
+      return (
+        <MultiSelect itemToString={(m) => m?.name ?? ''} itemToKey={(m) => m.id} groupBy={(m) => m.team} {...props}>
+          <MultiSelect.Label>Reviewers</MultiSelect.Label>
+          <MultiSelect.Control>
+            <MultiSelect.Chips>
+              {(member: Member) => (
+                <MultiSelect.Chip>
+                  {member.name}
+                  <MultiSelect.ChipRemove />
+                </MultiSelect.Chip>
+              )}
+            </MultiSelect.Chips>
+            <MultiSelect.Input />
+          </MultiSelect.Control>
+          <MultiSelect.Popup>
+            <MultiSelect.List>
+              {(member: Member) => <MultiSelect.Option item={member}>{member.name}</MultiSelect.Option>}
+            </MultiSelect.List>
+          </MultiSelect.Popup>
+        </MultiSelect>
+      );
+    }
+
+    const groupLabels = () =>
+      [...document.querySelectorAll('[data-dk-part="multiselect-group-label"]')].map((el) => el.textContent);
+
+    it('renders the default GroupLabel part and groups the options', async () => {
+      await render(<GroupedMultiSelect items={members} />);
+      await focusInput();
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(groupLabels()).toEqual(['Design', 'Platform']);
+      await expect.element(listbox()).toMatchAriaInlineSnapshot(`
+        - listbox "Reviewers":
+          - group "Design":
+            - option "Ana"
+            - option "Dana"
+          - group "Platform":
+            - option "Bojan"
+            - option "Elena"
+      `);
+    });
+
+    it('keeps Select all outside the groups, first, and skips the heading after it', async () => {
+      await render(<GroupedMultiSelect items={members} selectAll />);
+      await focusInput();
+      await userEvent.keyboard('{ArrowDown}');
+      await expectHighlighted('Select all');
+      expect(option('Select all').element().closest('[role="group"]')).toBeNull();
+
+      await userEvent.keyboard('{ArrowDown}');
+      await expectHighlighted('Ana');
+      await expect.element(option('Ana')).toHaveAttribute('aria-setsize', '2');
+      await expect.element(option('Ana')).toHaveAttribute('aria-posinset', '1');
+    });
+
+    it('Select all selects every filtered option across groups, in the order shown', async () => {
+      const onChange = vi.fn();
+      await render(<GroupedMultiSelect items={members} selectAll onChange={onChange} />);
+      await userEvent.type(input(), 'a');
+
+      await expect.poll(() => groupLabels()).toEqual(['Design', 'Platform']);
+      await userEvent.keyboard('{ArrowDown}{Enter}');
+      expect(onChange).toHaveBeenLastCalledWith([members[0], members[2], members[1], members[3]]);
+
+      await userEvent.type(input(), 'a');
+      await expect.element(option('Select all')).toHaveAttribute('aria-selected', 'true');
+      await userEvent.keyboard('{ArrowDown}{Enter}');
+      expect(onChange).toHaveBeenLastCalledWith([]);
+    });
+
+    it('filtering removes empty groups', async () => {
+      await render(<GroupedMultiSelect items={members} selectAll />);
+      await userEvent.type(input(), 'bo');
+
+      await expect.poll(() => groupLabels()).toEqual(['Platform']);
+      await expect.element(page.getByRole('status')).toHaveTextContent('1 result');
+    });
+
+    it('has no axe violations while open', async () => {
+      const screen = await render(<GroupedMultiSelect items={members} selectAll defaultValue={members.slice(1, 2)} />);
+      await focusInput();
+      await userEvent.keyboard('{ArrowDown}');
+      await expect.element(listbox()).toBeVisible();
+      await expectNoA11yViolations(screen.container);
     });
   });
 
