@@ -181,6 +181,34 @@ export const TenThousandOptions: Story = {
   ),
 };
 
+const teams = ['Design', 'Platform', 'Support'] as const;
+const teamOf = (user: User) => teams[user.id % teams.length] ?? 'Support';
+
+export const Grouped: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`groupBy` puts options under headings, in the order the groups first appear. Arrows and PageUp/PageDown skip the headings, and screen readers hear the group of the highlighted option. Groups with no match disappear while filtering.',
+      },
+    },
+  },
+  render: () => (
+    <Combobox items={users} groupBy={teamOf} itemToString={itemToString} itemToKey={itemToKey}>
+      <Parts label="Owner" />
+    </Combobox>
+  ),
+};
+
+export const GroupedAsync: Story = {
+  name: 'Grouped, async (500 ms API)',
+  render: () => (
+    <Combobox loadOptions={searchUsers} groupBy={teamOf} itemToString={itemToString} itemToKey={itemToKey}>
+      <Parts label="Owner" placeholder="Type to search 10,000 people…" />
+    </Combobox>
+  ),
+};
+
 export const Controlled: Story = {
   render: function ControlledStory() {
     const [value, setValue] = useState<User | null>(users[2] ?? null);

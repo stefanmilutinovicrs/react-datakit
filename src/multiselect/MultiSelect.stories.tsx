@@ -153,6 +153,39 @@ export const TenThousandOptions: Story = {
   ),
 };
 
+const areas: Record<string, string> = {
+  bug: 'Type',
+  feature: 'Type',
+  performance: 'Quality',
+  security: 'Quality',
+  accessibility: 'Quality',
+  billing: 'Product',
+  onboarding: 'Product',
+};
+
+export const Grouped: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`groupBy` puts options under headings. Select all picks every option that matches the query, across groups.',
+      },
+    },
+  },
+  render: () => (
+    <MultiSelect
+      items={tags}
+      selectAll
+      groupBy={(tag) => areas[tag.id] ?? 'Area'}
+      itemToString={itemToString}
+      itemToKey={itemToKey}
+      style={{ width: 360 }}
+    >
+      <Parts />
+    </MultiSelect>
+  ),
+};
+
 export const Controlled: Story = {
   render: function ControlledStory() {
     const [value, setValue] = useState<readonly Tag[]>(tags.slice(0, 2));
