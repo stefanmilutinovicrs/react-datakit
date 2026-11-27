@@ -7,6 +7,7 @@ import { render } from 'vitest-browser-react';
 import { Combobox } from '../combobox';
 import { DateRangePicker } from '../daterangepicker';
 import { MultiSelect } from '../multiselect';
+import { Sparkline } from '../sparkline';
 import { fragmentRules } from '../test/axe';
 import { contrast, isTransparent, toHex } from '../test/color';
 import './theme.css';
@@ -283,6 +284,47 @@ describe('contrast of what axe skips', () => {
         );
       }
 
+      expect(failures).toEqual([]);
+    });
+  });
+});
+
+// Sparkline marks are graphics that carry the shape of the data, so they need 3:1 (WCAG 1.4.11)
+// against the page and against the surface of the other parts, which is lighter in dark themes.
+describe('contrast of sparkline marks', () => {
+  describe.each(themes)('%s', (theme) => {
+    it.each(accents)('%s', async (accent) => {
+      await render(
+        <Page theme={theme} accent={accent}>
+          <Sparkline data={[3, 8, 5, -2, 9]} label="Line">
+            <Sparkline.ReferenceLine value={0} />
+            <Sparkline.Area />
+            <Sparkline.Line />
+            <Sparkline.Marker at="last" />
+          </Sparkline>
+          <Sparkline data={[3, 8, 5]} label="Bars" xScale="band">
+            <Sparkline.Bars />
+          </Sparkline>
+          <div data-dk-part="probe" data-testid="surface" style={{ background: 'var(--_dk-surface)' }} />
+        </Page>,
+      );
+      const surface = getComputedStyle(page.getByTestId('surface').element()).backgroundColor;
+      const failures: string[] = [];
+      const check = (name: string, foreground: string, background: string) => {
+        const ratio = contrast(foreground, background);
+        if (ratio < 3) failures.push(`${name}: ${toHex(foreground)} on ${toHex(background)} is ${ratio.toFixed(2)}`);
+      };
+      const marks = [
+        ['line', one('[data-dk-part="sparkline-line"]'), 'stroke'],
+        ['marker', one('[data-dk-part="sparkline-marker"]'), 'stroke'],
+        ['reference line', one('[data-dk-part="sparkline-reference-line"]'), 'stroke'],
+        ['bars', one('[data-dk-part="sparkline-bars"]'), 'fill'],
+      ] as const;
+      for (const [name, element, property] of marks) {
+        const color = getComputedStyle(element)[property];
+        check(`${name} on the page`, color, backgroundOf(element));
+        check(`${name} on the surface`, color, surface);
+      }
       expect(failures).toEqual([]);
     });
   });

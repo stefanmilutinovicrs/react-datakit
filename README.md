@@ -28,7 +28,7 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 | MultiSelect     | Pick several values, shown as removable chips     | experimental |
 | DateRangePicker | Pick a period for dashboards, with presets        | experimental |
 | FilterBar       | Linear/Notion-style filters, serialized to a URL  | experimental |
-| Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned      |
+| Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | experimental |
 
 Experimental components may change their API in minor versions before 1.0. Check the [release notes](https://github.com/stefanmilutinovicrs/react-datakit/releases) when you upgrade.
 
@@ -215,6 +215,29 @@ The URL has one `filter` parameter per filter, as `field.op.value`: `?filter=sta
 - **Custom types**: any object of the `FilterField` shape, with an editor in `editors={{ myType: MyEditor }}`. The built-in editors are exported, so you can wrap or replace them.
 - **Texts**: visible texts (field and operator labels, "Clear", "Apply") come from the fields and the parts. Screen reader texts (the toolbar name, chip names, announcements) come from `labels`.
 
+### Sparkline
+
+Sparkline is a small chart in plain SVG, with no chart library, for table cells and KPI cards. It renders the same markup on the server and in the browser: no measuring, no `ResizeObserver`, no ids. The viewBox stretches to whatever size CSS gives it, and lines and markers keep their width.
+
+```tsx
+import { Sparkline } from 'react-datakit/sparkline';
+
+<Sparkline data={[12, 9, 21, 18]} label="Revenue, last 4 weeks" locale="en-US" />;
+
+<Sparkline data={days} itemToValue={(day) => day.total} label="Sign-ups" xScale="band" domain={{ max: 100 }}>
+  <Sparkline.ReferenceLine value={100} />
+  <Sparkline.Bars />
+  <Sparkline.Marker at="max" />
+</Sparkline>;
+```
+
+- **Parts**: `Line` (the default), `Area`, `Bars`, `Marker` and `ReferenceLine`, each a single `<path>`, drawn in the order you write them. Bars need `xScale="band"`, which gives each value its own slot and starts the axis at zero.
+- **Data**: numbers, or any items with `itemToValue`. `null`, `undefined` and `NaN` are gaps that split the line. A value with gaps on both sides is a dot only as wide as the line, so mark it with `<Sparkline.Marker at={index} />`. A single value is a dot in the middle: mark it with `at="last"`. Without values the SVG is empty.
+- **Markers**: `at` is `'min'`, `'max'`, `'first'`, `'last'` or an index; a min or max that occurs more than once marks the first.
+- **Axis**: by default the y axis runs from the smallest to the largest value. `domain={{ min, max }}` sets either end, and values outside it are drawn at the edge. A `ReferenceLine` outside the axis is not drawn and warns in development, so include a target with `domain`.
+- **Screen readers**: the SVG is an image named from `label` and a summary, such as "Revenue, last 4 weeks: up from 12 to 18, low 9, high 21". Numbers are formatted with `Intl.NumberFormat`, `locale` and `formatOptions`, and the words come from `labels`. Use `decorative` instead of `label` when the number next to it already says enough, as in a table with a total column. It has nothing focusable.
+- **Server rendering**: pass `locale` when you render on the server. Without it, the server formats the numbers in its own default locale and the browser in the user's, so the accessible name differs and hydration fails.
+
 ### Next.js and server components
 
 Every entry starts with `"use client"`, so you can import the components anywhere, including a server component. The parts need a file of their own with `'use client'`, though. A server component can't use dotted names such as `Combobox.Input` from a client module, and it can't pass functions such as `itemToString` or the render prop of `Combobox.List` to one. Put the component and its parts in a client file, and pass it the data from the server:
@@ -244,6 +267,8 @@ export function AssigneePicker({ users }: { users: User[] }) {
 ```
 
 `app/page.tsx` can then stay a server component that loads `users` and renders `<AssigneePicker users={users} />`. Import `react-datakit/styles.css` in `app/layout.tsx`.
+
+A `Sparkline` with only the default line needs no client file: `<Sparkline data={trend} label="Errors" locale="en-US" />` takes no functions and no dotted names, so a server component can render it directly.
 
 `react-datakit/filterbar/schema` is the one entry without `"use client"`: it has no React, so server code can call its functions, such as `filtersFromSearchParams`. The root entry `react-datakit` re-exports it, but as a client module, so server code imports the subpath.
 
@@ -316,6 +341,7 @@ To change a color in both schemes, give a pair, e.g. `--dk-surface: light-dark(#
   </DateRangePicker.Trigger>
   ```
 
+- Sparkline: the SVG has `data-trend` (`up`, `down` or `flat`) and `data-empty`, and each `Marker` has `data-at`. Marks are drawn in `currentColor`, which the theme sets to the accent, so `color` on the sparkline recolors it. The default size is 6em by 1.5em; set `width` and `height` in CSS to stretch it. A marker is a dot drawn by a round line cap, so its `stroke-width` is its diameter.
 - With Tailwind v4, declare the layer order first in your main CSS file:
 
   ```css

@@ -70,3 +70,12 @@ export const filterbarParts = {
   editorApply: 'filterbar-editor-apply',
   add: 'filterbar-add',
 } as const;
+
+export const sparklineParts = {
+  root: 'sparkline',
+  line: 'sparkline-line',
+  area: 'sparkline-area',
+  bars: 'sparkline-bars',
+  marker: 'sparkline-marker',
+  referenceLine: 'sparkline-reference-line',
+} as const;

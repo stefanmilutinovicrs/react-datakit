@@ -51,6 +51,7 @@ export default defineConfig([
       'multiselect/index': 'src/multiselect/index.ts',
       'daterangepicker/index': 'src/daterangepicker/index.ts',
       'filterbar/index': 'src/filterbar/index.ts',
+      'sparkline/index': 'src/sparkline/index.ts',
     },
     plugins: [schemaAsPackage],
     // Components use hooks and browser APIs, so every entry is a client module
