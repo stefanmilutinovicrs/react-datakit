@@ -9,6 +9,7 @@ import {
   type DateRange,
   type DateRangePickerDayState,
   type DateRangePickerTriggerState,
+  type DateRangePickerValueState,
   type DateRangePreset,
 } from './index';
 
@@ -35,6 +36,23 @@ export function Picker() {
           expectTypeOf(state).toEqualTypeOf<DateRangePickerTriggerState>();
           return state.formattedValue ?? 'Pick dates';
         }}
+      </DateRangePicker.Trigger>
+      <DateRangePicker.Trigger>
+        <DateRangePicker.Value
+          ref={(element) => {
+            expectTypeOf(element).toEqualTypeOf<HTMLSpanElement | null>();
+          }}
+          className={(state) => {
+            expectTypeOf(state).toEqualTypeOf<DateRangePickerValueState>();
+            return undefined;
+          }}
+        >
+          {(state) => {
+            expectTypeOf(state.value).toEqualTypeOf<DateRange | null>();
+            expectTypeOf(state.formattedValue).toEqualTypeOf<string | null>();
+            return state.formattedValue;
+          }}
+        </DateRangePicker.Value>
       </DateRangePicker.Trigger>
       <DateRangePicker.Popover>
         <DateRangePicker.Months>

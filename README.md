@@ -191,6 +191,15 @@ To change a color in both schemes, give a pair, e.g. `--dk-surface: light-dark(#
 - Combobox: the optional `Combobox.Control` wraps the input, and the theme draws a search icon and a chevron on it. `Combobox.Count` shows the number of results.
 - MultiSelect chips: `data-expanded` is set on the Control and Chips while focus is in the component, `data-overflow` on chips that don't fit, and `--dk-chips-visible-width` on Chips holds the width up to the last chip that fits, for a `max-width` that cuts there.
 - DateRangePicker: every part has a `data-dk-part`, including each weekday header (`daterangepicker-weekday`). Calendar rows have only a role; select them with `[data-dk-part='daterangepicker-grid'] > [role='row']`. `data-custom` is set on Presets while the value matches no preset. On narrow screens the months stack; pass `numberOfMonths={1}` to show one month instead.
+- DateRangePicker trigger: by default it shows `DateRangePicker.Value`. To add your own content, render `Value` yourself. The button's name is the label plus `Value`, so mark anything else as decorative:
+
+  ```tsx
+  <DateRangePicker.Trigger>
+    <DateRangePicker.Value placeholder="Pick a period" />
+    <ChevronIcon aria-hidden />
+  </DateRangePicker.Trigger>
+  ```
+
 - With Tailwind v4, declare the layer order first in your main CSS file:
 
   ```css

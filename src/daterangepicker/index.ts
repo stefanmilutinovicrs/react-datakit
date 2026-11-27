@@ -5,6 +5,8 @@ export type {
   DateRangePickerLabelState,
   DateRangePickerTriggerProps,
   DateRangePickerTriggerState,
+  DateRangePickerValueProps,
+  DateRangePickerValueState,
 } from './Trigger';
 export type {
   DateRangePickerCustomPresetProps,
