@@ -3,7 +3,7 @@ import { Part, splitProps, useMergedRefs, type PartProps } from '../shared';
 import { Day, Grid, Month, MonthHeading, Months, NextMonth, PrevMonth, Weekday } from './Calendar';
 import { PickerContext } from './context';
 import { CustomPreset, Popover, Preset, Presets } from './Popover';
-import { Label, Trigger } from './Trigger';
+import { Label, Trigger, Value } from './Trigger';
 import {
   dateRangePickerOptionKeys,
   useDateRangePicker,
@@ -47,6 +47,7 @@ const Root = forwardRef<HTMLDivElement, DateRangePickerProps>(function DateRange
 export const DateRangePicker = Object.assign(Root, {
   Label,
   Trigger,
+  Value,
   Popover,
   Presets,
   Preset,

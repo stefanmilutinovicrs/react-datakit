@@ -20,7 +20,7 @@ test.afterEach(() => {
 
 test('the server renders every component', async ({ request }) => {
   const html = await (await request.get('/')).text();
-  for (const part of ['combobox-input', 'multiselect-input', 'daterangepicker-trigger']) {
+  for (const part of ['combobox-input', 'multiselect-input', 'daterangepicker-trigger', 'daterangepicker-value']) {
     expect(html).toContain(`data-dk-part="${part}"`);
   }
 });

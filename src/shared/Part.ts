@@ -1,7 +1,7 @@
 import { createElement, type ComponentPropsWithoutRef, type ReactElement, type Ref } from 'react';
 import { mergeProps } from './mergeProps';
 
-type Tag = 'div' | 'input' | 'label' | 'button' | 'h2';
+type Tag = 'div' | 'span' | 'input' | 'label' | 'button' | 'h2';
 
 /** Adds the optional `ref` prop that a generic `forwardRef` component loses in its type. */
 export type WithRef<P, E> = P & { ref?: Ref<E> | undefined };
@@ -23,6 +23,7 @@ interface PartElementProps<TTag extends Tag, TState> {
   theirs: PartProps<TTag, TState>;
   forwardedRef:
     | Ref<HTMLDivElement>
+    | Ref<HTMLSpanElement>
     | Ref<HTMLInputElement>
     | Ref<HTMLLabelElement>
     | Ref<HTMLButtonElement>

@@ -26,9 +26,9 @@ export interface DateRangePickerTriggerState {
 }
 
 export type DateRangePickerTriggerProps = Omit<PartProps<'button', DateRangePickerTriggerState>, 'children'> & {
-  /** Content of the button. Default: the formatted value, or `placeholder`. */
+  /** Content of the button. Default: a `Value` with `placeholder`. */
   children?: ReactNode | ((state: DateRangePickerTriggerState) => ReactNode);
-  /** Shown when there is no value and no `children`. */
+  /** Passed to the default `Value`; ignored when there are `children`. */
   placeholder?: ReactNode;
 };
 
@@ -43,14 +43,52 @@ export const Trigger = forwardRef<HTMLButtonElement, DateRangePickerTriggerProps
     value: picker.value,
     formattedValue: picker.formattedValue,
   };
-  const content = typeof children === 'function' ? children(state) : (children ?? picker.formattedValue ?? placeholder);
+  const content = typeof children === 'function' ? children(state) : (children ?? <Value placeholder={placeholder} />);
   return (
     <Part
       tag="button"
       state={state}
-      ours={{ ...picker.getTriggerProps(), children: <span {...picker.getTriggerValueProps()}>{content}</span> }}
+      ours={{ ...picker.getTriggerProps(), children: content }}
       theirs={props}
       forwardedRef={mergedRef}
+    />
+  );
+});
+
+export interface DateRangePickerValueState {
+  value: DateRange | null;
+  /** The value formatted for the locale, e.g. "Mar 10 – 14, 2026". */
+  formattedValue: string | null;
+}
+
+export type DateRangePickerValueProps = Omit<PartProps<'span', DateRangePickerValueState>, 'children'> & {
+  /** Default: the formatted value, or `placeholder`. */
+  children?: ReactNode | ((state: DateRangePickerValueState) => ReactNode);
+  /** Shown when there is no value and no `children`. */
+  placeholder?: ReactNode;
+};
+
+/**
+ * The picked range inside `Trigger`; while mounted, the trigger's name is the label plus this text, so other content beside it must be decorative (`aria-hidden`).
+ *
+ * @experimental
+ */
+export const Value = forwardRef<HTMLSpanElement, DateRangePickerValueProps>(function Value(
+  { children, placeholder, ...props },
+  ref,
+) {
+  const picker = usePicker('Value');
+  const { registerValue } = picker;
+  useIsomorphicLayoutEffect(() => registerValue(), [registerValue]);
+  const state: DateRangePickerValueState = { value: picker.value, formattedValue: picker.formattedValue };
+  const content = typeof children === 'function' ? children(state) : (children ?? picker.formattedValue ?? placeholder);
+  return (
+    <Part
+      tag="span"
+      state={state}
+      ours={{ ...picker.getTriggerValueProps(), children: content }}
+      theirs={props}
+      forwardedRef={ref}
     />
   );
 });

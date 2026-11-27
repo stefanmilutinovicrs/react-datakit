@@ -173,13 +173,15 @@ export interface UseDateRangePickerReturn {
   formatMonth: (month: CalendarMonth) => string;
   formatDay: (date: CalendarDate) => string;
   registerLabel: () => () => void;
+  /** Call while the element with `getTriggerValueProps` is mounted; returns the cleanup. */
+  registerValue: () => () => void;
   rootRef: RefObject<HTMLDivElement | null>;
   triggerRef: RefObject<HTMLButtonElement | null>;
   popoverRef: RefObject<HTMLDivElement | null>;
   getRootProps: () => Props;
   getLabelProps: () => Props;
   getTriggerProps: () => Props;
-  /** Props of the element inside the trigger that shows the value; it is part of the trigger's name. */
+  /** Props of the element that shows the value; while registered, it replaces the trigger's content in the trigger's name. */
   getTriggerValueProps: () => Props;
   getPopoverProps: () => Props;
   getPrevMonthProps: () => Props;
@@ -270,6 +272,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
   const [pendingStart, setPendingStart] = useState<CalendarDate | null>(null);
   const [hoveredDate, setHoveredDate] = useState<CalendarDate | null>(null);
   const [labelCount, setLabelCount] = useState(0);
+  const [valueCount, setValueCount] = useState(0);
   const focusDayRequested = useRef(false);
 
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -461,6 +464,13 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     };
   }, []);
 
+  const registerValue = useCallback(() => {
+    setValueCount((count) => count + 1);
+    return () => {
+      setValueCount((count) => count - 1);
+    };
+  }, []);
+
   const previewEnd = pendingStart ? (hoveredDate ?? focusedDate) : null;
   const shownRange =
     pendingStart && previewEnd
@@ -486,6 +496,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
 
   const flag = (on: boolean) => (on ? '' : undefined);
   const hasLabel = labelCount > 0;
+  const hasValue = valueCount > 0;
 
   const onDayKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     const date = focusedDate;
@@ -581,6 +592,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     formatMonth,
     formatDay,
     registerLabel,
+    registerValue,
     rootRef,
     triggerRef,
     popoverRef,
@@ -600,7 +612,9 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       'aria-expanded': isOpen,
       'aria-controls': isOpen ? ids.popover : undefined,
       // The name is the label plus the picked range; the button's own content would drop the label.
-      'aria-labelledby': hasLabel ? `${ids.label} ${ids.value}` : undefined,
+      // Without a Value the trigger names itself: inside an aria-labelledby traversal it contributes
+      // its content, so the name is still label plus content (https://www.w3.org/TR/accname-1.2/#step2B).
+      'aria-labelledby': hasLabel ? `${ids.label} ${hasValue ? ids.value : ids.trigger}` : undefined,
       'data-dk-part': daterangepickerParts.trigger,
       'data-state': isOpen ? 'open' : 'closed',
       'data-placeholder': flag(value === null),
@@ -612,6 +626,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     getTriggerValueProps: () => ({
       id: ids.value,
       'data-dk-part': daterangepickerParts.value,
+      'data-placeholder': flag(value === null),
     }),
     getPopoverProps: () => ({
       id: ids.popover,

@@ -6,7 +6,9 @@ export function PeriodParts() {
   return (
     <>
       <DateRangePicker.Label>Period</DateRangePicker.Label>
-      <DateRangePicker.Trigger placeholder="Pick a period" />
+      <DateRangePicker.Trigger>
+        <DateRangePicker.Value placeholder="Pick a period" />
+      </DateRangePicker.Trigger>
       <DateRangePicker.Popover>
         <DateRangePicker.Presets aria-label="Presets" />
         <DateRangePicker.PrevMonth />

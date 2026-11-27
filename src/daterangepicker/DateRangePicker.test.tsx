@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
@@ -845,6 +845,183 @@ describe('DateRangePicker', () => {
       await expect.element(page.getByRole('heading', { level: 3, name: 'March 2026' })).toBeVisible();
       await expect.element(day('Tuesday, March 10, 2026')).toHaveClass('start');
       await expect.element(day('Tuesday, March 10, 2026')).toHaveTextContent('[10]');
+    });
+  });
+
+  describe('Value', () => {
+    const value = () => document.querySelector('[data-dk-part="daterangepicker-value"]');
+
+    function WithTrigger({
+      trigger: triggerContent,
+      label = true,
+      ...props
+    }: TestProps & {
+      trigger: ReactNode;
+      label?: boolean;
+    }) {
+      return (
+        <DateRangePicker locale="en-US" timeZone={tz} {...props}>
+          {label && <DateRangePicker.Label>Period</DateRangePicker.Label>}
+          <DateRangePicker.Trigger>{triggerContent}</DateRangePicker.Trigger>
+        </DateRangePicker>
+      );
+    }
+
+    const icon = (
+      <svg aria-hidden="true" data-testid="icon" width="12" height="12">
+        <title>Calendar</title>
+      </svg>
+    );
+
+    it('is the default content of Trigger, with data-placeholder while empty', async () => {
+      const screen = await render(<Picker value={null} />);
+      expect(value()?.tagName).toBe('SPAN');
+      expect(value()).toHaveTextContent('Pick dates');
+      expect(value()).toHaveAttribute('data-placeholder', '');
+
+      await screen.rerender(<Picker value={march} />);
+      await expect.element(trigger()).toHaveAccessibleName(/^Period Mar 10\s–\s14, 2026$/);
+      expect(value()).toHaveTextContent('Mar 10 – 14, 2026');
+      expect(value()).not.toHaveAttribute('data-placeholder');
+    });
+
+    it('accepts className as a function of state, render, ref and children as a function', async () => {
+      const ref = { current: null as HTMLSpanElement | null };
+      await render(
+        <WithTrigger
+          defaultValue={march}
+          trigger={
+            <DateRangePicker.Value
+              ref={ref}
+              className={({ value }) => (value ? 'has-value' : 'empty')}
+              render={(props) => <span {...props} data-custom="" />}
+            >
+              {({ formattedValue }) => `From ${formattedValue}`}
+            </DateRangePicker.Value>
+          }
+        />,
+      );
+      expect(ref.current).toBeInstanceOf(HTMLSpanElement);
+      expect(ref.current).toHaveClass('has-value');
+      expect(ref.current).toHaveAttribute('data-custom', '');
+      expect(ref.current).toHaveAttribute('data-dk-part', 'daterangepicker-value');
+      expect(ref.current).toHaveTextContent('From Mar 10 – 14, 2026');
+      await expect.element(trigger()).toHaveAccessibleName(/^Period From Mar 10\s–\s14, 2026$/);
+    });
+
+    it('takes a placeholder and children', async () => {
+      await render(
+        <WithTrigger
+          trigger={
+            <>
+              <DateRangePicker.Value placeholder="Any time" />
+              <DateRangePicker.Value>Fixed</DateRangePicker.Value>
+            </>
+          }
+          label={false}
+        />,
+      );
+      await expect.element(page.getByText('Any time')).toHaveAttribute('data-placeholder', '');
+      await expect.element(page.getByText('Fixed')).toHaveAttribute('data-dk-part', 'daterangepicker-value');
+    });
+
+    it('leaves an icon next to Value out of the button name', async () => {
+      const screen = await render(
+        <WithTrigger
+          defaultValue={march}
+          trigger={
+            <>
+              <DateRangePicker.Value />
+              {icon}
+            </>
+          }
+        />,
+      );
+      await expect.element(trigger()).toHaveAccessibleName(/^Period Mar 10\s–\s14, 2026$/);
+      expect(trigger().element().querySelector('[data-testid="icon"]')).not.toBeNull();
+      await expectNoA11yViolations(screen.container);
+    });
+
+    it('without a Value, the name is the label plus the button content', async () => {
+      const screen = await render(
+        <WithTrigger
+          defaultValue={march}
+          trigger={
+            <>
+              {icon}
+              <span>Last week</span>
+            </>
+          }
+        />,
+      );
+      await expect.element(trigger()).toHaveAccessibleName('Period Last week');
+      expect(screen.container.querySelector('[data-dk-part="daterangepicker-value"]')).toBeNull();
+      await expectNoA11yViolations(screen.container);
+    });
+
+    it('keeps function children of Trigger in the name without a wrapper', async () => {
+      await render(
+        <DateRangePicker locale="en-US" timeZone={tz} defaultValue={march}>
+          <DateRangePicker.Label>Range</DateRangePicker.Label>
+          <DateRangePicker.Trigger>{({ formattedValue }) => `Dates: ${formattedValue}`}</DateRangePicker.Trigger>
+        </DateRangePicker>,
+      );
+      const button = page.getByRole('button', { name: /^Range/ });
+      await expect.element(button).toHaveAccessibleName(/^Range Dates: Mar 10\s–\s14, 2026$/);
+      expect(button.element().querySelector('[data-dk-part]')).toBeNull();
+    });
+
+    it('without a Label, the name comes from the content', async () => {
+      const screen = await render(
+        <WithTrigger
+          label={false}
+          trigger={
+            <>
+              <DateRangePicker.Value placeholder="Pick dates" />
+              {icon}
+            </>
+          }
+        />,
+      );
+      await expect.element(page.getByRole('button')).toHaveAccessibleName('Pick dates');
+      await expect.element(page.getByRole('button')).not.toHaveAttribute('aria-labelledby');
+      await expectNoA11yViolations(screen.container);
+    });
+
+    it('switches the trigger name to the Value while one is mounted', async () => {
+      function Toggle() {
+        const [show, setShow] = useState(true);
+        return (
+          <>
+            <WithTrigger
+              defaultValue={march}
+              trigger={
+                <>
+                  {show && <DateRangePicker.Value />}
+                  <span>Edit</span>
+                </>
+              }
+            />
+            <button type="button" onClick={() => setShow(false)}>
+              Hide value
+            </button>
+          </>
+        );
+      }
+      await render(<Toggle />);
+      await expect.element(trigger()).toHaveAccessibleName(/^Period Mar 10\s–\s14, 2026$/);
+      await userEvent.click(page.getByRole('button', { name: 'Hide value' }));
+      await expect.element(trigger()).toHaveAccessibleName('Period Edit');
+    });
+
+    it('the hook keeps getTriggerValueProps and has registerValue', async () => {
+      const { result } = await renderHook(() => useDateRangePicker({ locale: 'en-US', timeZone: tz, id: 'p' }));
+      expect(result.current.getTriggerValueProps()).toEqual({
+        id: 'p-value',
+        'data-dk-part': 'daterangepicker-value',
+        'data-placeholder': '',
+      });
+      expectTypeOf(result.current.registerValue).toEqualTypeOf<() => () => void>();
     });
   });
 

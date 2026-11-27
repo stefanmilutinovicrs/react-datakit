@@ -182,6 +182,35 @@ export const CustomPresets: Story = {
   ),
 };
 
+export const TriggerWithIcon: Story = {
+  name: 'Trigger with icon',
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Compose the trigger from `Value` and your own content. The name of the button stays the label plus the value, so keep the rest decorative (`aria-hidden`).',
+      },
+    },
+  },
+  render: () => (
+    <DateRangePicker>
+      <DateRangePicker.Label>Period</DateRangePicker.Label>
+      <DateRangePicker.Trigger>
+        <DateRangePicker.Value placeholder="Pick a period" />
+        <svg aria-hidden="true" width="12" height="12" viewBox="0 0 12 12" style={{ marginInlineStart: 'auto' }}>
+          <path d="M2 4.5 6 8.5 10 4.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
+        </svg>
+      </DateRangePicker.Trigger>
+      <DateRangePicker.Popover>
+        <DateRangePicker.Presets aria-label="Presets" />
+        <DateRangePicker.PrevMonth />
+        <DateRangePicker.NextMonth />
+        <DateRangePicker.Months />
+      </DateRangePicker.Popover>
+    </DateRangePicker>
+  ),
+};
+
 const customTheme = { '--dk-accent': '#be185d', '--dk-radius': '16px' } as CSSProperties;
 // Fixed, so the calendar opens on March 2026 whatever today, the time zone or the locale is.
 const themedRange: DateRange = {
