@@ -74,6 +74,16 @@
         "default": "./dist/daterangepicker/index.cjs"
       }
     },
+    "./filterbar/schema": {
+      "import": {
+        "types": "./dist/filterbar/schema/index.d.ts",
+        "default": "./dist/filterbar/schema/index.js"
+      },
+      "require": {
+        "types": "./dist/filterbar/schema/index.d.cts",
+        "default": "./dist/filterbar/schema/index.cjs"
+      }
+    },
     "./styles.css": {
       "types": "./dist/styles.css.d.cts",
       "default": "./dist/styles.css"
@@ -99,7 +109,7 @@
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:package": "publint && attw --pack . --profile node16",
+    "check:package": "publint && attw --pack . --profile node16 && node scripts/check-server-entry.ts",
     "size": "size-limit",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",

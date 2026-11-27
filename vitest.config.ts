@@ -18,7 +18,12 @@ export default defineConfig({
   test: {
     projects: [
       {
-        test: { name: 'node', include: ['eslint-rules/**/*.test.js'], environment: 'node' },
+        // The filter schema is imported by server code, so its tests also run without a DOM.
+        test: {
+          name: 'node',
+          include: ['eslint-rules/**/*.test.js', 'src/filterbar/schema/**/*.test.ts'],
+          environment: 'node',
+        },
       },
       ...browsers.map((browser) => ({
         extends: true,
