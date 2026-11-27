@@ -953,20 +953,49 @@
   }
 
   /* The options are the editor's content, so they sit in the dialog instead of floating. */
-  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox']) {
+  :where([data-dk-part='filterbar-editor'] :is([data-dk-part='combobox'], [data-dk-part='multiselect'])) {
     display: flex;
+    gap: 8px;
     min-width: 0;
   }
 
-  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox-popup']) {
+  :where([data-dk-part='filterbar-editor'] :is([data-dk-part='combobox-popup'], [data-dk-part='multiselect-popup'])) {
     position: static;
     padding: 0;
     border: 0;
     box-shadow: none;
   }
 
-  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox-list']) {
+  :where([data-dk-part='filterbar-editor'] :is([data-dk-part='combobox-list'], [data-dk-part='multiselect-list'])) {
     max-height: 14rem;
+  }
+
+  /* A range: both ends on one line, the error and Apply below them. */
+  :where([data-dk-part='filterbar-editor'][data-arity='range']) {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  :where([data-dk-part='filterbar-editor'][data-arity='range'] [data-dk-part='filterbar-editor-input']) {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  :where([data-dk-part='filterbar-editor'][data-arity='range'] [data-dk-part='filterbar-editor-error']) {
+    flex-basis: 100%;
+  }
+
+  :where([data-dk-part='filterbar-editor'][data-arity='range'] [data-dk-part='filterbar-editor-apply']) {
+    margin-inline-start: auto;
+  }
+
+  /* A date chip's value is the trigger of a DateRangePicker, whose root only wraps it here. */
+  :where([data-dk-part='filterbar-chip'] [data-dk-part='daterangepicker']) {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 0;
+    min-width: 0;
   }
 
   /* Only one menu or editor is open at a time, so the open chip is the one anchor; the
@@ -978,6 +1007,11 @@
 
     :where([data-dk-part='filterbar-chip'][data-open]) {
       anchor-name: --dk-filterbar-chip;
+    }
+
+    /* The DateRangePicker popover keeps its own anchor: the value segment that is its trigger. */
+    :where([data-dk-part='daterangepicker'] > [data-dk-part='filterbar-value']) {
+      anchor-name: --dk-daterangepicker;
     }
 
     :where([data-dk-part='filterbar-operator-menu'], [data-dk-part='filterbar-editor']) {

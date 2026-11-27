@@ -4,7 +4,7 @@ import { page, server, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { Combobox } from '../combobox';
 import { DateRangePicker } from '../daterangepicker';
-import { FilterBar, enumField, textField } from '../filterbar';
+import { FilterBar, dateField, enumField, textField } from '../filterbar';
 import { MultiSelect } from '../multiselect';
 import { mix, toHex, toRgb, type Rgb } from '../test/color';
 import { emulateMedia } from '../test/media';
@@ -73,6 +73,7 @@ function Picker() {
 const barFields = [
   textField({ key: 'title', label: 'Title' }),
   enumField({ key: 'kind', label: 'Kind', items, ...itemProps }),
+  dateField({ key: 'created', label: 'Created', timeZone: 'UTC' }),
 ];
 
 function Bar() {
@@ -330,6 +331,26 @@ describe('theme', () => {
       expectColor(operator.outlineColor, '#be185d');
       expect(operator.boxShadow).toBe('none');
       expect(getComputedStyle(part('filterbar-chip')).outlineStyle).toBe('none');
+    });
+
+    it('the date segment of a FilterBar is a segment: one ring inside it, and its popover stays at 12px or less', async () => {
+      await render(
+        <div data-dk-theme="light" style={{ ...accent('#be185d'), '--dk-radius': '999px' } as CSSProperties}>
+          <FilterBar
+            fields={barFields}
+            defaultValue={[{ field: 'created', op: 'between', value: { start: '2026-03-01', end: '2026-03-14' } }]}
+          />
+        </div>,
+      );
+      await userEvent.tab();
+      await userEvent.keyboard('{ArrowRight}');
+      const value = getComputedStyle(part('filterbar-value'));
+      expect(value.outlineStyle).toBe('solid');
+      expect(value.outlineOffset).toBe('-2px');
+      expect(value.boxShadow).toBe('none');
+      expect(value.borderTopWidth).toBe('0px');
+      await userEvent.keyboard('{Enter}');
+      expect(parseFloat(getComputedStyle(part('daterangepicker-popover')).borderRadius)).toBeLessThanOrEqual(12);
     });
 
     // Playwright can't emulate forced colors in WebKit, which has no forced colors mode.

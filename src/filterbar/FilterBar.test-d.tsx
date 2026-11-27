@@ -1,7 +1,11 @@
 import { useState } from 'react';
 import { expectTypeOf } from 'vitest';
 import {
+  DateEditor,
+  EnumEditor,
   FilterBar,
+  MultiEnumEditor,
+  NumberEditor,
   enumField,
   numberField,
   textField,
@@ -9,6 +13,7 @@ import {
   type Filter,
   type FilterBarChip,
   type FilterEditorProps,
+  type FilterEditors,
 } from './index';
 
 const fields = [
@@ -60,3 +65,16 @@ export function Typed() {
     </>
   );
 }
+
+// The built-in editors take the value shape of their type, and fit `editors` for any type.
+expectTypeOf<Parameters<typeof NumberEditor>[0]['value']>().toEqualTypeOf<
+  number | readonly [number, number] | undefined
+>();
+expectTypeOf<Parameters<typeof MultiEnumEditor>[0]['value']>().toEqualTypeOf<readonly string[] | undefined>();
+expectTypeOf<Parameters<typeof EnumEditor>[0]['value']>().toEqualTypeOf<string | undefined>();
+expectTypeOf({
+  amount: NumberEditor,
+  tags: MultiEnumEditor,
+  when: DateEditor,
+  kind: EnumEditor,
+}).toExtend<FilterEditors>();

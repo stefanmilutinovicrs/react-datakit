@@ -27,7 +27,7 @@ Headless, accessible React components for data-heavy apps: admin panels, dashboa
 | Combobox        | Pick one value from a long, searchable list       | experimental |
 | MultiSelect     | Pick several values, shown as removable chips     | experimental |
 | DateRangePicker | Pick a period for dashboards, with presets        | experimental |
-| FilterBar       | Linear/Notion-style filters, serialized to a URL  | planned      |
+| FilterBar       | Linear/Notion-style filters, serialized to a URL  | experimental |
 | Sparkline       | Tiny pure-SVG chart for table cells and KPI cards | planned      |
 
 Experimental components may change their API in minor versions before 1.0. Check the [release notes](https://github.com/stefanmilutinovicrs/react-datakit/releases) when you upgrade.
@@ -121,6 +121,100 @@ export function AssigneePicker() {
 
 `groupLabel` is optional; without it the heading shows the group key. Screen readers announce the group of the highlighted option.
 
+### FilterBar
+
+FilterBar shows filters as chips of field, operator and value, like the filter bars of issue trackers. Its value is a plain array that goes into the URL and comes back out of it, on the server too.
+
+Declare the fields in a module without `"use client"`, so the server and the client can both import it. They come from `react-datakit/filterbar/schema`, which has no React and no `"use client"`:
+
+```ts
+// app/issues/fields.ts
+import { dateField, enumField, multiEnumField, numberField, textField } from 'react-datakit/filterbar/schema';
+import type { Filter } from 'react-datakit/filterbar/schema';
+
+export const fields = [
+  textField({ key: 'title', label: 'Title' }),
+  enumField({
+    key: 'status',
+    label: 'Status',
+    items: statuses,
+    itemToKey: (s) => s.id,
+    itemToString: (s) => s?.name ?? '',
+  }),
+  multiEnumField({
+    key: 'owner',
+    label: 'Owner',
+    group: 'People',
+    items: users,
+    itemToKey: (u) => u.id,
+    itemToString: (u) => u?.name ?? '',
+  }),
+  numberField({ key: 'estimate', label: 'Estimate', integer: true, min: 0 }),
+  dateField({ key: 'created', label: 'Created', timeZone: 'Europe/Belgrade' }),
+];
+export type IssueFilter = Filter<typeof fields>;
+```
+
+A server component reads the filters from the URL and queries with them. Entries it can't read (an unknown field, an invalid value) are left out and listed in `errors`; it never throws:
+
+```tsx
+// app/issues/page.tsx
+import { filtersFromSearchParams } from 'react-datakit/filterbar/schema';
+import { fields } from './fields';
+import { IssueFilters } from './IssueFilters';
+
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const { filters } = filtersFromSearchParams(await searchParams, fields);
+  const issues = await getIssues(filters);
+  return (
+    <>
+      <IssueFilters />
+      <IssueList issues={issues} />
+    </>
+  );
+}
+```
+
+The bar lives in a client file and writes each change back to the URL, keeping the other parameters:
+
+```tsx
+// app/issues/IssueFilters.tsx
+'use client';
+
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo } from 'react';
+import { FilterBar } from 'react-datakit/filterbar';
+import { filtersFromSearchParams, filtersToSearchParams } from 'react-datakit/filterbar/schema';
+import { fields } from './fields';
+
+export function IssueFilters() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const value = useMemo(() => filtersFromSearchParams(params, fields).filters, [params]);
+  return (
+    <FilterBar
+      fields={fields}
+      value={value}
+      onChange={(next) => router.replace(`${pathname}?${filtersToSearchParams(next, fields, params)}`)}
+    />
+  );
+}
+```
+
+Use `router.push` instead of `router.replace` when each change should be a step in the browser history.
+
+The URL has one `filter` parameter per filter, as `field.op.value`: `?filter=status.is.open&filter=owner.isAnyOf.ana,bojan&filter=estimate.between.1..5&filter=created.between.2026-03-01..2026-03-14`. Field and operator keys are the contract, so labels can change and translations don't change links; `aliases` keeps an old key working after a rename. Dates are calendar days, so a link means the same days in every time zone; `toDateRange(value, timeZone)` gives the instants for a query.
+
+- **Keyboard**: the bar is one Tab stop. Arrows move between the operator, value and remove segments, Delete removes a chip, Enter opens the operator menu or the value editor.
+- **Operators**: each type has built-in operators (`textOperators`, `numberOperators`, …). Pass `operators` on a field to pick, translate or add some, e.g. `{ key: 'isEmpty', label: 'is empty', arity: 'none' }`.
+- **Custom types**: any object of the `FilterField` shape, with an editor in `editors={{ myType: MyEditor }}`. The built-in editors are exported, so you can wrap or replace them.
+- **Texts**: visible texts (field and operator labels, "Clear", "Apply") come from the fields and the parts. Screen reader texts (the toolbar name, chip names, announcements) come from `labels`.
+
 ### Next.js and server components
 
 Every entry starts with `"use client"`, so you can import the components anywhere, including a server component. The parts need a file of their own with `'use client'`, though. A server component can't use dotted names such as `Combobox.Input` from a client module, and it can't pass functions such as `itemToString` or the render prop of `Combobox.List` to one. Put the component and its parts in a client file, and pass it the data from the server:
@@ -150,6 +244,8 @@ export function AssigneePicker({ users }: { users: User[] }) {
 ```
 
 `app/page.tsx` can then stay a server component that loads `users` and renders `<AssigneePicker users={users} />`. Import `react-datakit/styles.css` in `app/layout.tsx`.
+
+`react-datakit/filterbar/schema` is the one entry without `"use client"`: it has no React, so server code can call its functions, such as `filtersFromSearchParams`. The root entry `react-datakit` re-exports it, but as a client module, so server code imports the subpath.
 
 ## Theming
 

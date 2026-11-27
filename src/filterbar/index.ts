@@ -14,7 +14,7 @@ export type {
   FilterBarValueProps,
   FilterBarValueState,
 } from './Chips';
-export { EnumEditor, TextEditor } from './Editor';
+export { DateEditor, EnumEditor, MultiEnumEditor, NumberEditor, TextEditor } from './Editor';
 export type {
   FilterBarEditorApplyProps,
   FilterBarEditorErrorProps,

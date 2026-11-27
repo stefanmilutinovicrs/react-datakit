@@ -1,7 +1,17 @@
-import { forwardRef, type ReactNode, type Ref } from 'react';
-import { Part, type PartProps } from '../shared';
+import { forwardRef, useEffect, useMemo, useRef, type ReactNode, type Ref } from 'react';
+import { DateRangePicker } from '../daterangepicker/DateRangePicker';
+import { mergeProps, Part, type PartProps } from '../shared';
+import {
+  endOfDayInZone,
+  fromDateKey,
+  getLocalTimeZone,
+  startOfDayInZone,
+  toCalendarDate,
+  toDateKey,
+} from '../shared/date';
 import { ChipContext, useChipContext, useFilterBarContext } from './context';
-import type { FilterOperator } from './schema';
+import { DateEditor } from './Editor';
+import type { DateFilterField, FilterDateRange, FilterOperator } from './schema';
 import type { FilterBarChip, FilterBarPopup } from './useFilterBar';
 
 export interface FilterBarChipsState {
@@ -120,13 +130,85 @@ export const Value = forwardRef<HTMLButtonElement, FilterBarValueProps>(function
   const chip = useChipContext('Value');
   if ((chip.operator.arity ?? 'single') === 'none') return null;
   const text = chip.valueText;
-  const ours = {
-    ...bar.getValueProps(chip),
-    children: children ? children(text, chip) : text || 'Select…',
-  };
+  const content = children ? children(text, chip) : text || 'Select…';
   const state = { text, placeholder: text === '', open: chip.open === 'value', readOnly: chip.readOnly };
+  if (bar.editorFor(chip.field) === DateEditor)
+    return <DateValue chip={chip} content={content} state={state} partProps={props} forwardedRef={ref} />;
+  const ours = { ...bar.getValueProps(chip), children: content };
   return <Part tag="button" state={state} ours={ours} theirs={props} forwardedRef={ref} />;
 });
+
+/**
+ * The value of a date chip: the trigger of a DateRangePicker, whose dialog is the editor. The picker reads and
+ * writes instants in the field's time zone; the filter keeps calendar days.
+ */
+function DateValue({
+  chip,
+  content,
+  state,
+  partProps,
+  forwardedRef,
+}: {
+  chip: FilterBarChip;
+  content: ReactNode;
+  state: FilterBarValueState;
+  partProps: Omit<FilterBarValueProps, 'children'>;
+  forwardedRef: Ref<HTMLButtonElement>;
+}) {
+  const bar = useFilterBarContext('Value');
+  const field = chip.field as DateFilterField<string, readonly FilterOperator[]>;
+  const timeZone = field.timeZone ?? getLocalTimeZone();
+  const days = (chip.filter as { value?: FilterDateRange } | null)?.value;
+  const value = useMemo(() => {
+    const start = days && fromDateKey(days.start);
+    const end = days && fromDateKey(days.end);
+    return start && end ? { start: startOfDayInZone(start, timeZone), end: endOfDayInZone(end, timeZone) } : null;
+  }, [days, timeZone]);
+  // A pick closes the picker right after onChange; that close must not cancel the commit.
+  const committed = useRef(false);
+  // DateRangePicker moves focus into the calendar when it opens, but a new chip mounts already open.
+  const popoverRef = useRef<HTMLDivElement>(null);
+  const openOnMount = useRef(chip.open === 'value');
+  useEffect(() => {
+    if (openOnMount.current) popoverRef.current?.querySelector<HTMLElement>('[data-date][tabindex="0"]')?.focus();
+  }, []);
+  const { render, ...rest } = partProps;
+  return (
+    <DateRangePicker
+      timeZone={timeZone}
+      locale={bar.locale}
+      value={value}
+      open={chip.open === 'value'}
+      onOpenChange={(open) => {
+        if (open) bar.openEditor(chip.index);
+        else if (!committed.current) bar.close();
+        committed.current = false;
+      }}
+      onChange={(range) => {
+        if (!range) return;
+        committed.current = true;
+        bar.getEditorComponentProps()?.onCommit({
+          start: toDateKey(toCalendarDate(range.start, timeZone)),
+          end: toDateKey(toCalendarDate(range.end, timeZone)),
+        } as never);
+      }}
+    >
+      <DateRangePicker.Trigger
+        {...mergeProps(bar.getValueProps(chip), rest)}
+        render={render ? (props) => render(props, state) : undefined}
+        ref={forwardedRef}
+      >
+        {content}
+      </DateRangePicker.Trigger>
+      <DateRangePicker.Popover ref={popoverRef} aria-labelledby={bar.getEditorInputProps()['aria-labelledby']}>
+        <DateRangePicker.Presets aria-label={bar.labels.presets} />
+        <DateRangePicker.PrevMonth />
+        <DateRangePicker.NextMonth />
+        <DateRangePicker.Months />
+      </DateRangePicker.Popover>
+    </DateRangePicker>
+  );
+}
 
 export type FilterBarRemoveProps = PartProps<'button', { index: number }>;
 

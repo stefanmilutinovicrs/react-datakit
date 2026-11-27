@@ -7,6 +7,7 @@ import { Combobox } from '../combobox';
 import * as comboboxStories from '../combobox/Combobox.stories';
 import { DateRangePicker } from '../daterangepicker';
 import * as dateRangePickerStories from '../daterangepicker/DateRangePicker.stories';
+import { FilterBar, dateField, enumField, multiEnumField, numberField, textField } from '../filterbar';
 import { MultiSelect } from '../multiselect';
 import * as multiSelectStories from '../multiselect/MultiSelect.stories';
 import './theme.css';
@@ -160,6 +161,54 @@ function Period() {
   );
 }
 
+const statuses = [
+  { id: 'open', name: 'Open' },
+  { id: 'in-review', name: 'In review' },
+  { id: 'done', name: 'Done' },
+];
+const areas = [
+  { id: 'bug', area: 'Fixes' },
+  { id: 'frontend', area: 'Work' },
+  { id: 'design', area: 'Work' },
+  { id: 'docs', area: 'Work' },
+];
+const barFields = [
+  textField({ key: 'title', label: 'Title' }),
+  enumField({
+    key: 'status',
+    label: 'Status',
+    items: statuses,
+    itemToKey: (s) => s.id,
+    itemToString: (s) => s?.name ?? '',
+  }),
+  numberField({ key: 'estimate', label: 'Estimate', integer: true, min: 0 }),
+  dateField({ key: 'created', label: 'Created', timeZone: 'UTC' }),
+  multiEnumField({
+    key: 'labels',
+    label: 'Labels',
+    items: areas,
+    itemToKey: (a) => a.id,
+    itemToString: (a) => a?.id ?? '',
+    groupBy: (a) => a.area,
+  }),
+];
+
+function Filters() {
+  return (
+    <FilterBar
+      fields={barFields}
+      locale="en-US"
+      defaultValue={[
+        { field: 'status', op: 'isNot', value: 'done' },
+        { field: 'title', op: 'contains', value: 'checkout' },
+        { field: 'estimate', op: 'between', value: [1, 5] },
+        { field: 'created', op: 'between', value: { start: '2026-11-02', end: '2026-11-08' } },
+        { field: 'labels', op: 'isAnyOf', value: ['bug', 'frontend'] },
+      ]}
+    />
+  );
+}
+
 // Each opens with the keyboard, so no pointer hovers an option.
 async function open(name: RegExp | string, keys = '{ArrowDown}') {
   const field = page.getByRole('combobox', { name }).or(page.getByRole('button', { name }));
@@ -234,6 +283,35 @@ describe('visual', () => {
       await open(/^Period/);
       await expect.element(page.getByRole('dialog')).toBeVisible();
       await expect(frame()).toMatchScreenshot(`daterangepicker-${accent}-${theme}`);
+    });
+
+    it('FilterBar chips', async () => {
+      await render(
+        <Frame theme={theme}>
+          <Filters />
+        </Frame>,
+      );
+      await expect.element(page.getByRole('toolbar')).toBeVisible();
+      await expect(frame()).toMatchScreenshot(`filterbar-chips-${theme}`);
+    });
+
+    it.each([
+      ['menu', 'Status is not', () => page.getByRole('menu')],
+      ['text-editor', 'Title contains checkout', () => page.getByRole('dialog')],
+      ['enum-editor', 'Status is not Done', () => page.getByRole('option', { name: 'Open' })],
+      ['number-editor', 'Estimate is between 1 – 5', () => page.getByRole('dialog')],
+      ['multienum-editor', 'Labels is any of bug, frontend', () => page.getByRole('option', { name: 'docs' })],
+      ['date-editor', /^Created is between Nov 2\s*–\s*8, 2026$/, () => page.getByRole('dialog')],
+    ] as const)('FilterBar %s open', async (name, segment, popup) => {
+      await render(
+        <Frame theme={theme}>
+          <Filters />
+        </Frame>,
+      );
+      (page.getByRole('button', { name: segment, exact: true }).element() as HTMLElement).focus();
+      await userEvent.keyboard('{Enter}');
+      await expect.element(popup()).toBeVisible();
+      await expect(frame()).toMatchScreenshot(`filterbar-${name}-${theme}`);
     });
 
     it.each([
