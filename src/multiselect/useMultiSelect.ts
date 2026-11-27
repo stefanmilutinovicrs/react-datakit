@@ -160,7 +160,7 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
       else if (row.type === 'select-all') {
         if (allSelected(items)) remove(items);
         else add(items);
-      } else if (onCreate) {
+      } else if (row.type === 'create' && onCreate) {
         const created = onCreate(row.query);
         if (created instanceof Promise)
           void created.then(
