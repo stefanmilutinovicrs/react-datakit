@@ -121,7 +121,11 @@ interface Tag {
 }
 
 const tags: Tag[] = ['bug', 'feature', 'frontend', 'design'].map((id) => ({ id }));
-const tagProps = { itemToString: (tag: Tag | null) => tag?.id ?? '', itemToKey: (tag: Tag) => tag.id };
+const tagProps = {
+  itemToString: (tag: Tag | null) => tag?.id ?? '',
+  itemToKey: (tag: Tag) => tag.id,
+  groupBy: (tag: Tag) => (tag.id === 'bug' ? 'Fixes' : 'Work'),
+};
 const DAY = 86_400_000;
 const now = Date.now();
 const aroundToday = { start: new Date(now - 3 * DAY), end: new Date(now + 3 * DAY) };
@@ -232,6 +236,7 @@ describe('contrast of what axe skips', () => {
       check('selected check', pseudo(selected, '::after').backgroundColor, backgroundOf(selected), 3);
       text('highlighted option', one('[data-dk-part="combobox-option"][data-highlighted]'));
       text('count', one('[data-dk-part="combobox-count"]'));
+      for (const heading of all('[data-dk-part="combobox-group-label"]')) text('group label', heading);
       await userEvent.keyboard('{Escape}');
 
       await userEvent.click(page.getByRole('combobox', { name: 'Labels' }));
@@ -246,6 +251,7 @@ describe('contrast of what axe skips', () => {
         }
       }
       text('highlighted multiselect option', one('[data-dk-part="multiselect-option"][data-highlighted]'));
+      for (const heading of all('[data-dk-part="multiselect-group-label"]')) text('group label', heading);
       await userEvent.keyboard('{Escape}');
 
       await userEvent.click(page.getByRole('button', { name: /^Period/ }));

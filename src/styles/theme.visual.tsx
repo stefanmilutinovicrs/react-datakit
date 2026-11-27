@@ -96,6 +96,55 @@ function Labels() {
   );
 }
 
+const team = (person: Person) => (person.id < 2 ? 'Design' : 'Platform');
+
+function GroupedOwner() {
+  return (
+    <Combobox items={people} itemToString={(p) => p?.name ?? ''} itemToKey={(p) => p.id} groupBy={team}>
+      <Combobox.Label>Owner</Combobox.Label>
+      <Combobox.Control>
+        <Combobox.Input placeholder="Search people…" />
+      </Combobox.Control>
+      <Combobox.Popup>
+        <Combobox.List>
+          {(person: Person) => <Combobox.Option item={person}>{person.name}</Combobox.Option>}
+        </Combobox.List>
+      </Combobox.Popup>
+    </Combobox>
+  );
+}
+
+function GroupedReviewers() {
+  return (
+    <MultiSelect
+      items={people}
+      defaultValue={people.slice(2, 3)}
+      selectAll
+      itemToString={(p) => p?.name ?? ''}
+      itemToKey={(p) => p.id}
+      groupBy={team}
+    >
+      <MultiSelect.Label>Reviewers</MultiSelect.Label>
+      <MultiSelect.Control style={{ width: 360 }}>
+        <MultiSelect.Chips>
+          {(person: Person) => (
+            <MultiSelect.Chip>
+              {person.name}
+              <MultiSelect.ChipRemove />
+            </MultiSelect.Chip>
+          )}
+        </MultiSelect.Chips>
+        <MultiSelect.Input placeholder="Add reviewers…" />
+      </MultiSelect.Control>
+      <MultiSelect.Popup>
+        <MultiSelect.List>
+          {(person: Person) => <MultiSelect.Option item={person}>{person.name}</MultiSelect.Option>}
+        </MultiSelect.List>
+      </MultiSelect.Popup>
+    </MultiSelect>
+  );
+}
+
 function Period() {
   return (
     <DateRangePicker locale="en-US" timeZone="UTC" defaultValue={week}>
@@ -152,6 +201,28 @@ describe('visual', () => {
       await open('Labels', '{ArrowDown}{ArrowDown}{ArrowDown}');
       await expect.element(page.getByRole('listbox')).toBeVisible();
       await expect(frame()).toMatchScreenshot(`multiselect-${theme}`);
+    });
+
+    it('Combobox open with groups', async () => {
+      await render(
+        <Frame theme={theme}>
+          <GroupedOwner />
+        </Frame>,
+      );
+      await open('Owner', '{ArrowDown}{ArrowDown}{ArrowDown}');
+      await expect.element(page.getByRole('group', { name: 'Platform' })).toBeInTheDocument();
+      await expect(frame()).toMatchScreenshot(`combobox-grouped-${theme}`);
+    });
+
+    it('MultiSelect open with groups and select all', async () => {
+      await render(
+        <Frame theme={theme}>
+          <GroupedReviewers />
+        </Frame>,
+      );
+      await open('Reviewers', '{ArrowDown}{ArrowDown}');
+      await expect.element(page.getByRole('group', { name: 'Platform' })).toBeInTheDocument();
+      await expect(frame()).toMatchScreenshot(`multiselect-grouped-${theme}`);
     });
 
     it.each(['indigo', 'teal', 'violet', 'blue'])('DateRangePicker open with a range and today, %s', async (accent) => {

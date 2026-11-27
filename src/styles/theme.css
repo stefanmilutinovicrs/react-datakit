@@ -263,6 +263,19 @@
     text-overflow: ellipsis;
   }
 
+  :where([data-dk-part='combobox-group-label'], [data-dk-part='multiselect-group-label']) {
+    display: flex;
+    align-items: flex-end;
+    padding: 0 8px 6px;
+    color: var(--_dk-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: default;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
   :where(
     [data-dk-part='combobox-option'][data-highlighted],
     [data-dk-part='multiselect-option'][data-highlighted],
