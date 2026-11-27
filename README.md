@@ -101,6 +101,26 @@ export function AssigneePicker() {
 
 `loadOptions` is debounced, aborted when a newer query starts and cached per query. For a short static list, pass `items` instead; it is filtered locally.
 
+### Option groups
+
+`groupBy` puts options under headings, with `items` or `loadOptions`. Groups keep the order in which they first appear, and empty ones disappear while filtering:
+
+```tsx
+<Combobox items={owners} groupBy={(owner) => owner.kind} itemToString={(o) => o?.name ?? ''} itemToKey={(o) => o.id}>
+  <Combobox.Label>Owner</Combobox.Label>
+  <Combobox.Input />
+  <Combobox.Popup>
+    <Combobox.List
+      groupLabel={(group) => <Combobox.GroupLabel>{`${group.key} (${group.items.length})`}</Combobox.GroupLabel>}
+    >
+      {(owner: Owner) => <Combobox.Option item={owner}>{owner.name}</Combobox.Option>}
+    </Combobox.List>
+  </Combobox.Popup>
+</Combobox>
+```
+
+`groupLabel` is optional; without it the heading shows the group key. Screen readers announce the group of the highlighted option.
+
 ### Next.js and server components
 
 Every entry starts with `"use client"`, so you can import the components anywhere, including a server component. The parts need a file of their own with `'use client'`, though. A server component can't use dotted names such as `Combobox.Input` from a client module, and it can't pass functions such as `itemToString` or the render prop of `Combobox.List` to one. Put the component and its parts in a client file, and pass it the data from the server:
