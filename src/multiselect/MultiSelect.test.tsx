@@ -332,6 +332,27 @@ describe('MultiSelect', () => {
       await expect.element(input()).toHaveFocus();
     });
 
+    it('the remove button keeps focus where it was on mousedown', async () => {
+      await render(
+        <>
+          <button type="button">Before</button>
+          <UserMultiSelect items={users} defaultValue={[ana, bojan]} />
+        </>,
+      );
+      const before = page.getByRole('button', { name: 'Before' });
+      (before.element() as HTMLElement).focus();
+      const remove = page.getByRole('button', { name: 'Remove Ana' }).element();
+      const focusedAtMouseUp: (Element | null)[] = [];
+      const record = () => focusedAtMouseUp.push(document.activeElement);
+      remove.addEventListener('mouseup', record);
+      await userEvent.click(remove);
+      remove.removeEventListener('mouseup', record);
+
+      expect(focusedAtMouseUp).toEqual([before.element()]);
+      expect(chipNames()).toEqual(['Bojan']);
+      await expect.element(input()).toHaveFocus();
+    });
+
     it('chips are not tab stops; Tab goes from the input to the next control', async () => {
       await render(
         <>
@@ -622,6 +643,18 @@ describe('MultiSelect', () => {
       await userEvent.keyboard('{Backspace}');
       expect(onChange).toHaveBeenLastCalledWith(many.slice(0, 7));
       await expect.element(page.getByRole('status')).toHaveTextContent('Person 7 removed');
+    });
+
+    // Reaching a cut chip scrolls the clipped row (Playwright here, a touch screen reader's tap for
+    // users); expanding on mousedown reset that scroll and moved the button before mouseup.
+    it('removes a cut chip with one click on its remove button while focus is outside', async () => {
+      await renderMany();
+      await userEvent.click(page.getByRole('button', { name: 'Outside' }));
+      expect(allChips().at(-1)?.hasAttribute('data-overflow')).toBe(true);
+
+      await userEvent.click(page.getByRole('button', { name: 'Remove Person 7' }));
+      expect(chipNames()).toEqual(many.slice(0, 7).map((u) => u.name));
+      await expect.element(input()).toHaveFocus();
     });
 
     it('announces a chip removed with its remove button', async () => {

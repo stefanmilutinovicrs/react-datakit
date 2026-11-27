@@ -355,6 +355,12 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
       type: 'button',
       tabIndex: -1,
       'aria-label': labels.remove(itemToString(item)),
+      // Focus on mousedown would expand the chips, which resets the scroll of the clipped row and
+      // can move this button away before mouseup, so the click would be lost. The click moves
+      // focus to the input instead.
+      onMouseDown: (event) => {
+        event.preventDefault();
+      },
       onClick: () => {
         removeChip(index);
         pendingFocus.current = { type: 'input' };
