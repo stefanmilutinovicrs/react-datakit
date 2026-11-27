@@ -1,5 +1,15 @@
 # react-datakit
 
+## 0.3.0
+
+### Minor Changes
+
+- [#10](https://github.com/stefanmilutinovicrs/react-datakit/pull/10) [`b3e65b8`](https://github.com/stefanmilutinovicrs/react-datakit/commit/b3e65b824b72b68a10d6ca5cf63050696d0bd6c2) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - `DateRangePicker.Value` is a new part: the picked range (or a placeholder) inside the trigger, with `className`, `style`, `render`, a ref and `data-placeholder`. `Trigger` renders it by default, so existing code looks and is announced the same. Render it yourself to add an icon to the trigger; the button's name stays the label plus the value. Trigger `children` are no longer wrapped in a hidden span. The hook adds `registerValue`.
+
+### Patch Changes
+
+- [#12](https://github.com/stefanmilutinovicrs/react-datakit/pull/12) [`91c94a6`](https://github.com/stefanmilutinovicrs/react-datakit/commit/91c94a67ec33035c901fef3e263fd92bf30b8f1b) Thanks [@stefanmilutinovicrs](https://github.com/stefanmilutinovicrs)! - MultiSelect: a single click on a chip's remove button always removes the chip. The button no longer takes focus on mousedown, which expanded the chips and could move the button away before mouseup; focus still goes to the input after the click.
+
 ## 0.2.2
 
 ### Patch Changes
