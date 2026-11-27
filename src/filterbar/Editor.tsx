@@ -1,6 +1,6 @@
-import { createElement, forwardRef, useEffect, useRef, useState, type ReactNode } from 'react';
+import { createElement, forwardRef, useRef, useState, type ReactNode } from 'react';
 import { Control } from '../combobox/Control';
-import { mergeProps, Part, useMergedRefs, type PartProps } from '../shared';
+import { mergeProps, Part, useIsomorphicLayoutEffect, useMergedRefs, type PartProps } from '../shared';
 import { Input } from '../shared/combobox/Field';
 import { List, Option, Popup } from '../shared/combobox/Popup';
 import { RootPart } from '../shared/combobox/Root';
@@ -221,8 +221,9 @@ function useEditorOptions(props: FilterEditorProps<never>, behavior: OptionsBeha
       selectOnTab: false,
       clearOnEscape: (query) => query !== null,
       onLeave: () => {},
-      // The options are the editor, so they never close: Escape closes the dialog in one press and
-      // Tab stays in the dialog.
+      // The options are the editor, so they are open from the first render and never close: Escape
+      // closes the dialog in one press and Tab stays in the dialog.
+      initiallyOpen: true,
       onInputKeyDown: (event) => {
         if (event.key === 'Escape' || event.key === 'Tab') return true;
         if (event.key === 'ArrowUp' && event.altKey) {
@@ -239,12 +240,12 @@ function useEditorOptions(props: FilterEditorProps<never>, behavior: OptionsBeha
     },
   );
 
-  const { open, highlight, rows } = core;
-  const opened = useRef(false);
-  useEffect(() => {
-    if (opened.current) return;
-    opened.current = true;
-    open('none');
+  // Before the first paint, so the dialog never shows the options without the current value.
+  const { highlight, rows } = core;
+  const highlighted = useRef(false);
+  useIsomorphicLayoutEffect(() => {
+    if (highlighted.current) return;
+    highlighted.current = true;
     const selected = rows.findIndex((row) => row.type === 'option' && isSelected(row.item));
     if (behavior.highlightSelected && selected >= 0) highlight(selected);
   });

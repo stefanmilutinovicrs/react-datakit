@@ -358,6 +358,26 @@ describe('editing a chip', () => {
     await expect.poll(announcement).toBe('Filter changed: Status is Closed');
   });
 
+  // The options are the editor: they must be in the first render of the dialog, not a task later,
+  // or a reader (the first paint, a screen reader, a test) finds a dialog with nothing to pick.
+  it.each([
+    ['enum', [status('open')], 'Status is Open'],
+    ['multi-enum', [{ field: 'labels', op: 'isAnyOf', value: ['bug'] } as const], 'Labels is any of bug'],
+  ] as const)('renders the %s options together with the dialog', async (_, defaultValue, name) => {
+    await renderBar({ defaultValue });
+    const listboxWithFirstDialog = new Promise<boolean>((resolve) => {
+      const observer = new MutationObserver(() => {
+        const dialog = document.querySelector('[role="dialog"]');
+        if (!dialog) return;
+        observer.disconnect();
+        resolve(dialog.querySelector('[role="listbox"]') !== null);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+    await userEvent.click(button(name));
+    expect(await listboxWithFirstDialog).toBe(true);
+  });
+
   it('closes the enum editor with one Escape and keeps the value', async () => {
     const { onChange } = await renderBar({ defaultValue: [status('open')] });
     await userEvent.click(button('Status is Open'));

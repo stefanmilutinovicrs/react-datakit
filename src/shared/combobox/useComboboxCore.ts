@@ -107,6 +107,8 @@ export interface ComboboxCoreBehavior<TItem> {
   onLeave: (query: string | null) => void;
   /** Runs before the core keyboard handling; return true to stop it. */
   onInputKeyDown?: ((event: KeyboardEvent<HTMLInputElement>, query: string | null) => boolean) | undefined;
+  /** Open from the first render, for options that are always shown. */
+  initiallyOpen?: boolean | undefined;
 }
 
 export interface ComboboxCore<TItem> {
@@ -203,7 +205,7 @@ export function useComboboxCore<TItem>(
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   const [query, setQuery] = useState<string | null>(null);
-  const [isOpen, setOpen] = useState(false);
+  const [isOpen, setOpen] = useState(behavior.initiallyOpen ?? false);
   const [highlightState, setHighlightState] = useState<{ index: number; origin: HighlightOrigin }>({
     index: -1,
     origin: 'keyboard',
