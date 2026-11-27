@@ -25,6 +25,12 @@ test('the server renders every component', async ({ request }) => {
   }
 });
 
+test('a DateRangePicker with a value hydrates with the text from the server', async ({ page, request }) => {
+  const html = await (await request.get('/')).text();
+  expect(html).toContain('Mar 10 – 14, 2026');
+  await expect(page.getByRole('button', { name: /^Sprint/ })).toHaveText('Mar 10 – 14, 2026');
+});
+
 test('Combobox opens and selects a value', async ({ page }) => {
   const input = page.getByRole('combobox', { name: 'Assignee' });
   await input.click();

@@ -27,6 +27,7 @@ import {
   toDateKey,
   type CalendarDate,
 } from '../shared/date';
+import { plainSpaces } from '../shared/plainSpaces';
 import { defaultPresets, presetContextHelpers, type DateRangePreset } from './presets';
 
 export type { CalendarDate };
@@ -293,10 +294,10 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
   );
   const utc = (date: CalendarDate) => Date.UTC(date.year, date.month - 1, date.day);
   const formatMonth = useCallback(
-    (month: CalendarMonth) => formatters.month.format(Date.UTC(month.year, month.month - 1, 1)),
+    (month: CalendarMonth) => plainSpaces(formatters.month.format(Date.UTC(month.year, month.month - 1, 1))),
     [formatters],
   );
-  const formatDay = (date: CalendarDate) => formatters.day.format(utc(date));
+  const formatDay = (date: CalendarDate) => plainSpaces(formatters.day.format(utc(date)));
   const weekdays = useMemo(
     () =>
       Array.from({ length: 7 }, (_, i) => {
@@ -306,12 +307,14 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       }),
     [formatters, weekStartsOn],
   );
-  const formattedValue = value ? formatters.range.formatRange(value.start, value.end) : null;
+  const formattedValue = value ? plainSpaces(formatters.range.formatRange(value.start, value.end)) : null;
   const firstMonth = visibleMonths[0] as CalendarMonth;
   const lastMonth = visibleMonths[visibleMonths.length - 1] as CalendarMonth;
-  const visibleMonthsLabel = formatters.month.formatRange(
-    Date.UTC(firstMonth.year, firstMonth.month - 1, 1),
-    Date.UTC(lastMonth.year, lastMonth.month - 1, 1),
+  const visibleMonthsLabel = plainSpaces(
+    formatters.month.formatRange(
+      Date.UTC(firstMonth.year, firstMonth.month - 1, 1),
+      Date.UTC(lastMonth.year, lastMonth.month - 1, 1),
+    ),
   );
 
   const isDateDisabled = (date: CalendarDate): boolean => {

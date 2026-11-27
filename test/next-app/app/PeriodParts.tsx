@@ -2,10 +2,10 @@
 
 import { DateRangePicker } from 'react-datakit/daterangepicker';
 
-export function PeriodParts() {
+export function PeriodParts({ label = 'Period' }: { label?: string }) {
   return (
     <>
-      <DateRangePicker.Label>Period</DateRangePicker.Label>
+      <DateRangePicker.Label>{label}</DateRangePicker.Label>
       <DateRangePicker.Trigger>
         <DateRangePicker.Value placeholder="Pick a period" />
       </DateRangePicker.Trigger>
