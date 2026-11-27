@@ -25,5 +25,11 @@
     "import": "{ DateRangePicker }",
     "ignore": ["react", "react-dom"],
     "limit": "6.15 kB"
+  },
+  {
+    "name": "react-datakit/filterbar/schema (ESM)",
+    "path": "dist/filterbar/schema/index.js",
+    "import": "{ textField, numberField, dateField, enumField, multiEnumField, filtersFromSearchParams, filtersToSearchParams }",
+    "limit": "2.7 kB"
   }
 ]
