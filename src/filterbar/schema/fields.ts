@@ -1,5 +1,6 @@
 import { endOfDayInZone, fromDateKey, getLocalTimeZone, startOfDayInZone } from '../../shared/date';
 import { isDev } from '../../shared/isDev';
+import { plainSpaces } from '../../shared/plainSpaces';
 import {
   dateOperators,
   enumOperators,
@@ -177,11 +178,6 @@ export function textField<
     parseValue: (text) => text,
   };
 }
-
-// ICU versions differ in the spaces they put in formatted dates and numbers (Node 24 puts thin
-// spaces around a range dash where Chromium puts plain ones), so a server-rendered chip would not
-// match the client's text when it hydrates. Plain spaces are the same everywhere.
-const plainSpaces = (text: string) => text.replace(/\s/g, ' ');
 
 const NUMBER = /^-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i;
 const numberFormats = new Map<string, Intl.NumberFormat>();

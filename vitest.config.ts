@@ -18,10 +18,10 @@ export default defineConfig({
   test: {
     projects: [
       {
-        // The filter schema is imported by server code, so its tests also run without a DOM.
+        // The filter schema and the text helpers run in server code, so their tests also run without a DOM.
         test: {
           name: 'node',
-          include: ['eslint-rules/**/*.test.js', 'src/filterbar/schema/**/*.test.ts'],
+          include: ['eslint-rules/**/*.test.js', 'src/filterbar/schema/**/*.test.ts', 'src/shared/plainSpaces.test.ts'],
           environment: 'node',
         },
       },

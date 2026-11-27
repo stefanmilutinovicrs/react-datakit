@@ -1046,5 +1046,14 @@ describe('DateRangePicker', () => {
       container.remove();
       errors.mockRestore();
     });
+
+    // Passes trivially where the browser's ICU puts plain spaces; plainSpaces.test.ts covers the replacement.
+    it('formats the value and the visible months with plain spaces only', async () => {
+      const { result } = await renderHook(() =>
+        useDateRangePicker({ defaultValue: march, locale: 'en-US', timeZone: tz, numberOfMonths: 2 }),
+      );
+      expect(result.current.formattedValue).not.toMatch(/[\u00a0\u2009\u202f]/);
+      expect(result.current.visibleMonthsLabel).not.toMatch(/[\u00a0\u2009\u202f]/);
+    });
   });
 });
