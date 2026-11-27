@@ -733,6 +733,271 @@
     }
   }
 
+  :where([data-dk-part='filterbar']) {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  :where([data-dk-part='filterbar-chips']) {
+    display: contents;
+  }
+
+  /* A chip is a pill of segments: field, operator, value and remove. */
+  :where([data-dk-part='filterbar-chip']) {
+    display: inline-flex;
+    align-items: stretch;
+    max-width: 100%;
+    height: calc(var(--dk-control-height) - 8px);
+    border: 1px solid var(--_dk-border);
+    border-radius: max(0px, calc(var(--dk-radius) - 2px));
+    background: var(--_dk-surface);
+    color: var(--_dk-text);
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  :where([data-dk-part='filterbar-chip'][data-draft]) {
+    border-style: dashed;
+  }
+
+  :where(
+    [data-dk-part='filterbar-field'],
+    [data-dk-part='filterbar-operator'],
+    [data-dk-part='filterbar-value'],
+    [data-dk-part='filterbar-remove']
+  ) {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    margin: 0;
+    padding: 0 8px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+  }
+
+  :where([data-dk-part='filterbar-field']) {
+    font-weight: 500;
+  }
+
+  :where([data-dk-part='filterbar-operator'], [data-dk-part='filterbar-value'], [data-dk-part='filterbar-remove']) {
+    border-inline-start: 1px solid var(--_dk-border);
+    cursor: pointer;
+  }
+
+  :where([data-dk-part='filterbar-operator']) {
+    color: var(--_dk-text-muted);
+  }
+
+  :where([data-dk-part='filterbar-value']) {
+    display: block;
+    max-width: 16rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :where([data-dk-part='filterbar-value'][data-placeholder]) {
+    color: var(--_dk-text-muted);
+  }
+
+  :where([data-dk-part='filterbar-remove']) {
+    padding: 0 6px;
+    border-start-end-radius: inherit;
+    border-end-end-radius: inherit;
+  }
+
+  :where(
+    [data-dk-part='filterbar-operator']:hover,
+    [data-dk-part='filterbar-value']:hover,
+    [data-dk-part='filterbar-remove']:hover,
+    [data-dk-part='filterbar-operator'][data-state='open'],
+    [data-dk-part='filterbar-value'][data-state='open']
+  ) {
+    background: var(--_dk-muted);
+  }
+
+  :where([data-dk-part='filterbar-operator'][data-readonly], [data-dk-part='filterbar-value'][data-readonly]) {
+    background: none;
+    cursor: default;
+  }
+
+  /* Inside the segment, so the ring doesn't cover the neighbouring segments. */
+  :where(
+    [data-dk-part='filterbar-operator']:focus-visible,
+    [data-dk-part='filterbar-value']:focus-visible,
+    [data-dk-part='filterbar-remove']:focus-visible
+  ) {
+    outline-offset: -2px;
+  }
+
+  :where([data-dk-part='filterbar-clear']) {
+    height: calc(var(--dk-control-height) - 8px);
+    padding: 0 6px;
+    border: 0;
+    border-radius: min(4px, var(--dk-radius));
+    background: none;
+    color: var(--_dk-text-muted);
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  :where([data-dk-part='filterbar-clear']:hover) {
+    color: var(--_dk-text);
+  }
+
+  :where([data-dk-part='filterbar-add']) {
+    flex: 1 1 12rem;
+    min-width: 12rem;
+  }
+
+  :where([data-dk-part='filterbar-add'] [data-dk-part='combobox']) {
+    display: flex;
+    min-width: 0;
+  }
+
+  :where([data-dk-part='filterbar-operator-menu'], [data-dk-part='filterbar-editor']) {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    z-index: 10;
+    padding: 4px;
+    border: 1px solid var(--_dk-border);
+    border-radius: min(calc(var(--dk-radius) + 2px), 12px);
+    background: var(--_dk-surface);
+    color: var(--_dk-text);
+    box-shadow:
+      0 1px 2px var(--_dk-shadow),
+      0 10px 24px -6px var(--_dk-shadow);
+  }
+
+  :where([data-dk-part='filterbar-operator-menu']) {
+    min-width: 10rem;
+  }
+
+  :where([data-dk-part='filterbar-operator-option']) {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 8px;
+    border-radius: var(--_dk-option-radius);
+    outline: none;
+    cursor: default;
+    white-space: nowrap;
+  }
+
+  :where([data-dk-part='filterbar-operator-option']:focus, [data-dk-part='filterbar-operator-option']:hover) {
+    background: var(--_dk-muted);
+  }
+
+  :where([data-dk-part='filterbar-operator-option'][data-checked])::after {
+    content: '';
+    flex: none;
+    width: 16px;
+    height: 16px;
+    margin-inline-start: auto;
+    background: var(--_dk-accent);
+    mask: var(--_dk-icon-check) center / contain no-repeat;
+  }
+
+  :where([data-dk-part='filterbar-editor']) {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 18rem;
+    max-width: calc(100vw - 16px);
+    padding: 8px;
+  }
+
+  :where([data-dk-part='filterbar-editor-input']) {
+    min-height: var(--dk-control-height);
+    padding: 0 10px;
+    border: 1px solid var(--_dk-border);
+    border-radius: var(--dk-radius);
+    background: var(--_dk-surface);
+    color: var(--_dk-text);
+    font: inherit;
+  }
+
+  :where([data-dk-part='filterbar-editor-input']:focus-visible) {
+    outline: none;
+    border-color: var(--_dk-accent);
+    box-shadow: 0 0 0 3px var(--_dk-accent-subtle);
+  }
+
+  :where([data-dk-part='filterbar-editor-input'][data-invalid]) {
+    border-color: var(--_dk-text);
+    border-style: dashed;
+  }
+
+  :where([data-dk-part='filterbar-editor-error']) {
+    font-size: 13px;
+  }
+
+  :where([data-dk-part='filterbar-editor-apply']) {
+    align-self: flex-end;
+    height: calc(var(--dk-control-height) - 6px);
+    padding: 0 12px;
+    border: 0;
+    border-radius: var(--dk-radius);
+    background: var(--_dk-accent);
+    color: var(--dk-on-accent);
+    font: inherit;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  /* The options are the editor's content, so they sit in the dialog instead of floating. */
+  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox']) {
+    display: flex;
+    min-width: 0;
+  }
+
+  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox-popup']) {
+    position: static;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  :where([data-dk-part='filterbar-editor'] [data-dk-part='combobox-list']) {
+    max-height: 14rem;
+  }
+
+  /* Only one menu or editor is open at a time, so the open chip is the one anchor; the
+     fallbacks are the ones of the DateRangePicker popover. */
+  @supports (anchor-name: --a) {
+    :where([data-dk-part='filterbar']) {
+      anchor-scope: --dk-filterbar-chip;
+    }
+
+    :where([data-dk-part='filterbar-chip'][data-open]) {
+      anchor-name: --dk-filterbar-chip;
+    }
+
+    :where([data-dk-part='filterbar-operator-menu'], [data-dk-part='filterbar-editor']) {
+      position: fixed;
+      position-anchor: --dk-filterbar-chip;
+      top: calc(anchor(bottom) + 6px);
+      left: anchor(left);
+      max-height: calc(100dvh - 16px);
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      position-try-fallbacks:
+        flip-inline,
+        --dk-viewport-start,
+        flip-block,
+        flip-block flip-inline,
+        flip-block --dk-viewport-start,
+        --dk-viewport-top;
+    }
+  }
+
   @media (forced-colors: active) {
     :where([data-dk-part]:focus-visible) {
       outline: 2px solid CanvasText;

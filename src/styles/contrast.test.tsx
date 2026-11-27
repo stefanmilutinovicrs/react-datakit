@@ -75,9 +75,16 @@ const triggerSelector = [
   '[data-dk-part="combobox-input"]',
   '[data-dk-part="multiselect-input"]',
   '[data-dk-part="daterangepicker-trigger"]',
+  '[data-dk-part="filterbar-operator"]:not([data-readonly])',
+  '[data-dk-part="filterbar-value"]:not([data-readonly])',
 ].join(', ');
-const popupSelector =
-  '[data-dk-part="combobox-popup"], [data-dk-part="multiselect-popup"], [data-dk-part="daterangepicker-popover"]';
+const popupSelector = [
+  '[data-dk-part="combobox-popup"]',
+  '[data-dk-part="multiselect-popup"]',
+  '[data-dk-part="daterangepicker-popover"]',
+  '[data-dk-part="filterbar-operator-menu"]',
+  '[data-dk-part="filterbar-editor"]',
+].join(', ');
 
 // Empty inputs: axe skips placeholders, which the computed-color checks below cover.
 const closedAllowed = ['emptyValue'];

@@ -31,5 +31,32 @@
     "path": "dist/filterbar/schema/index.js",
     "import": "{ textField, numberField, dateField, enumField, multiEnumField, filtersFromSearchParams, filtersToSearchParams }",
     "limit": "2.7 kB"
+  },
+  {
+    "name": "react-datakit/filterbar (ESM)",
+    "path": "dist/filterbar/index.js",
+    "import": "{ FilterBar }",
+    "ignore": ["react", "react-dom"],
+    "limit": "11.2 kB"
+  },
+  {
+    "name": "Combobox + MultiSelect + DateRangePicker (ESM, reported only, baseline for the next entry)",
+    "import": {
+      "dist/combobox/index.js": "{ Combobox }",
+      "dist/multiselect/index.js": "{ MultiSelect }",
+      "dist/daterangepicker/index.js": "{ DateRangePicker }"
+    },
+    "ignore": ["react", "react-dom"]
+  },
+  {
+    "name": "Combobox + MultiSelect + DateRangePicker + FilterBar (ESM)",
+    "import": {
+      "dist/combobox/index.js": "{ Combobox }",
+      "dist/multiselect/index.js": "{ MultiSelect }",
+      "dist/daterangepicker/index.js": "{ DateRangePicker }",
+      "dist/filterbar/index.js": "{ FilterBar }"
+    },
+    "ignore": ["react", "react-dom"],
+    "limit": "17.9 kB"
   }
 ]

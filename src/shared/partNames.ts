@@ -52,3 +52,21 @@ export const daterangepickerParts = {
   weekday: 'daterangepicker-weekday',
   day: 'daterangepicker-day',
 } as const;
+
+export const filterbarParts = {
+  root: 'filterbar',
+  chips: 'filterbar-chips',
+  chip: 'filterbar-chip',
+  field: 'filterbar-field',
+  operator: 'filterbar-operator',
+  value: 'filterbar-value',
+  remove: 'filterbar-remove',
+  clear: 'filterbar-clear',
+  operatorMenu: 'filterbar-operator-menu',
+  operatorOption: 'filterbar-operator-option',
+  editor: 'filterbar-editor',
+  editorInput: 'filterbar-editor-input',
+  editorError: 'filterbar-editor-error',
+  editorApply: 'filterbar-editor-apply',
+  add: 'filterbar-add',
+} as const;
