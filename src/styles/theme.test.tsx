@@ -4,6 +4,7 @@ import { page, server, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { Combobox } from '../combobox';
 import { DateRangePicker } from '../daterangepicker';
+import { FilterBar, enumField, textField } from '../filterbar';
 import { MultiSelect } from '../multiselect';
 import { mix, toHex, toRgb, type Rgb } from '../test/color';
 import { emulateMedia } from '../test/media';
@@ -67,6 +68,15 @@ function Picker() {
       </DateRangePicker.Popover>
     </DateRangePicker>
   );
+}
+
+const barFields = [
+  textField({ key: 'title', label: 'Title' }),
+  enumField({ key: 'kind', label: 'Kind', items, ...itemProps }),
+];
+
+function Bar() {
+  return <FilterBar fields={barFields} defaultValue={[{ field: 'kind', op: 'is', value: 'bug' }]} />;
 }
 
 function find(selector: string): Element {
@@ -259,6 +269,20 @@ describe('theme', () => {
       expect(getComputedStyle(part('multiselect-option')).borderRadius).toBe('6px');
       expect(styleOf('multi-chip-bug').borderRadius).toBe('6px');
     });
+
+    it('FilterBar chips follow --dk-radius; its menu and editor stay at 12px or less', async () => {
+      await render(
+        <div style={{ '--dk-radius': '999px' } as CSSProperties}>
+          <Bar />
+        </div>,
+      );
+      expect(getComputedStyle(part('filterbar-chip')).borderRadius).toBe('997px');
+      await userEvent.click(page.getByRole('button', { name: 'Kind is', exact: true }));
+      expect(parseFloat(getComputedStyle(part('filterbar-operator-menu')).borderRadius)).toBeLessThanOrEqual(12);
+      await userEvent.keyboard('{Escape}');
+      await userEvent.click(page.getByRole('button', { name: 'Kind is bug' }));
+      expect(parseFloat(getComputedStyle(part('filterbar-editor')).borderRadius)).toBeLessThanOrEqual(12);
+    });
   });
 
   describe('focus', () => {
@@ -290,6 +314,22 @@ describe('theme', () => {
       expectColor(styleOf('multi-control').borderTopColor, '#be185d');
       expect(indicators('multi-control')).toBe(1);
       expect(indicators('multi-input')).toBe(0);
+    });
+
+    it('a focused FilterBar segment has exactly one ring, inside the segment', async () => {
+      await render(
+        <div data-dk-theme="light" style={accent('#be185d')}>
+          <Bar />
+        </div>,
+      );
+      // A keyboard focus: Firefox doesn't match :focus-visible when script moves focus after a click.
+      await userEvent.tab();
+      const operator = getComputedStyle(part('filterbar-operator'));
+      expect(operator.outlineStyle).toBe('solid');
+      expect(operator.outlineOffset).toBe('-2px');
+      expectColor(operator.outlineColor, '#be185d');
+      expect(operator.boxShadow).toBe('none');
+      expect(getComputedStyle(part('filterbar-chip')).outlineStyle).toBe('none');
     });
 
     // Playwright can't emulate forced colors in WebKit, which has no forced colors mode.
@@ -350,6 +390,7 @@ describe('theme', () => {
         <Select />
         <Multi />
         <Picker />
+        <Bar />
       </>,
     );
     const weights = new Set([...screen.container.querySelectorAll('*')].map((el) => getComputedStyle(el).fontWeight));

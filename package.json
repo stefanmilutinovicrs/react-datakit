@@ -74,6 +74,16 @@
         "default": "./dist/daterangepicker/index.cjs"
       }
     },
+    "./filterbar": {
+      "import": {
+        "types": "./dist/filterbar/index.d.ts",
+        "default": "./dist/filterbar/index.js"
+      },
+      "require": {
+        "types": "./dist/filterbar/index.d.cts",
+        "default": "./dist/filterbar/index.cjs"
+      }
+    },
     "./filterbar/schema": {
       "import": {
         "types": "./dist/filterbar/schema/index.d.ts",

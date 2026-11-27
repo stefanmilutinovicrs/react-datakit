@@ -18,6 +18,7 @@ import {
   type ComboboxLabels,
 } from '../shared/combobox/useComboboxCore';
 import {
+  announcementText,
   isDev,
   multiselectParts,
   optionKeys,
@@ -88,7 +89,6 @@ export interface UseMultiSelectReturn<TItem> extends ComboboxCore<TItem> {
 }
 
 const EMPTY: readonly never[] = [];
-const NO_BREAK_SPACE = String.fromCharCode(160);
 
 type FocusTarget = { type: 'chip'; index: number } | { type: 'input' };
 
@@ -290,13 +290,9 @@ export function useMultiSelect<TItem>(options: UseMultiSelectOptions<TItem>): Us
 
   return {
     ...core,
-    // A repeated text must change the region's content to be announced again, so every other
-    // announcement ends with a no-break space.
     // The result count takes the live region back once the results change.
     statusMessage:
-      announcement?.during === statusMessage
-        ? announcement.text + (announcement.count % 2 === 0 ? NO_BREAK_SPACE : '')
-        : statusMessage,
+      announcement?.during === statusMessage ? announcementText(announcement.text, announcement.count) : statusMessage,
     getRootProps: () => ({
       ...rootProps,
       onFocus: () => {

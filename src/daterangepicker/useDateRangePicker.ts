@@ -1,19 +1,12 @@
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type MouseEvent,
-  type RefObject,
-} from 'react';
+import { useCallback, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type RefObject } from 'react';
 import {
   daterangepickerParts,
   optionKeys,
+  trapTab,
   useControllableState,
   useId,
   useIsomorphicLayoutEffect,
+  useOutsidePointerDown,
   type DataAttributes,
 } from '../shared';
 import {
@@ -440,22 +433,12 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
     }
   });
 
-  useEffect(() => {
-    if (!isOpen) return;
-    const onPointerDown = (event: PointerEvent) => {
-      const root = rootRef.current;
-      if (root && event.target instanceof Node && !root.contains(event.target)) {
-        focusDayRequested.current = false;
-        setOpen(false);
-        setPendingStart(null);
-        setHoveredDate(null);
-      }
-    };
-    document.addEventListener('pointerdown', onPointerDown);
-    return () => {
-      document.removeEventListener('pointerdown', onPointerDown);
-    };
-  }, [isOpen, setOpen]);
+  useOutsidePointerDown(isOpen, rootRef, () => {
+    focusDayRequested.current = false;
+    setOpen(false);
+    setPendingStart(null);
+    setHoveredDate(null);
+  });
 
   const registerLabel = useCallback(() => {
     setLabelCount((count) => count + 1);
@@ -546,23 +529,7 @@ export function useDateRangePicker(options: UseDateRangePickerOptions = {}): Use
       closePicker();
       return;
     }
-    if (event.key !== 'Tab') return;
-    // A modal dialog keeps Tab inside it: https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/
-    const container = popoverRef.current;
-    if (!container) return;
-    const tabbable = Array.from(
-      container.querySelectorAll<HTMLElement>('button, [href], input, select, textarea, [tabindex]'),
-    ).filter((el) => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled && el.getClientRects().length > 0);
-    const first = tabbable[0];
-    const last = tabbable[tabbable.length - 1];
-    if (!first || !last) return;
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault();
-      first.focus();
-    }
+    trapTab(event, popoverRef.current);
   };
 
   return {
