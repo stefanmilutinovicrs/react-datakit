@@ -10,6 +10,7 @@ import * as dateRangePickerStories from '../daterangepicker/DateRangePicker.stor
 import { FilterBar, dateField, enumField, multiEnumField, numberField, textField } from '../filterbar';
 import { MultiSelect } from '../multiselect';
 import * as multiSelectStories from '../multiselect/MultiSelect.stories';
+import * as sparklineStories from '../sparkline/Sparkline.stories';
 import './theme.css';
 
 interface Person {
@@ -220,6 +221,12 @@ const frame = () => page.getByTestId('frame');
 const { Themed: ComboboxThemed } = composeStories(comboboxStories);
 const { Themed: MultiSelectThemed } = composeStories(multiSelectStories);
 const { Themed: DateRangePickerThemed } = composeStories(dateRangePickerStories);
+const {
+  Variants: SparklineVariants,
+  MarkersAndReferenceLine: SparklineMarkers,
+  EdgeCases: SparklineEdgeCases,
+  Themed: SparklineThemed,
+} = composeStories(sparklineStories);
 
 describe('visual', () => {
   beforeAll(() => {
@@ -312,6 +319,21 @@ describe('visual', () => {
       await userEvent.keyboard('{Enter}');
       await expect.element(popup()).toBeVisible();
       await expect(frame()).toMatchScreenshot(`filterbar-${name}-${theme}`);
+    });
+
+    it.each([
+      ['variants', SparklineVariants],
+      ['markers', SparklineMarkers],
+      ['edge-cases', SparklineEdgeCases],
+      ['themed', SparklineThemed],
+    ] as const)('Sparkline %s story', async (name, Story) => {
+      await render(
+        <Frame theme={theme}>
+          <Story />
+        </Frame>,
+      );
+      await expect.element(page.getByRole('img').first()).toBeInTheDocument();
+      await expect(frame()).toMatchScreenshot(`sparkline-${name}-${theme}`);
     });
 
     it.each([

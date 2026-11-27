@@ -21,7 +21,12 @@ export default defineConfig({
         // The filter schema and the text helpers run in server code, so their tests also run without a DOM.
         test: {
           name: 'node',
-          include: ['eslint-rules/**/*.test.js', 'src/filterbar/schema/**/*.test.ts', 'src/shared/plainSpaces.test.ts'],
+          include: [
+            'eslint-rules/**/*.test.js',
+            'src/filterbar/schema/**/*.test.ts',
+            'src/shared/plainSpaces.test.ts',
+            'src/sparkline/geometry.test.ts',
+          ],
           environment: 'node',
         },
       },

@@ -40,23 +40,32 @@
     "limit": "16 kB"
   },
   {
-    "name": "Combobox + MultiSelect + DateRangePicker (ESM, reported only, baseline for the next entry)",
-    "import": {
-      "dist/combobox/index.js": "{ Combobox }",
-      "dist/multiselect/index.js": "{ MultiSelect }",
-      "dist/daterangepicker/index.js": "{ DateRangePicker }"
-    },
-    "ignore": ["react", "react-dom"]
+    "name": "react-datakit/sparkline (ESM)",
+    "path": "dist/sparkline/index.js",
+    "import": "{ Sparkline }",
+    "ignore": ["react", "react-dom"],
+    "limit": "2.55 kB"
   },
   {
-    "name": "Combobox + MultiSelect + DateRangePicker + FilterBar (ESM)",
+    "name": "Combobox + MultiSelect + DateRangePicker + FilterBar (ESM, reported only, baseline for the next entry)",
     "import": {
       "dist/combobox/index.js": "{ Combobox }",
       "dist/multiselect/index.js": "{ MultiSelect }",
       "dist/daterangepicker/index.js": "{ DateRangePicker }",
       "dist/filterbar/index.js": "{ FilterBar }"
     },
+    "ignore": ["react", "react-dom"]
+  },
+  {
+    "name": "Combobox + MultiSelect + DateRangePicker + FilterBar + Sparkline (ESM)",
+    "import": {
+      "dist/combobox/index.js": "{ Combobox }",
+      "dist/multiselect/index.js": "{ MultiSelect }",
+      "dist/daterangepicker/index.js": "{ DateRangePicker }",
+      "dist/filterbar/index.js": "{ FilterBar }",
+      "dist/sparkline/index.js": "{ Sparkline }"
+    },
     "ignore": ["react", "react-dom"],
-    "limit": "17.8 kB"
+    "limit": "19.05 kB"
   }
 ]

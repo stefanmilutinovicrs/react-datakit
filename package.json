@@ -1,7 +1,7 @@
 {
   "name": "react-datakit",
   "version": "0.3.0",
-  "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect, DateRangePicker and FilterBar.",
+  "description": "Headless, accessible React components for data-heavy apps: Combobox, MultiSelect, DateRangePicker, FilterBar and Sparkline.",
   "keywords": [
     "react",
     "headless",
@@ -13,6 +13,8 @@
     "date-range-picker",
     "filterbar",
     "filters",
+    "sparkline",
+    "svg",
     "typescript"
   ],
   "license": "MIT",
@@ -94,6 +96,16 @@
       "require": {
         "types": "./dist/filterbar/schema/index.d.cts",
         "default": "./dist/filterbar/schema/index.cjs"
+      }
+    },
+    "./sparkline": {
+      "import": {
+        "types": "./dist/sparkline/index.d.ts",
+        "default": "./dist/sparkline/index.js"
+      },
+      "require": {
+        "types": "./dist/sparkline/index.d.cts",
+        "default": "./dist/sparkline/index.cjs"
       }
     },
     "./styles.css": {

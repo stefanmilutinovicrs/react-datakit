@@ -1032,6 +1032,47 @@
     }
   }
 
+  /* Sized like a word in a table cell, about 96 by 24 at 16px; set width and height to stretch it.
+     Strokes on the edges spill over instead of being clipped. */
+  :where([data-dk-part='sparkline']) {
+    display: inline-block;
+    vertical-align: middle;
+    width: 6em;
+    height: 1.5em;
+    overflow: visible;
+    color: var(--_dk-accent);
+  }
+
+  :where([data-dk-part='sparkline-line']) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5px;
+    stroke-linejoin: round;
+  }
+
+  :where([data-dk-part='sparkline-area']) {
+    fill: currentColor;
+    fill-opacity: 0.15;
+  }
+
+  :where([data-dk-part='sparkline-bars']) {
+    fill: currentColor;
+  }
+
+  /* A marker is a dot drawn by a round cap, so its stroke width is its diameter. */
+  :where([data-dk-part='sparkline-marker']) {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 5px;
+  }
+
+  :where([data-dk-part='sparkline-reference-line']) {
+    fill: none;
+    stroke: var(--_dk-text-muted);
+    stroke-width: 1px;
+    stroke-dasharray: 2 2;
+  }
+
   @media (forced-colors: active) {
     :where([data-dk-part]:focus-visible) {
       outline: 2px solid CanvasText;
