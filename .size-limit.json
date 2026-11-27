@@ -57,6 +57,6 @@
       "dist/filterbar/index.js": "{ FilterBar }"
     },
     "ignore": ["react", "react-dom"],
-    "limit": "17.9 kB"
+    "limit": "16.8 kB"
   }
 ]
