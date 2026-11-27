@@ -321,6 +321,29 @@ describe('theme', () => {
     expect(toHex(getComputedStyle(find('[data-dk-part="combobox-option"][data-selected]')).color)).toBe('#18181b');
   });
 
+  it.each([
+    ['light', '#6f6f78'],
+    ['dark', '#a1a1aa'],
+  ])('group headings are muted, 12px and weight 500 in %s', async (theme, muted) => {
+    await render(
+      <div data-dk-theme={theme}>
+        <Combobox items={items} {...itemProps} groupBy={(item) => (item.id === 'bug' ? 'Fixes' : 'Work')}>
+          <Combobox.Label>Kind</Combobox.Label>
+          <Combobox.Input data-testid="grouped-input" />
+          <Combobox.Popup>
+            <Combobox.List>{(item: Item) => <Combobox.Option item={item}>{item.id}</Combobox.Option>}</Combobox.List>
+          </Combobox.Popup>
+        </Combobox>
+      </div>,
+    );
+    await userEvent.click(page.getByTestId('grouped-input'));
+    await userEvent.keyboard('{ArrowDown}');
+    const heading = getComputedStyle(part('combobox-group-label'));
+    expect(toHex(heading.color)).toBe(muted);
+    expect(heading.fontSize).toBe('12px');
+    expect(heading.fontWeight).toBe('500');
+  });
+
   it('uses weights 400 and 500 only', async () => {
     const screen = await render(
       <>

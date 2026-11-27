@@ -8,6 +8,9 @@ export type {
   ComboboxLabelState,
 } from '../shared/combobox/Field';
 export type {
+  ComboboxActionRow,
+  ComboboxGroupLabelProps,
+  ComboboxGroupLabelState,
   ComboboxListProps,
   ComboboxListState,
   ComboboxOptionProps,
@@ -29,6 +32,7 @@ export type { UseComboboxOptions, UseComboboxReturn } from './useCombobox';
 export type {
   ComboboxBaseOptions,
   ComboboxCore,
+  ComboboxGroup,
   ComboboxLabels,
   ComboboxPartPrefix,
   ComboboxRow,

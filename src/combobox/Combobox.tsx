@@ -1,7 +1,14 @@
 import { forwardRef, type ReactElement, type ReactNode, type Ref } from 'react';
 import { splitProps, type PartProps, type WithRef } from '../shared';
 import { Input, Label } from '../shared/combobox/Field';
-import { List, Option, Popup, type ComboboxListProps, type ComboboxOptionProps } from '../shared/combobox/Popup';
+import {
+  GroupLabel,
+  List,
+  Option,
+  Popup,
+  type ComboboxListProps,
+  type ComboboxOptionProps,
+} from '../shared/combobox/Popup';
 import { RootPart, type ComboboxRootState } from '../shared/combobox/Root';
 import { Empty, ErrorPart, Loading } from '../shared/combobox/Status';
 import type { ComboboxCore } from '../shared/combobox/useComboboxCore';
@@ -40,6 +47,7 @@ export const Combobox = Object.assign(
     Popup,
     List: List as <TItem>(props: WithRef<ComboboxListProps<TItem>, HTMLDivElement>) => ReactElement | null,
     Option: Option as <TItem>(props: WithRef<ComboboxOptionProps<TItem>, HTMLDivElement>) => ReactElement,
+    GroupLabel,
     Empty,
     Loading,
     Error: ErrorPart,

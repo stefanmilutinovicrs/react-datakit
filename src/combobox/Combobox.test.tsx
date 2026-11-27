@@ -1,15 +1,16 @@
-import { createRef, useState, type CSSProperties } from 'react';
+import { createRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { page, userEvent } from 'vitest/browser';
 import { render } from 'vitest-browser-react';
 import { expectNoA11yViolations } from '../test/axe';
+import { axOption, hasNativeAxTree } from '../test/axTree';
 import { hydrationErrors } from '../test/hydration';
 import { deferred, type Deferred } from '../test/deferred';
 import { expectNoOptionsOnDom } from '../test/options';
 import { comboboxOptionKeys } from './useCombobox';
-import { Combobox, type ComboboxCore, type ComboboxLabels, type ComboboxProps } from './index';
+import { Combobox, type ComboboxCore, type ComboboxGroup, type ComboboxLabels, type ComboboxProps } from './index';
 
 // https://www.w3.org/WAI/ARIA/apg/patterns/combobox/ (listbox popup, aria-autocomplete="list")
 
@@ -77,6 +78,7 @@ describe('Combobox', () => {
           items={users}
           loadOptions={() => Promise.resolve(users)}
           filter={() => true}
+          groupBy={() => null}
           itemToString={(u) => u?.name ?? ''}
           itemToKey={(u) => u.id}
           defaultValue={null}
@@ -706,6 +708,340 @@ describe('Combobox', () => {
       const highlighted = option('User 39').element().getBoundingClientRect();
       expect(highlighted.top).toBeGreaterThanOrEqual(list.top);
       expect(highlighted.bottom).toBeLessThanOrEqual(list.bottom);
+    });
+  });
+
+  interface Entry {
+    id: number;
+    name: string;
+    kind: string | null;
+  }
+
+  const entries: Entry[] = [
+    { id: 1, name: 'Ana', kind: 'People' },
+    { id: 2, name: 'Design', kind: 'Teams' },
+    { id: 3, name: 'Bojan', kind: 'People' },
+    { id: 4, name: 'Platform', kind: 'Teams' },
+  ];
+
+  type GroupedProps = Omit<ComboboxProps<Entry>, 'children' | 'itemToString' | 'itemToKey' | 'groupBy'> & {
+    groupLabel?: ((group: ComboboxGroup<Entry>) => ReactNode) | undefined;
+    listStyle?: CSSProperties | undefined;
+  };
+
+  function GroupedCombobox({ groupLabel, listStyle, ...props }: GroupedProps) {
+    return (
+      <Combobox itemToString={(e) => e?.name ?? ''} itemToKey={(e) => e.id} groupBy={(e) => e.kind} {...props}>
+        <Combobox.Label>Owner</Combobox.Label>
+        <Combobox.Input />
+        <Combobox.Popup>
+          <Combobox.List groupLabel={groupLabel} style={listStyle}>
+            {(entry: Entry) => <Combobox.Option item={entry}>{entry.name}</Combobox.Option>}
+          </Combobox.List>
+          <Combobox.Empty>Nothing found</Combobox.Empty>
+          <Combobox.Loading>Searching…</Combobox.Loading>
+        </Combobox.Popup>
+      </Combobox>
+    );
+  }
+
+  const ownerInput = () => page.getByRole('combobox', { name: 'Owner' });
+  const groupLabels = () =>
+    [...document.querySelectorAll('[data-dk-part="combobox-group-label"]')].map((el) => el.textContent);
+  const optionNames = () =>
+    page
+      .getByRole('option')
+      .elements()
+      .map((el) => el.textContent);
+
+  /** Name of the group an option is in, following aria-labelledby the way a browser does. */
+  function groupOf(name: string): string | null {
+    const group = option(name).element().closest('[role="group"]');
+    if (!group) return null;
+    const ids = group.getAttribute('aria-labelledby')?.split(' ') ?? [];
+    return ids.map((id) => document.getElementById(id)?.textContent ?? '<missing>').join(' ');
+  }
+
+  async function expectOwnerHighlighted(name: string) {
+    await expect
+      .poll(() => ownerInput().element().getAttribute('aria-activedescendant'))
+      .toBe(option(name).element().id);
+  }
+
+  describe('groups', () => {
+    it('groups items under headings, in the order the groups first appear', async () => {
+      await render(<GroupedCombobox items={entries} />);
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(groupLabels()).toEqual(['People', 'Teams']);
+      expect(optionNames()).toEqual(['Ana', 'Bojan', 'Design', 'Platform']);
+      expect(groupOf('Bojan')).toBe('People');
+      expect(groupOf('Design')).toBe('Teams');
+      await expect.element(option('Design')).toHaveAttribute('aria-setsize', '2');
+      await expect.element(option('Design')).toHaveAttribute('aria-posinset', '1');
+      await expect.element(option('Platform')).toHaveAttribute('aria-posinset', '2');
+    });
+
+    it('groups options from loadOptions', async () => {
+      const response = deferred<Entry[]>();
+      await render(<GroupedCombobox loadOptions={() => response.promise} debounceMs={0} />);
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+      response.resolve(entries);
+
+      await expect.element(option('Platform')).toBeInTheDocument();
+      expect(groupLabels()).toEqual(['People', 'Teams']);
+      expect(groupOf('Platform')).toBe('Teams');
+    });
+
+    it('keeps ungrouped options outside any group, where they first appear', async () => {
+      const loose: Entry = { id: 5, name: 'Anyone', kind: null };
+      await render(<GroupedCombobox items={[loose, ...entries]} />);
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(optionNames()).toEqual(['Anyone', 'Ana', 'Bojan', 'Design', 'Platform']);
+      expect(groupOf('Anyone')).toBeNull();
+      await expectOwnerHighlighted('Anyone');
+    });
+
+    it('filtering removes empty groups and counts options only', async () => {
+      await render(<GroupedCombobox items={entries} />);
+      await userEvent.type(ownerInput(), 'des');
+
+      await expect.poll(() => optionNames()).toEqual(['Design']);
+      expect(groupLabels()).toEqual(['Teams']);
+      await expect.element(page.getByRole('status')).toHaveTextContent('1 result');
+    });
+
+    it('renders custom heading content through groupLabel and the GroupLabel part', async () => {
+      const ref = createRef<HTMLDivElement>();
+      await render(
+        <GroupedCombobox
+          items={entries}
+          groupLabel={(group) => (
+            <Combobox.GroupLabel
+              ref={group.key === 'People' ? ref : undefined}
+              className={(state) => `count-${state.count}`}
+              data-key={group.key}
+            >
+              {`${group.key.toUpperCase()} (${group.items.length})`}
+            </Combobox.GroupLabel>
+          )}
+        />,
+      );
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(groupLabels()).toEqual(['PEOPLE (2)', 'TEAMS (2)']);
+      expect(groupOf('Ana')).toBe('PEOPLE (2)');
+      expect(ref.current).toBeInstanceOf(HTMLDivElement);
+      expect(ref.current?.getAttribute('data-dk-part')).toBe('combobox-group-label');
+      expect(ref.current?.getAttribute('data-key')).toBe('People');
+      expect(ref.current?.className).toBe('count-2');
+    });
+
+    it('renders the heading through the render prop', async () => {
+      await render(
+        <GroupedCombobox
+          items={entries}
+          groupLabel={(group) => (
+            <Combobox.GroupLabel render={(props) => <div {...props} data-custom="" />}>{group.key}</Combobox.GroupLabel>
+          )}
+        />,
+      );
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+
+      expect(document.querySelectorAll('[data-dk-part="combobox-group-label"][data-custom]')).toHaveLength(2);
+      expect(groupOf('Design')).toBe('Teams');
+    });
+
+    describe('keyboard', () => {
+      it('ArrowDown opens on the first option and skips headings', async () => {
+        await render(<GroupedCombobox items={entries} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}');
+        await expectOwnerHighlighted('Ana');
+
+        await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+        await expectOwnerHighlighted('Design');
+        await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+        await expectOwnerHighlighted('Ana');
+      });
+
+      it('ArrowUp opens on the last option and wraps past the first heading', async () => {
+        await render(<GroupedCombobox items={entries} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowUp}');
+        await expectOwnerHighlighted('Platform');
+
+        await userEvent.keyboard('{ArrowUp}{ArrowUp}');
+        await expectOwnerHighlighted('Bojan');
+        await userEvent.keyboard('{ArrowUp}{ArrowUp}');
+        await expectOwnerHighlighted('Platform');
+      });
+
+      it('PageDown and PageUp move 10 options, skip headings and stop at the ends', async () => {
+        const many = Array.from({ length: 30 }, (_, i): Entry => ({
+          id: i,
+          name: `Item ${i}`,
+          kind: `Group ${Math.floor(i / 6)}`,
+        }));
+        await render(<GroupedCombobox items={many} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}');
+
+        await userEvent.keyboard('{PageDown}');
+        await expectOwnerHighlighted('Item 10');
+        await userEvent.keyboard('{PageDown}{PageDown}');
+        await expectOwnerHighlighted('Item 29');
+        await userEvent.keyboard('{PageUp}');
+        await expectOwnerHighlighted('Item 19');
+        await userEvent.keyboard('{PageUp}{PageUp}');
+        await expectOwnerHighlighted('Item 0');
+      });
+
+      it('Home and End still move the text cursor', async () => {
+        await render(<GroupedCombobox items={entries} />);
+        await userEvent.type(ownerInput(), 'a');
+        await userEvent.keyboard('{ArrowDown}');
+        const highlighted = ownerInput().element().getAttribute('aria-activedescendant');
+
+        await userEvent.keyboard('{Home}');
+        expect((ownerInput().element() as HTMLInputElement).selectionStart).toBe(0);
+        await userEvent.keyboard('{End}');
+        expect(ownerInput().element().getAttribute('aria-activedescendant')).toBe(highlighted);
+      });
+    });
+
+    it('a heading takes no highlight and no click', async () => {
+      const onChange = vi.fn();
+      await render(<GroupedCombobox items={entries} onChange={onChange} />);
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}{ArrowDown}');
+      await expectOwnerHighlighted('Bojan');
+
+      const teams = page.getByText('Teams', { exact: true });
+      await userEvent.hover(teams);
+      await userEvent.click(teams);
+
+      await expectOwnerHighlighted('Bojan');
+      expect(onChange).not.toHaveBeenCalled();
+      await expect.element(listbox()).toBeVisible();
+    });
+
+    describe('accessibility', () => {
+      it('puts the options in named groups in the accessibility tree', async () => {
+        await render(<GroupedCombobox items={entries} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
+        await expectOwnerHighlighted('Design');
+
+        await expect.element(listbox()).toMatchAriaInlineSnapshot(`
+          - listbox "Owner":
+            - group "People":
+              - option "Ana"
+              - option "Bojan"
+            - group "Teams":
+              - option "Design"
+              - option "Platform"
+        `);
+      });
+
+      it.runIf(hasNativeAxTree)("exposes the highlighted option's group in Chromium's computed tree", async () => {
+        await render(<GroupedCombobox items={entries} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}');
+        await expectOwnerHighlighted('Design');
+
+        expect(await axOption('Design')).toEqual({
+          role: 'option',
+          name: 'Design',
+          container: { role: 'group', name: 'Teams' },
+        });
+      });
+
+      it('has no axe violations while open and filtered', async () => {
+        const screen = await render(<GroupedCombobox items={entries} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}');
+        await expect.element(listbox()).toBeVisible();
+        await expectNoA11yViolations(screen.container);
+
+        await userEvent.type(ownerInput(), 'o');
+        await expect.poll(() => optionNames()).toEqual(['Bojan', 'Platform']);
+        await expectNoA11yViolations(screen.container);
+      });
+    });
+
+    describe('virtualization', () => {
+      const many = Array.from({ length: 10_000 }, (_, i): Entry => ({
+        id: i,
+        name: `Item ${i}`,
+        kind: `Group ${Math.floor(i / 1000)}`,
+      }));
+      const renderedRows = () =>
+        listbox().element().querySelectorAll('[role="option"], [data-dk-part="combobox-group-label"]').length;
+
+      it('renders a window of 10,000 grouped options with per-group positions', async () => {
+        await render(<GroupedCombobox items={many} listStyle={{ maxHeight: 300 }} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowDown}');
+
+        await expect.element(listbox()).toBeVisible();
+        expect(renderedRows()).toBeLessThan(60);
+        expect(groupOf('Item 0')).toBe('Group 0');
+        await expect.element(option('Item 0')).toHaveAttribute('aria-setsize', '1000');
+        await expect.element(option('Item 0')).toHaveAttribute('aria-posinset', '1');
+      });
+
+      it("keeps the highlighted option's heading rendered far from it, and the option in view", async () => {
+        await render(<GroupedCombobox items={many} listStyle={{ maxHeight: 300 }} />);
+        await userEvent.click(ownerInput());
+        await userEvent.keyboard('{ArrowUp}');
+        await expectOwnerHighlighted('Item 9999');
+        for (let i = 0; i < 3; i++) await userEvent.keyboard('{PageUp}');
+
+        await expectOwnerHighlighted('Item 9969');
+        expect(renderedRows()).toBeLessThan(60);
+        expect(groupOf('Item 9969')).toBe('Group 9');
+        await expect.element(option('Item 9969')).toHaveAttribute('aria-posinset', '970');
+        const list = listbox().element().getBoundingClientRect();
+        const highlighted = option('Item 9969').element().getBoundingClientRect();
+        expect(highlighted.top).toBeGreaterThanOrEqual(list.top);
+        expect(highlighted.bottom).toBeLessThanOrEqual(list.bottom);
+
+        if (hasNativeAxTree)
+          expect((await axOption('Item 9969'))?.container).toEqual({ role: 'group', name: 'Group 9' });
+      });
+    });
+
+    it('hydrates server-rendered markup with groupBy without warnings', async () => {
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const tree = <GroupedCombobox items={entries} defaultValue={entries[1]} />;
+
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(tree);
+      document.body.append(container);
+      const root = hydrateRoot(container, tree, { onRecoverableError: (error) => console.error(error) });
+
+      await expect.element(ownerInput()).toHaveValue('Design');
+      await userEvent.click(ownerInput());
+      await userEvent.keyboard('{ArrowDown}');
+      await expect.element(option('Design')).toBeInTheDocument();
+      expect(hydrationErrors(errors)).toEqual([]);
+
+      root.unmount();
+      container.remove();
+      errors.mockRestore();
+    });
+
+    it('infers the item type for groupBy and groupLabel', () => {
+      expectTypeOf<NonNullable<ComboboxProps<Entry>['groupBy']>>().parameter(0).toEqualTypeOf<Entry>();
+      expectTypeOf<NonNullable<ComboboxProps<Entry>['groupBy']>>().returns.toEqualTypeOf<string | null>();
+      expectTypeOf<ComboboxGroup<Entry>['items']>().toEqualTypeOf<readonly Entry[]>();
     });
   });
 

@@ -34,6 +34,16 @@ test('Combobox opens and selects a value', async ({ page }) => {
   await expect(input).toHaveAttribute('aria-expanded', 'false');
 });
 
+test('grouped Combobox shows named groups and selects inside one', async ({ page }) => {
+  const input = page.getByRole('combobox', { name: 'Owner' });
+  await input.click();
+  await input.press('ArrowDown');
+  const platform = page.getByRole('group', { name: 'Platform' });
+  await expect(page.getByRole('group', { name: 'Design' }).getByRole('option')).toHaveCount(2);
+  await platform.getByRole('option', { name: 'Elena Kim', exact: true }).click();
+  await expect(input).toHaveValue('Elena Kim');
+});
+
 test('MultiSelect opens and selects values', async ({ page }) => {
   const input = page.getByRole('combobox', { name: 'Labels' });
   await input.click();
@@ -59,7 +69,7 @@ test('DateRangePicker opens and selects a range', async ({ page }) => {
 // Next.js transpiles light-dark() for its default browser targets; the theme must not depend on it.
 test('data-dk-theme forces light or dark over the OS setting', async ({ page }) => {
   const background = (locator: Locator) => locator.evaluate((element) => getComputedStyle(element).backgroundColor);
-  const control = page.locator('[data-dk-part="combobox-control"]');
+  const control = page.locator('[data-dk-part="combobox-control"]').first();
   const main = page.locator('main');
 
   await expect.poll(() => background(control)).toBe('rgb(255, 255, 255)');

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { expectTypeOf } from 'vitest';
-import { Combobox, useCombobox } from './index';
+import { Combobox, useCombobox, type ComboboxProps } from './index';
 
 interface User {
   id: number;
@@ -27,8 +27,24 @@ export function Picker() {
       itemToKey={(user) => user.id}
       value={value}
       onChange={setValue}
+      groupBy={(user) => {
+        expectTypeOf(user).toEqualTypeOf<User>();
+        return null;
+      }}
     >
       <Combobox.Input />
+      <Combobox.Popup>
+        <Combobox.List
+          groupLabel={(group) => {
+            expectTypeOf(group.items).toEqualTypeOf<readonly User[]>();
+            return <Combobox.GroupLabel>{group.key}</Combobox.GroupLabel>;
+          }}
+        >
+          {(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}
+        </Combobox.List>
+      </Combobox.Popup>
     </Combobox>
   );
 }
+
+expectTypeOf<() => number>().not.toExtend<NonNullable<ComboboxProps<User>['groupBy']>>();

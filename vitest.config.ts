@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react';
 import { defineBrowserCommand, playwright } from '@vitest/browser-playwright';
 import { defineConfig } from 'vitest/config';
+import { axOption } from './src/test/axTreeCommand.ts';
 import type { EmulatedMedia } from './src/test/media';
 
 // Tests run in real browsers (Vitest Browser Mode), never in jsdom:
@@ -30,7 +31,7 @@ export default defineConfig({
             headless: true,
             provider: playwright(),
             instances: [{ browser }],
-            commands: { emulateMedia },
+            commands: { emulateMedia, axOption },
           },
         },
       })),

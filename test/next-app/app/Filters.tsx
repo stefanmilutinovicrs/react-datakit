@@ -18,6 +18,21 @@ export function Filters({ users, tags }: { users: User[]; tags: Tag[] }) {
         </Combobox.Popup>
       </Combobox>
 
+      <Combobox
+        items={users}
+        groupBy={(user) => (user.id === 3 ? 'Platform' : 'Design')}
+        itemToString={(user) => user?.name ?? ''}
+        itemToKey={(user) => user.id}
+      >
+        <Combobox.Label>Owner</Combobox.Label>
+        <Combobox.Control>
+          <Combobox.Input placeholder="Search people…" />
+        </Combobox.Control>
+        <Combobox.Popup>
+          <Combobox.List>{(user: User) => <Combobox.Option item={user}>{user.name}</Combobox.Option>}</Combobox.List>
+        </Combobox.Popup>
+      </Combobox>
+
       <MultiSelect items={tags} itemToString={(tag) => tag?.name ?? ''} itemToKey={(tag) => tag.id}>
         <MultiSelect.Label>Labels</MultiSelect.Label>
         <MultiSelect.Control>

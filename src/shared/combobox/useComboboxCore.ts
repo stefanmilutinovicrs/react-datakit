@@ -36,6 +36,8 @@ export interface ComboboxBaseOptions<TItem> {
   itemToString: (item: TItem | null) => string;
   /** Stable, unique key for an item. */
   itemToKey: (item: TItem) => string | number;
+  /** Puts options under group headings by the returned key, `null` for none. Groups keep the order in which they first appear. */
+  groupBy?: ((item: TItem) => string | null) | undefined;
   /** Debounce for `loadOptions`, in milliseconds. Default 250. */
   debounceMs?: number | undefined;
   /** Screen reader texts; English by default. */
@@ -58,13 +60,23 @@ export const comboboxBaseOptionKeys = optionKeys<ComboboxBaseOptions<unknown>>()
   'filter',
   'itemToString',
   'itemToKey',
+  'groupBy',
   'debounceMs',
   'labels',
 ]);
 
-/** A row of the listbox: an option, or one of the MultiSelect action rows. */
+/** The options that share a `groupBy` key. */
+export interface ComboboxGroup<TItem> {
+  key: string;
+  items: readonly TItem[];
+}
+
+/** A row of the listbox: an option, a group heading, or one of the MultiSelect action rows. */
 export type ComboboxRow<TItem> =
-  { type: 'option'; item: TItem } | { type: 'select-all' } | { type: 'create'; query: string };
+  | { type: 'option'; item: TItem }
+  | { type: 'group-label'; group: ComboboxGroup<TItem> }
+  | { type: 'select-all' }
+  | { type: 'create'; query: string };
 
 /** `idle` while closed, `loading` while `loadOptions` runs, then `success` or `error`. */
 export type ComboboxStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -107,8 +119,10 @@ export interface ComboboxCore<TItem> {
   /** What the user typed since the last selection, or `null` when not searching. */
   query: string | null;
   items: readonly TItem[];
-  /** Listbox rows: the options plus action rows (select all, create). */
+  /** Listbox rows: the options plus group headings and action rows (select all, create). */
   rows: readonly ComboboxRow<TItem>[];
+  /** For each row, the index of its group's heading row, or -1 outside a group. */
+  rowGroups: readonly number[];
   /** Index into `rows`, or -1. */
   highlightedIndex: number;
   highlightOrigin: HighlightOrigin;
@@ -141,6 +155,9 @@ export interface ComboboxCore<TItem> {
   getLoadingProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getErrorProps: () => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getRowProps: (row: ComboboxRow<TItem>, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
+  /** Props of the `role="group"` element around the rows of the group whose heading is at `index`. */
+  getGroupProps: (index: number) => HTMLAttributes<HTMLDivElement>;
+  getGroupLabelProps: (index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
   getOptionProps: (item: TItem, index: number) => HTMLAttributes<HTMLDivElement> & DataAttributes;
 }
 
@@ -158,14 +175,20 @@ function withEntry<K, V>(map: ReadonlyMap<K, V>, key: K, value: V): Map<K, V> {
 }
 
 export function rowKey<TItem>(row: ComboboxRow<TItem>, itemToKey: (item: TItem) => string | number): string {
-  return row.type === 'option' ? `option:${itemToKey(row.item)}` : row.type;
+  return row.type === 'option'
+    ? `option:${itemToKey(row.item)}`
+    : row.type === 'group-label'
+      ? `group:${row.group.key}`
+      : row.type;
 }
+
+const PAGE_SIZE = 10;
 
 export function useComboboxCore<TItem>(
   options: ComboboxBaseOptions<TItem>,
   behavior: ComboboxCoreBehavior<TItem>,
 ): ComboboxCore<TItem> {
-  const { items: staticSource, loadOptions, filter, itemToString, itemToKey } = options;
+  const { items: staticSource, loadOptions, filter, itemToString, itemToKey, groupBy } = options;
   const { part, multiple, isSelected, isDisabled } = behavior;
   const names = part === 'combobox' ? comboboxParts : multiselectParts;
   const debounceMs = options.debounceMs ?? 250;
@@ -228,40 +251,79 @@ export function useComboboxCore<TItem>(
   else if (!isAsync) status = 'success';
   else status = current === undefined ? 'loading' : current.status;
 
-  const items: readonly TItem[] = isAsync ? (current?.status === 'success' ? current.items : EMPTY) : staticItems;
+  const matches: readonly TItem[] = isAsync ? (current?.status === 'success' ? current.items : EMPTY) : staticItems;
+  const sections = useMemo(() => {
+    if (!groupBy) return null;
+    const groups = new Map<string | null, TItem[]>();
+    for (const item of matches) {
+      const key = groupBy(item);
+      const group = groups.get(key);
+      if (group) group.push(item);
+      else groups.set(key, [item]);
+    }
+    return groups;
+  }, [matches, groupBy]);
+  const items = useMemo(() => (sections ? [...sections.values()].flat() : matches), [sections, matches]);
   const error = current?.status === 'error' ? current.error : undefined;
 
   const trimmedQuery = query?.trim() ?? '';
-  const showSelectAll = behavior.selectAll && status === 'success' && items.length > 0;
+  // Rows while closed are the rows the list opens with, so open('first') lands on the same row.
+  const loaded = isAsync ? current?.status === 'success' : true;
+  const showSelectAll = behavior.selectAll && loaded && items.length > 0;
   const showCreate =
     behavior.creatable &&
-    status === 'success' &&
+    loaded &&
     trimmedQuery !== '' &&
     !items.some((item) => itemToString(item).toLowerCase() === trimmedQuery.toLowerCase());
-  const rows = useMemo<readonly ComboboxRow<TItem>[]>(() => {
-    const optionRows = items.map((item): ComboboxRow<TItem> => ({ type: 'option', item }));
-    if (!showSelectAll && !showCreate) return optionRows;
-    return [
-      ...(showSelectAll ? [{ type: 'select-all' } as const] : []),
-      ...optionRows,
-      ...(showCreate ? [{ type: 'create', query: trimmedQuery } as const] : []),
-    ];
-  }, [items, showSelectAll, showCreate, trimmedQuery]);
+  // Options in a group form their own set, so "3 of 12" counts within the group, as browsers do
+  // for grouped options; with virtualization aria-setsize and aria-posinset have to be explicit.
+  const { rows, rowGroups, positions, topLevelCount } = useMemo(() => {
+    const rows: ComboboxRow<TItem>[] = [];
+    const rowGroups: number[] = [];
+    const positions: number[] = [];
+    let topLevelCount = 0;
+    const add = (row: ComboboxRow<TItem>, heading: number) => {
+      positions.push(heading < 0 ? ++topLevelCount : rows.length - heading);
+      rowGroups.push(heading);
+      rows.push(row);
+    };
+    if (showSelectAll) add({ type: 'select-all' }, -1);
+    for (const [key, groupItems] of sections ?? [[null, items] as const]) {
+      const heading = key === null ? -1 : rows.length;
+      if (key !== null) add({ type: 'group-label', group: { key, items: groupItems } }, heading);
+      for (const item of groupItems) add({ type: 'option', item }, heading);
+    }
+    if (showCreate) add({ type: 'create', query: trimmedQuery }, -1);
+    return { rows, rowGroups, positions, topLevelCount };
+  }, [sections, items, showSelectAll, showCreate, trimmedQuery]);
 
   const highlightedIndex = isOpen && highlightState.index < rows.length ? highlightState.index : -1;
   const statusMessage = status === 'success' ? resultCount(items.length) : '';
 
-  const highlight = useCallback((index: number, origin: HighlightOrigin = 'keyboard') => {
-    setHighlightState({ index, origin });
-  }, []);
+  const highlight = useCallback(
+    (index: number, origin: HighlightOrigin = 'keyboard') => {
+      if (rows[index]?.type !== 'group-label') setHighlightState({ index, origin });
+    },
+    [rows],
+  );
+
+  // The next row after `from` in `direction` that can be highlighted (headings can't), or -1.
+  const nextIndex = useCallback(
+    (from: number, direction: 1 | -1) => {
+      for (let index = from + direction; index >= 0 && index < rows.length; index += direction)
+        if (rows[index]?.type !== 'group-label') return index;
+      return -1;
+    },
+    [rows],
+  );
 
   const open = useCallback(
     (initial: 'first' | 'last' | 'none' = 'none') => {
       setOpen(true);
-      const index = initial === 'first' ? 0 : initial === 'last' ? rows.length - 1 : -1;
-      setHighlightState({ index: rows.length > 0 ? index : -1, origin: 'keyboard' });
+      const index = initial === 'first' ? nextIndex(-1, 1) : initial === 'last' ? nextIndex(rows.length, -1) : -1;
+      setHighlightState({ index, origin: 'keyboard' });
     },
-    [rows.length],
+    [nextIndex, rows.length],
   );
 
   const close = useCallback(() => {
@@ -270,7 +332,9 @@ export function useComboboxCore<TItem>(
   }, []);
 
   const isRowDisabled = (row: ComboboxRow<TItem>) =>
-    row.type === 'option' ? isDisabled(row.item) : row.type === 'create' && behavior.createDisabled;
+    row.type === 'option'
+      ? isDisabled(row.item)
+      : row.type === 'group-label' || (row.type === 'create' && behavior.createDisabled);
 
   const activate = (row: ComboboxRow<TItem>) => {
     if (isRowDisabled(row)) return;
@@ -313,7 +377,8 @@ export function useComboboxCore<TItem>(
         } else if (!isOpen) {
           open('first');
         } else if (count > 0) {
-          highlight(highlightedIndex + 1 >= count ? 0 : highlightedIndex + 1);
+          const next = nextIndex(highlightedIndex, 1);
+          highlight(next < 0 ? nextIndex(-1, 1) : next);
         }
         break;
       case 'ArrowUp':
@@ -323,7 +388,23 @@ export function useComboboxCore<TItem>(
         } else if (!isOpen) {
           open('last');
         } else if (count > 0) {
-          highlight(highlightedIndex <= 0 ? count - 1 : highlightedIndex - 1);
+          const previous = nextIndex(highlightedIndex < 0 ? count : highlightedIndex, -1);
+          highlight(previous < 0 ? nextIndex(count, -1) : previous);
+        }
+        break;
+      // Optional in the APG pattern: moves by 10 options and stops at the first or last one.
+      case 'PageDown':
+      case 'PageUp':
+        if (isOpen && count > 0) {
+          event.preventDefault();
+          const direction = event.key === 'PageDown' ? 1 : -1;
+          let index = highlightedIndex;
+          for (let step = 0; step < PAGE_SIZE; step++) {
+            const next = nextIndex(index, direction);
+            if (next < 0) break;
+            index = next;
+          }
+          highlight(index);
         }
         break;
       case 'Enter':
@@ -364,9 +445,11 @@ export function useComboboxCore<TItem>(
 
   const dataState = isOpen ? 'open' : 'closed';
   const rowId = (index: number) => `${ids.list}-option-${index}`;
+  const groupLabelId = (index: number) => `${ids.list}-group-${index}`;
 
   const getRowProps = (row: ComboboxRow<TItem>, index: number): HTMLAttributes<HTMLDivElement> & DataAttributes => {
     const highlighted = index === highlightedIndex;
+    const headingRow = rows[rowGroups[index] ?? -1];
     const selected =
       row.type === 'option' ? isSelected(row.item) : row.type === 'select-all' ? behavior.allSelected(items) : false;
     const disabled = isRowDisabled(row);
@@ -381,8 +464,8 @@ export function useComboboxCore<TItem>(
       role: 'option',
       'aria-selected': selected,
       'aria-disabled': disabled ? true : undefined,
-      'aria-setsize': rows.length,
-      'aria-posinset': index + 1,
+      'aria-setsize': headingRow?.type === 'group-label' ? headingRow.group.items.length : topLevelCount,
+      'aria-posinset': positions[index],
       onMouseMove: () => {
         if (!highlighted) highlight(index, 'pointer');
       },
@@ -406,6 +489,7 @@ export function useComboboxCore<TItem>(
     query,
     items,
     rows,
+    rowGroups,
     highlightedIndex,
     highlightOrigin: highlightState.origin,
     status,
@@ -486,6 +570,12 @@ export function useComboboxCore<TItem>(
     getLoadingProps: () => ({ 'data-dk-part': names.loading, 'data-loading': '' }),
     getErrorProps: () => ({ role: 'alert', 'data-dk-part': names.error }),
     getRowProps,
+    getGroupProps: (index) => ({ role: 'group', 'aria-labelledby': groupLabelId(index) }),
+    getGroupLabelProps: (index) => ({
+      id: groupLabelId(index),
+      role: 'presentation',
+      'data-dk-part': names.groupLabel,
+    }),
     getOptionProps: (item, index) => getRowProps({ type: 'option', item }, index),
   };
 }
